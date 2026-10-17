@@ -29,6 +29,7 @@
 | GLM | Copyright (c) 2005 G-Truc Creation | MIT | 헤더 온리 |
 | Vulkan Memory Allocator (VMA) | Copyright (c) 2017-2025 Advanced Micro Devices, Inc. All rights reserved. | MIT | 헤더 온리 |
 | earcut.hpp | Copyright (c) 2015 Mapbox | ISC | 다각형 삼각분할 |
+| ACadSharp | Copyright (c) 2021 Albert Domenech | MIT | DWG 읽기 — 알고리즘(R2004 LZ77 압축 해제 등)을 C++ 로 옮김 |
 
 ## 2. 런타임 에셋 (`sdk/fonts`, `sdk/models`, `sdk/textures`)
 
@@ -81,6 +82,7 @@ glTF 모델은 Khronos Group 의 glTF-Sample-Assets / glTF-Sample-Models 저장�
 - **Metal**, **Xcode** 는 Apple Inc. 의 상표입니다.
 - **Roboto** 는 Google 의 상표, **Source** 는 Adobe 의 상표입니다.
 - **Cesium** 로고는 Cesium 의 상표입니다.
+- **AutoCAD** 및 **DWG** 는 미국 및 기타 국가에서 Autodesk, Inc. 의 등록 상표 또는 상표입니다. LotCAD 는 Autodesk, Inc. 와 관련이 없으며 Autodesk 의 후원·보증을 받지 않습니다. 여기서 "DWG" · "DXF" 는 LotCAD 가 열고 저장할 수 있는 파일 형식을 가리키는 데에만 씁니다.
 
 ---
 
@@ -297,7 +299,7 @@ glTF 모델은 Khronos Group 의 glTF-Sample-Assets / glTF-Sample-Models 저장�
 ### MIT License
 
 적용: Dear ImGui, stb, tinyobjloader, tinygltf, nlohmann/json, GLM, Vulkan Memory Allocator,
-littleVulkanEngine 샘플 모델(OBJ)
+ACadSharp, littleVulkanEngine 샘플 모델(OBJ)
 
 각 구성요소의 저작권 표시는 위 표를 따르며, 본문은 아래와 같습니다.
 
@@ -309,6 +311,7 @@ Copyright (c) 2015-Present Syoyo Fujita, Aurélien Chatelain and many contributo
 Copyright (c) 2013-2019 Niels Lohmann <http://nlohmann.me>            (nlohmann/json)
 Copyright (c) 2005 G-Truc Creation                                    (GLM)
 Copyright (c) 2017-2025 Advanced Micro Devices, Inc. All rights reserved. (VMA)
+Copyright (c) 2021 Albert Domenech                                    (ACadSharp)
 Copyright (c) 2020 Brendan Galea                                      (littleVulkanEngine)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
