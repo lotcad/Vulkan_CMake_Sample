@@ -43,6 +43,8 @@ def CAD_SetViewportLayout(layout: int) -> None:
 
 def CAD_GetViewportLayout() -> int:
     """C: int CAD_GetViewportLayout(void)
+
+    layout: 0=Single(단일) 1=Dual(좌우) 2=Triple 3=Quad(2x2)
     """
     return _f.CAD_GetViewportLayout()
 
@@ -57,6 +59,8 @@ def CAD_SetActiveViewport(index: int) -> None:
 
 def CAD_GetActiveViewport() -> int:
     """C: int CAD_GetActiveViewport(void)
+
+    활성(클릭) 뷰포트 칸 인덱스 0~3.
     """
     return _f.CAD_GetActiveViewport()
 
@@ -91,6 +95,8 @@ def CAD_SetSelectionStyle(style: int) -> None:
 
 def CAD_GetSelectionStyle() -> int:
     """C: int CAD_GetSelectionStyle(void)
+
+    선택 하이라이트 스타일: 0=Silhouette(JFA 외곽선), 1=Edge(feature edge 노란색, CAD 방식)
     """
     return _f.CAD_GetSelectionStyle()
 
@@ -106,6 +112,9 @@ def CAD_SetHoverHighlight(enabled: bool) -> None:
 
 def CAD_GetHoverHighlight() -> bool:
     """C: bool CAD_GetHoverHighlight(void)
+
+    호버 강조 — 마우스가 올라간 객체를 연한 하늘색 엣지로 표시(선택은 노란색).
+    기본 켬. 도면 작업 중 시선 분산이 싫거나 초대형 씬에서 부담될 때 끌 수 있다.
     """
     return _f.CAD_GetHoverHighlight()
 
@@ -146,6 +155,9 @@ def CAD_SetCollisionEnabled(enabled: bool) -> None:
 
 def CAD_GetCollisionEnabled() -> bool:
     """C: bool CAD_GetCollisionEnabled(void)
+
+    벽 충돌 (Walk / 캐릭터 모드). 끄면 벽을 통과한다.
+    ⚠️ 정적 지오메트리 대상의 캐릭터 충돌이지 물리엔진이 아니다 — 물체는 떨어지지 않는다.
     """
     return _f.CAD_GetCollisionEnabled()
 
@@ -156,16 +168,14 @@ def CAD_GetStatusMessage() -> str | None:
     명령 프롬프트(현재 대화형 도구 안내). buf 에 UTF-8 로 복사, 반환=문자열 길이(널 제외).
     호스트가 자기 상태바에 표시하려고 매 프레임 폴링. buf/bufLen 0 이면 길이만 반환.
     """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_GetStatusMessage(_buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
+    _need = _f.CAD_GetStatusMessage(None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
+    if _need < 0:
+        return None
+    _cap = _need + 1
+    _buf = _c.create_string_buffer(_cap)
+    if _f.CAD_GetStatusMessage(_buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
+        return None
+    return _n.decode(_buf.value)
 
 
 def CAD_GetTransientMessage() -> str | None:

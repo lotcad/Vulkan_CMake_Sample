@@ -55,12 +55,36 @@ def CAD_LoadUrdf(path: str | None) -> int:
 
 def CAD_GetRobotCount() -> int:
     """C: uint32_t CAD_GetRobotCount(void)
+
+    URDF 는 ROS 의 로봇 정의 포맷이지만 파일 자체는 XML 이라 **ROS 없이도** 읽고 그린다.
+    좌표계도 맞는다 — URDF 와 이 엔진 둘 다 Z-up 우수좌표계·미터라 축 변환이 없다.
+
+    uint32_t r = CAD_LoadUrdf("models/demo_arm.urdf");   // 0 = 실패, 아니면 로봇 인덱스+1
+    CAD_SetJointValue(r, CAD_FindJoint(r, "joint_elbow"), 0.7f);   // 라디안
+
+    조인트는 1자유도다 — URDF <axis> 가 축이고 값은 그 축의 회전각(revolute, 라디안)
+    또는 이동거리(prismatic, 미터). 한계가 있으면 엔진이 잘라 넣는다.
+
+    로봇 핸들은 **1부터** — 0 을 실패로 쓰기 위해서다. 내부 인덱스 = handle-1.
+    지원 형상: box / cylinder / sphere. mesh(STL/DAE) 링크는 아직 건너뛴다.
     """
     return _f.CAD_GetRobotCount()
 
 
 def CAD_GetJointCount(robot: int) -> int:
     """C: uint32_t CAD_GetJointCount(uint32_t robot)
+
+    URDF 는 ROS 의 로봇 정의 포맷이지만 파일 자체는 XML 이라 **ROS 없이도** 읽고 그린다.
+    좌표계도 맞는다 — URDF 와 이 엔진 둘 다 Z-up 우수좌표계·미터라 축 변환이 없다.
+
+    uint32_t r = CAD_LoadUrdf("models/demo_arm.urdf");   // 0 = 실패, 아니면 로봇 인덱스+1
+    CAD_SetJointValue(r, CAD_FindJoint(r, "joint_elbow"), 0.7f);   // 라디안
+
+    조인트는 1자유도다 — URDF <axis> 가 축이고 값은 그 축의 회전각(revolute, 라디안)
+    또는 이동거리(prismatic, 미터). 한계가 있으면 엔진이 잘라 넣는다.
+
+    로봇 핸들은 **1부터** — 0 을 실패로 쓰기 위해서다. 내부 인덱스 = handle-1.
+    지원 형상: box / cylinder / sphere. mesh(STL/DAE) 링크는 아직 건너뛴다.
     """
     return _f.CAD_GetJointCount(robot)
 
@@ -75,6 +99,8 @@ def CAD_FindJoint(robot: int, jointName: str | None) -> int:
 
 def CAD_GetJointName(robot: int, jointIdx: int) -> str | None:
     """C: int CAD_GetJointName(uint32_t robot, int jointIdx, char* outUtf8, int cap)
+
+    조인트 이름 → 인덱스. 없으면 -1. (ROS 는 이름으로 오므로 필요)
     """
     _cap = 256
     while True:
@@ -98,6 +124,8 @@ def CAD_SetJointValue(robot: int, jointIdx: int, value: float) -> float:
 
 def CAD_GetJointValue(robot: int, jointIdx: int) -> float:
     """C: float CAD_GetJointValue(uint32_t robot, int jointIdx)
+
+    값 대입/조회. 반환은 한계로 잘린 **실제 적용값**.
     """
     return _f.CAD_GetJointValue(robot, jointIdx)
 
@@ -150,6 +178,9 @@ def CAD_SetJointAxis(robot: int, jointIdx: int, x: float, y: float, z: float) ->
 
 def CAD_GetJointAxis(robot: int, jointIdx: int) -> tuple[float, float, float] | None:
     """C: bool CAD_GetJointAxis(uint32_t robot, int jointIdx, float* x, float* y, float* z)
+
+    축/종류 지정 — 엔진 안에서 리깅 (URDF 로 읽은 값을 바꿔 보기).
+    축은 길이 0 이면 무시하고 false. 내부에서 정규화한다.
     """
     x = _c.c_float()
     y = _c.c_float()
@@ -178,6 +209,8 @@ def CAD_SetJointOrigin(robot: int, jointIdx: int, x: float, y: float, z: float) 
 
 def CAD_GetJointOrigin(robot: int, jointIdx: int) -> tuple[float, float, float] | None:
     """C: bool CAD_GetJointOrigin(uint32_t robot, int jointIdx, float* x, float* y, float* z)
+
+    축의 **위치**(피벗). 부모 링크 좌표 기준. 방향만으로는 어디를 중심으로 도는지 못 정한다.
     """
     x = _c.c_float()
     y = _c.c_float()

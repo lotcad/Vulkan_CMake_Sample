@@ -60,6 +60,8 @@ def CAD_MoveDrawingView(viewId: int, dx: float, dy: float) -> bool:
 
 def CAD_ClearDrawingViews() -> None:
     """C: void CAD_ClearDrawingViews(void)
+
+    뷰 옮기기 — 3각법 정렬 유지(평면도는 위아래, 우측면도는 좌우, 정면도는 매달린 뷰·단면도와 함께).
     """
     _f.CAD_ClearDrawingViews()
 
@@ -70,16 +72,14 @@ def CAD_GetDrawingViewsJson() -> str | None:
     뷰 목록 JSON — [{"id","name","kind":"base|section|detail","dir","up","origin","scale","hidden","dims","sources",
     "parent","label"(단면·상세),"bounds":{"min":[x,y],"max":[x,y]}}] — bounds = 뷰가 차지하는 자리(선 + 모델 치수 + 이름). 2회 호출 규약.
     """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_GetDrawingViewsJson(_buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
+    _need = _f.CAD_GetDrawingViewsJson(None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
+    if _need < 0:
+        return None
+    _cap = _need + 1
+    _buf = _c.create_string_buffer(_cap)
+    if _f.CAD_GetDrawingViewsJson(_buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
+        return None
+    return _n.decode(_buf.value)
 
 
 def CAD_CreateExternalEffect(path: str | None, x: float, y: float, z: float, unitsPerMeter: float) -> int:

@@ -115,6 +115,8 @@ def CAD_BossExtrudeBRep(id: int, profileXYZ: Sequence | None, pointCount: int, h
 
 def CAD_GetBRepBossCount(id: int) -> int:
     """C: uint32_t CAD_GetBRepBossCount(uint32_t id)
+
+    닫힌 스케치로 — 스케치가 가까운 캡(위/아래) 쪽으로 height(양수) 만큼. 스케치가 바뀌면 다시 만든다.
     """
     return _f.CAD_GetBRepBossCount(id)
 
@@ -132,6 +134,8 @@ def CAD_GetBRepBossHeight(id: int, bossIndex: int) -> float | None:
 
 def CAD_SetBRepBossHeight(id: int, bossIndex: int, height: float) -> bool:
     """C: bool CAD_SetBRepBossHeight(uint32_t id, uint32_t bossIndex, float height)
+
+    보스 높이 읽기·바꾸기(부호 = 위/아래). 바꾸기는 undo 1.
     """
     return _f.CAD_SetBRepBossHeight(id, bossIndex, height)
 
@@ -192,6 +196,9 @@ def CAD_RemoveBRepFeatures(id: int, cutIndices: Sequence | None, cutCount: int, 
 def CAD_RemoveBRepCut(id: int, cutIndex: int) -> bool:
     """C: bool CAD_RemoveBRepCut(uint32_t id, uint32_t cutIndex)
 
+    컷·보스 지우기(솔리드웍스 피처 삭제처럼) — 여러 개를 한 번에 빼고 남은 것으로 한 번 다시 만든다. 그 피처만 쓰던 스케치도 지운다.
+    번호는 CAD_GetBRepCutInfo / 보스 순서(지우기 전 번호 — 지운 뒤엔 뒤쪽 번호가 당겨진다). 되돌리기 한 단계.
+    남은 것으로 모양을 못 만들면(보스를 지워 그 안 컷이 허공에 남음 등) 아무것도 안 바꾸고 false + CAD_GetLastError.
     하나만 — CAD_RemoveBRepFeatures 와 같다
     """
     return _f.CAD_RemoveBRepCut(id, cutIndex)
@@ -199,6 +206,10 @@ def CAD_RemoveBRepCut(id: int, cutIndex: int) -> bool:
 
 def CAD_RemoveBRepBoss(id: int, bossIndex: int) -> bool:
     """C: bool CAD_RemoveBRepBoss(uint32_t id, uint32_t bossIndex)
+
+    컷·보스 지우기(솔리드웍스 피처 삭제처럼) — 여러 개를 한 번에 빼고 남은 것으로 한 번 다시 만든다. 그 피처만 쓰던 스케치도 지운다.
+    번호는 CAD_GetBRepCutInfo / 보스 순서(지우기 전 번호 — 지운 뒤엔 뒤쪽 번호가 당겨진다). 되돌리기 한 단계.
+    남은 것으로 모양을 못 만들면(보스를 지워 그 안 컷이 허공에 남음 등) 아무것도 안 바꾸고 false + CAD_GetLastError.
     """
     return _f.CAD_RemoveBRepBoss(id, bossIndex)
 

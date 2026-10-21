@@ -61,5 +61,18 @@ def CAD_SaveAs(pathUtf8: str | None, selectedOnly: bool) -> bool:
 
 def CAD_OpenFile(pathUtf8: str | None) -> bool:
     """C: bool CAD_OpenFile(const char* pathUtf8)
+
+    확장자로 갈린다. 엔진 안의 분기(saveByExtension / loadModelFromPath)를 그대로 쓴다 —
+    호스트가 포맷을 판별해 다른 함수를 고를 필요가 없고, 새 포맷이 붙어도 API 는 그대로다.
+
+    CAD_SaveAs  : .lot(프로젝트) · .stl · .dxf · .obj · .glb/.gltf
+    .lot 은 씬 전체(선·솔리드·로봇·문서 상태)를 담는 네이티브 형식이고,
+    나머지는 내보내기다. selectedOnly=true 면 선택 객체만.
+    점군도 .lot 에 담긴다(2026-09 부터). 다만 파일이 커진다 — 점당 21.3B.
+    CAD_OpenFile: .lot · .obj · .stl · .dxf · .ply(점군) · .gltf/.glb · .fbx (static meshes)
+    **현재 문서에 추가**한다(새 탭을 만들지 않음). 새 탭으로 열려면
+    CAD_OpenDocument 를 쓴다.
+
+    둘 다 실패 시 false 를 반환하고 사유는 CAD_GetStatusMessage 로 읽는다.
     """
     return _f.CAD_OpenFile(_n.text(pathUtf8))

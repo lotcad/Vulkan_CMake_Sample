@@ -33,30 +33,40 @@ def CAD_SetOSnapEnabled(on: bool) -> bool:
 
 def CAD_GetOSnapEnabled() -> bool:
     """C: bool CAD_GetOSnapEnabled(void)
+
+    모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
     return _f.CAD_GetOSnapEnabled()
 
 
 def CAD_SetOSnapModes(mask: int) -> bool:
     """C: bool CAD_SetOSnapModes(uint32_t mask)
+
+    모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
     return _f.CAD_SetOSnapModes(mask)
 
 
 def CAD_GetOSnapModes() -> int:
     """C: uint32_t CAD_GetOSnapModes(void)
+
+    모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
     return _f.CAD_GetOSnapModes()
 
 
 def CAD_SetOrthoEnabled(on: bool) -> None:
     """C: void CAD_SetOrthoEnabled(bool on)
+
+    모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
     _f.CAD_SetOrthoEnabled(on)
 
 
 def CAD_GetOrthoEnabled() -> bool:
     """C: bool CAD_GetOrthoEnabled(void)
+
+    모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
     return _f.CAD_GetOrthoEnabled()
 
@@ -64,6 +74,7 @@ def CAD_GetOrthoEnabled() -> bool:
 def CAD_SetPolarTracking(on: bool, incrementDeg: float) -> bool:
     """C: bool CAD_SetPolarTracking(bool on, float incrementDeg)
 
+    모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     incrementDeg <= 0 = 지금 값 유지(기본 45°, 1~90)
     """
     return _f.CAD_SetPolarTracking(on, incrementDeg)
@@ -72,6 +83,7 @@ def CAD_SetPolarTracking(on: bool, incrementDeg: float) -> bool:
 def CAD_GetPolarTracking() -> float | None:
     """C: bool CAD_GetPolarTracking(float* incrementDeg)
 
+    모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     켜짐 여부, incrementDeg NULL 가능
     """
     incrementDeg = _c.c_float()

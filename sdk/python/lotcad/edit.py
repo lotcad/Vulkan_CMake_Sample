@@ -43,18 +43,33 @@ def CAD_BeginTransaction(name: str | None) -> None:
 
 def CAD_EndTransaction() -> bool:
     """C: bool CAD_EndTransaction(void)
+
+    트랜잭션 — 여러 편집(생성·속성·삭제·이동…)을 되돌리기 **한 단계** 로 묶는다.
+    Begin … End 사이의 CAD_Create·Set·Delete·SetObjectProperty 는 실행은 즉시 되고, End 에서 한 묶음으로
+    undo 스택에 오른다(Ctrl+Z 한 번). Rollback 은 묶음을 되돌리고 버린다(미리보기 거절). 중첩 가능(깊이 셈).
+    열린 동안 CAD_Undo/Redo 는 false. name 은 UI 의 되돌리기 이름.
     """
     return _f.CAD_EndTransaction()
 
 
 def CAD_RollbackTransaction() -> bool:
     """C: bool CAD_RollbackTransaction(void)
+
+    트랜잭션 — 여러 편집(생성·속성·삭제·이동…)을 되돌리기 **한 단계** 로 묶는다.
+    Begin … End 사이의 CAD_Create·Set·Delete·SetObjectProperty 는 실행은 즉시 되고, End 에서 한 묶음으로
+    undo 스택에 오른다(Ctrl+Z 한 번). Rollback 은 묶음을 되돌리고 버린다(미리보기 거절). 중첩 가능(깊이 셈).
+    열린 동안 CAD_Undo/Redo 는 false. name 은 UI 의 되돌리기 이름.
     """
     return _f.CAD_RollbackTransaction()
 
 
 def CAD_TransactionDepth() -> int:
     """C: int CAD_TransactionDepth(void)
+
+    트랜잭션 — 여러 편집(생성·속성·삭제·이동…)을 되돌리기 **한 단계** 로 묶는다.
+    Begin … End 사이의 CAD_Create·Set·Delete·SetObjectProperty 는 실행은 즉시 되고, End 에서 한 묶음으로
+    undo 스택에 오른다(Ctrl+Z 한 번). Rollback 은 묶음을 되돌리고 버린다(미리보기 거절). 중첩 가능(깊이 셈).
+    열린 동안 CAD_Undo/Redo 는 false. name 은 UI 의 되돌리기 이름.
     """
     return _f.CAD_TransactionDepth()
 
@@ -99,6 +114,9 @@ def CAD_EdgeFillet(distance: float) -> bool:
 
 def CAD_EdgeChamfer(distance: float) -> bool:
     """C: bool CAD_EdgeChamfer(float distance)
+
+    모서리 필렛/챔퍼 — 선택 솔리드의 볼록 모서리를 굴리거나(fillet) 깎는다(chamfer).
+    distance<=0 이면 객체 크기에 맞춰 자동.
     """
     return _f.CAD_EdgeChamfer(distance)
 

@@ -54,6 +54,7 @@ def CAD_CreateLinetype(name: str | None, pattern: Sequence | None, count: int, d
 def CAD_GetLinetypeIds(out: Any, capacity: int) -> int:
     """C: uint32_t CAD_GetLinetypeIds(uint32_t* out, uint32_t capacity)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     필요한 개수, 0(Continuous) 포함
     """
     return _f.CAD_GetLinetypeIds(out, capacity)
@@ -62,6 +63,7 @@ def CAD_GetLinetypeIds(out: Any, capacity: int) -> int:
 def CAD_GetLinetypeName(id: int) -> str | None:
     """C: int CAD_GetLinetypeName(uint32_t id, char* out, int capacity)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     이름 길이, 없으면 -1
     """
     _cap = 256
@@ -79,6 +81,7 @@ def CAD_GetLinetypeName(id: int) -> str | None:
 def CAD_GetLinetypePattern(id: int, out: Any, capacity: int) -> int:
     """C: int CAD_GetLinetypePattern(uint32_t id, float* out, int capacity)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     요소 수, 없으면 -1
     """
     return _f.CAD_GetLinetypePattern(id, out, capacity)
@@ -87,6 +90,7 @@ def CAD_GetLinetypePattern(id: int, out: Any, capacity: int) -> int:
 def CAD_SetObjectLinetype(objectId: int, linetypeId: int) -> bool:
     """C: bool CAD_SetObjectLinetype(uint32_t objectId, uint32_t linetypeId)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     CAD_LINETYPE_BYLAYER 허용
     """
     return _f.CAD_SetObjectLinetype(objectId, linetypeId)
@@ -94,6 +98,8 @@ def CAD_SetObjectLinetype(objectId: int, linetypeId: int) -> bool:
 
 def CAD_GetObjectLinetype(objectId: int) -> int | None:
     """C: bool CAD_GetObjectLinetype(uint32_t objectId, uint32_t* out)
+
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     """
     out = _c.c_uint32()
     if not _f.CAD_GetObjectLinetype(objectId, _c.byref(out)):
@@ -104,6 +110,7 @@ def CAD_GetObjectLinetype(objectId: int) -> int | None:
 def CAD_SetObjectLinetypeScale(objectId: int, scale: float) -> bool:
     """C: bool CAD_SetObjectLinetypeScale(uint32_t objectId, float scale)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     객체별 축척(CELTSCALE)
     """
     return _f.CAD_SetObjectLinetypeScale(objectId, scale)
@@ -111,6 +118,8 @@ def CAD_SetObjectLinetypeScale(objectId: int, scale: float) -> bool:
 
 def CAD_GetObjectLinetypeScale(objectId: int) -> float | None:
     """C: bool CAD_GetObjectLinetypeScale(uint32_t objectId, float* out)
+
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     """
     out = _c.c_float()
     if not _f.CAD_GetObjectLinetypeScale(objectId, _c.byref(out)):
@@ -121,6 +130,7 @@ def CAD_GetObjectLinetypeScale(objectId: int) -> float | None:
 def CAD_SetSelectedLinetype(linetypeId: int) -> int:
     """C: uint32_t CAD_SetSelectedLinetype(uint32_t linetypeId)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     바뀐 객체 수
     """
     return _f.CAD_SetSelectedLinetype(linetypeId)
@@ -129,6 +139,7 @@ def CAD_SetSelectedLinetype(linetypeId: int) -> int:
 def CAD_SetLayerLinetype(layerId: int, linetypeId: int) -> bool:
     """C: bool CAD_SetLayerLinetype(uint32_t layerId, uint32_t linetypeId)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     도면층 0 은 실선 고정
     """
     return _f.CAD_SetLayerLinetype(layerId, linetypeId)
@@ -136,6 +147,8 @@ def CAD_SetLayerLinetype(layerId: int, linetypeId: int) -> bool:
 
 def CAD_GetLayerLinetype(layerId: int) -> int | None:
     """C: bool CAD_GetLayerLinetype(uint32_t layerId, uint32_t* out)
+
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     """
     out = _c.c_uint32()
     if not _f.CAD_GetLayerLinetype(layerId, _c.byref(out)):
@@ -146,6 +159,7 @@ def CAD_GetLayerLinetype(layerId: int) -> int | None:
 def CAD_SetLinetypeScale(scale: float) -> bool:
     """C: bool CAD_SetLinetypeScale(float scale)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     전역 LTSCALE
     """
     return _f.CAD_SetLinetypeScale(scale)
@@ -153,12 +167,16 @@ def CAD_SetLinetypeScale(scale: float) -> bool:
 
 def CAD_GetLinetypeScale() -> float:
     """C: float CAD_GetLinetypeScale(void)
+
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     """
     return _f.CAD_GetLinetypeScale()
 
 
 def CAD_SetObjectLayer(objectId: int, layerId: int) -> bool:
     """C: bool CAD_SetObjectLayer(uint32_t objectId, uint32_t layerId)
+
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     """
     return _f.CAD_SetObjectLayer(objectId, layerId)
 
@@ -166,6 +184,7 @@ def CAD_SetObjectLayer(objectId: int, layerId: int) -> bool:
 def CAD_GetObjectLayer(objectId: int) -> int:
     """C: int CAD_GetObjectLayer(uint32_t objectId)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     -1 for missing objects
     """
     return _f.CAD_GetObjectLayer(objectId)
@@ -173,6 +192,8 @@ def CAD_GetObjectLayer(objectId: int) -> int:
 
 def CAD_AssignSelectedToLayer(layerId: int) -> int:
     """C: uint32_t CAD_AssignSelectedToLayer(uint32_t layerId)
+
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     """
     return _f.CAD_AssignSelectedToLayer(layerId)
 
@@ -180,6 +201,7 @@ def CAD_AssignSelectedToLayer(layerId: int) -> int:
 def CAD_GetObjectName(id: int) -> str | None:
     """C: int CAD_GetObjectName(uint32_t id, char* outUtf8, int cap)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     길이 반환, -1=실패
     """
     _cap = 256
@@ -197,6 +219,7 @@ def CAD_GetObjectName(id: int) -> str | None:
 def CAD_FindObjectByName(utf8: str | None) -> int:
     """C: uint32_t CAD_FindObjectByName(const char* utf8)
 
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     0 = 없음
     """
     return _f.CAD_FindObjectByName(_n.text(utf8))
@@ -204,6 +227,8 @@ def CAD_FindObjectByName(utf8: str | None) -> int:
 
 def CAD_GetColor(id: int) -> tuple[float, float, float] | None:
     """C: bool CAD_GetColor(uint32_t id, float* r, float* g, float* b)
+
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     """
     r = _c.c_float()
     g = _c.c_float()
@@ -215,6 +240,8 @@ def CAD_GetColor(id: int) -> tuple[float, float, float] | None:
 
 def CAD_SetColor(id: int, r: float, g: float, b: float) -> bool:
     """C: bool CAD_SetColor(uint32_t id, float r, float g, float b)
+
+    사용자 선종류 추가. 요소 1..8개, 선(양수 또는 점)이 하나는 있어야 한다. 실패 0.
     """
     return _f.CAD_SetColor(id, r, g, b)
 
@@ -237,6 +264,8 @@ def CAD_GetBoundsWorld(id: int) -> tuple[float, float, float, float, float, floa
 
 def CAD_GetCenterWorld(id: int) -> tuple[float, float, float] | None:
     """C: bool CAD_GetCenterWorld(uint32_t id, float* x, float* y, float* z)
+
+    월드 AABB (min/max). GetCenter = 0.5*(min+max). 대형 임포트 메시는 AABB 폴백으로 유효.
     """
     x = _c.c_float()
     y = _c.c_float()

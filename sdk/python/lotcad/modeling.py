@@ -205,6 +205,9 @@ def CAD_AddEdgeBevel(id: int, fillet: bool, distance: float, allEdges: bool, bre
 
 def CAD_GetEdgeBevelCount(id: int) -> int:
     """C: uint32_t CAD_GetEdgeBevelCount(uint32_t id)
+
+    모서리 가공 기록 — B-Rep 솔리드에 필렛/모따기 하나를 더한다(스케치가 바뀌어도 다시 적용).
+    allEdges = 볼록 모서리 전부, 아니면 brepEdge(B-Rep 선 모서리 id). distance = 모델 로컬 단위. 안 먹으면 false(변화 없음).
     """
     return _f.CAD_GetEdgeBevelCount(id)
 
@@ -247,6 +250,9 @@ def CAD_CreateWedge(x: float, y: float, z: float, sx: float, sy: float, sz: floa
 
 def CAD_CreatePyramid(x: float, y: float, z: float, radius: float, height: float, sides: int, topRadius: float) -> int:
     """C: uint32_t CAD_CreatePyramid(float x, float y, float z, float radius, float height, int sides, float topRadius)
+
+    솔리드 — 밑면 중심(월드) 위에 +Z 로 선다. 실패 0.
+      쐐기 sx·sy 밑면, sz 높이 / 피라미드 외접 반지름·높이·변 수(3~64)·윗면 반지름(0 = 뾰족) / 관 바깥·안 반지름·높이
     """
     return _f.CAD_CreatePyramid(x, y, z, radius, height, sides, topRadius)
 
@@ -261,18 +267,24 @@ def CAD_CreateSphere(x: float, y: float, z: float, radius: float) -> int:
 
 def CAD_CreateCylinder(x: float, y: float, z: float, radius: float, height: float) -> int:
     """C: uint32_t CAD_CreateCylinder(float x, float y, float z, float radius, float height)
+
+    구·원기둥·원뿔·토러스 — (x,y,z) = 밑면 중심(구·토러스는 바닥에 닿는 점), 축 = +Z. 닫힌 메시, 선택 + undo 1. 잘못된 크기면 0.
     """
     return _f.CAD_CreateCylinder(x, y, z, radius, height)
 
 
 def CAD_CreateCone(x: float, y: float, z: float, radius: float, height: float) -> int:
     """C: uint32_t CAD_CreateCone(float x, float y, float z, float radius, float height)
+
+    구·원기둥·원뿔·토러스 — (x,y,z) = 밑면 중심(구·토러스는 바닥에 닿는 점), 축 = +Z. 닫힌 메시, 선택 + undo 1. 잘못된 크기면 0.
     """
     return _f.CAD_CreateCone(x, y, z, radius, height)
 
 
 def CAD_CreateTorus(x: float, y: float, z: float, majorRadius: float, minorRadius: float) -> int:
     """C: uint32_t CAD_CreateTorus(float x, float y, float z, float majorRadius, float minorRadius)
+
+    구·원기둥·원뿔·토러스 — (x,y,z) = 밑면 중심(구·토러스는 바닥에 닿는 점), 축 = +Z. 닫힌 메시, 선택 + undo 1. 잘못된 크기면 0.
     """
     return _f.CAD_CreateTorus(x, y, z, majorRadius, minorRadius)
 
@@ -303,16 +315,14 @@ def CAD_ExplodeView(argsJson: str | None) -> str | None:
     part|spin|balloons|bom|manual", ids, id, t, seconds, turns, dir[3], distance, step, show, path, paper}. 결과 JSON(ok·error·t·steps·parts·items…)
     을 outUtf8 에(cap 바이트, null 이면 길이만). 반환 = 길이, 실패 -1. manual 은 여러 프레임 작업 — status 의 manual_busy 로 끝을 본다.
     """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_ExplodeView(_n.text(argsJson), _buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
+    _need = _f.CAD_ExplodeView(_n.text(argsJson), None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
+    if _need < 0:
+        return None
+    _cap = _need + 1
+    _buf = _c.create_string_buffer(_cap)
+    if _f.CAD_ExplodeView(_n.text(argsJson), _buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
+        return None
+    return _n.decode(_buf.value)
 
 
 def CAD_WindTunnel(argsJson: str | None) -> str | None:
@@ -330,46 +340,64 @@ def CAD_WindTunnel(argsJson: str | None) -> str | None:
                 fix|free {face} · force {face, force[3] N} · pressure {face, value MPa} · temp {face, value °C} · flux {face, value W} · convect {face, h, ambient}
                 face = 번호 또는 그 면 가까운 점 [x,y,z]. 결과는 status 의 result(응력·변위·안전율·온도·진동수·좌굴 배수·convergence).
     """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_WindTunnel(_n.text(argsJson), _buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
+    _need = _f.CAD_WindTunnel(_n.text(argsJson), None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
+    if _need < 0:
+        return None
+    _cap = _need + 1
+    _buf = _c.create_string_buffer(_cap)
+    if _f.CAD_WindTunnel(_n.text(argsJson), _buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
+        return None
+    return _n.decode(_buf.value)
 
 
 def CAD_Water(argsJson: str | None) -> str | None:
     """C: int CAD_Water(const char* argsJson, char* outUtf8, int cap)
+
+    해석 — MCP 도구 wind_tunnel · water · structural_analysis 와 같은 창구(엔진 windTunnelOp·waterOp·simOp). argsJson = {"op": …, …}
+    (없으면 status), 결과 JSON(ok·error·message·상태)을 outUtf8 에(cap 바이트, null 이면 길이만). 반환 = 길이, 실패 -1.
+    켜기(start)는 다음 프레임에, 구조 해석 풀이(run·converge)는 작업 스레드에서 — status 로 끝을 본다.
+    2회 호출(outUtf8 null 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
+     바람 터널: status · start {ids|id, grid fast|normal|fine, wind 0.02~0.10} · stop · reset · pause · play ·
+                view {field speed|pressure|vortex|smoke, plane x|y|z, at 0~1, smoke, surface} · wind {value}      — 바람은 +X
+     물:        status · start {id(그릇), level 0~1, grid} · stop · reset · pause · play · tilt {x, y 도} · shake {amplitude 0~1, period}
+     구조 해석: status(faces = 면 번호·넓이·가운데·법선) · open {id} · close · clear · run · cancel · converge(요소 × 0.7 로 한 번 더) ·
+                set {type stress|heat|modal|buckling, material, size, units mm|m, modes, thermal, ref_temp, wind, wind_speed, show, scale, animate} ·
+                fix|free {face} · force {face, force[3] N} · pressure {face, value MPa} · temp {face, value °C} · flux {face, value W} · convect {face, h, ambient}
+                face = 번호 또는 그 면 가까운 점 [x,y,z]. 결과는 status 의 result(응력·변위·안전율·온도·진동수·좌굴 배수·convergence).
     """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_Water(_n.text(argsJson), _buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
+    _need = _f.CAD_Water(_n.text(argsJson), None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
+    if _need < 0:
+        return None
+    _cap = _need + 1
+    _buf = _c.create_string_buffer(_cap)
+    if _f.CAD_Water(_n.text(argsJson), _buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
+        return None
+    return _n.decode(_buf.value)
 
 
 def CAD_StructuralAnalysis(argsJson: str | None) -> str | None:
     """C: int CAD_StructuralAnalysis(const char* argsJson, char* outUtf8, int cap)
+
+    해석 — MCP 도구 wind_tunnel · water · structural_analysis 와 같은 창구(엔진 windTunnelOp·waterOp·simOp). argsJson = {"op": …, …}
+    (없으면 status), 결과 JSON(ok·error·message·상태)을 outUtf8 에(cap 바이트, null 이면 길이만). 반환 = 길이, 실패 -1.
+    켜기(start)는 다음 프레임에, 구조 해석 풀이(run·converge)는 작업 스레드에서 — status 로 끝을 본다.
+    2회 호출(outUtf8 null 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
+     바람 터널: status · start {ids|id, grid fast|normal|fine, wind 0.02~0.10} · stop · reset · pause · play ·
+                view {field speed|pressure|vortex|smoke, plane x|y|z, at 0~1, smoke, surface} · wind {value}      — 바람은 +X
+     물:        status · start {id(그릇), level 0~1, grid} · stop · reset · pause · play · tilt {x, y 도} · shake {amplitude 0~1, period}
+     구조 해석: status(faces = 면 번호·넓이·가운데·법선) · open {id} · close · clear · run · cancel · converge(요소 × 0.7 로 한 번 더) ·
+                set {type stress|heat|modal|buckling, material, size, units mm|m, modes, thermal, ref_temp, wind, wind_speed, show, scale, animate} ·
+                fix|free {face} · force {face, force[3] N} · pressure {face, value MPa} · temp {face, value °C} · flux {face, value W} · convect {face, h, ambient}
+                face = 번호 또는 그 면 가까운 점 [x,y,z]. 결과는 status 의 result(응력·변위·안전율·온도·진동수·좌굴 배수·convergence).
     """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_StructuralAnalysis(_n.text(argsJson), _buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
+    _need = _f.CAD_StructuralAnalysis(_n.text(argsJson), None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
+    if _need < 0:
+        return None
+    _cap = _need + 1
+    _buf = _c.create_string_buffer(_cap)
+    if _f.CAD_StructuralAnalysis(_n.text(argsJson), _buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
+        return None
+    return _n.decode(_buf.value)
 
 
 def CAD_GetMcpToolsJson() -> str | None:
@@ -407,6 +435,14 @@ def CAD_Offset(ids: Sequence | None, count: int, distance: float, sx: float, sy:
 
 def CAD_Mirror(ids: Sequence | None, count: int, x1: float, y1: float, z1: float, x2: float, y2: float, z2: float, nx: float, ny: float, nz: float, deleteOriginals: bool, outIds: Any, outCapacity: int) -> int:
     """C: uint32_t CAD_Mirror(const uint32_t* ids, uint32_t count, float x1, float y1, float z1, float x2, float y2, float z2, float nx, float ny, float nz, bool deleteOriginals, uint32_t* outIds, uint32_t outCapacity)
+
+    오프셋·대칭·자르기·연장 — 클릭 대신 점을 값으로(도구와 같은 계산, 전부 undo 1). 좌표는 월드.
+    outIds/outCapacity 는 새 객체 id 받을 곳(null 이면 안 받음). 반환 = 새로 만든 개수.
+      CAD_Offset : 선·원·호·폴리선을 distance(>0) 만큼 (sx,sy,sz) 쪽으로 평행 복제.
+      CAD_Mirror : 미러선 (x1..z1)→(x2..z2) 과 작업 평면 법선 (nx,ny,nz)(0,0,0 = 지금 작업 평면)이 이루는 면으로 반사 복제.
+                   선·원·호·폴리선·메시. deleteOriginals = 원본 지움.
+      CAD_Trim / CAD_Extend : 대상 하나, (px,py,pz) = 지울 부분 / 늘릴 끝 가까운 점. 경계 ids(0개 = 씬의 선·폴리선 전부).
+                   원·호는 제 평면, 선·폴리선은 (nx,ny,nz)(0 = 지금 작업 평면)에 투영해 교차. 못 하면 false(변화 없음).
     """
     _a_ids = _n.array(_c.c_uint32, ids)
     return _f.CAD_Mirror(_a_ids, count, x1, y1, z1, x2, y2, z2, nx, ny, nz, deleteOriginals, outIds, outCapacity)
@@ -414,6 +450,14 @@ def CAD_Mirror(ids: Sequence | None, count: int, x1: float, y1: float, z1: float
 
 def CAD_Trim(id: int, px: float, py: float, pz: float, boundaryIds: Sequence | None, boundaryCount: int, nx: float, ny: float, nz: float) -> bool:
     """C: bool CAD_Trim(uint32_t id, float px, float py, float pz, const uint32_t* boundaryIds, uint32_t boundaryCount, float nx, float ny, float nz)
+
+    오프셋·대칭·자르기·연장 — 클릭 대신 점을 값으로(도구와 같은 계산, 전부 undo 1). 좌표는 월드.
+    outIds/outCapacity 는 새 객체 id 받을 곳(null 이면 안 받음). 반환 = 새로 만든 개수.
+      CAD_Offset : 선·원·호·폴리선을 distance(>0) 만큼 (sx,sy,sz) 쪽으로 평행 복제.
+      CAD_Mirror : 미러선 (x1..z1)→(x2..z2) 과 작업 평면 법선 (nx,ny,nz)(0,0,0 = 지금 작업 평면)이 이루는 면으로 반사 복제.
+                   선·원·호·폴리선·메시. deleteOriginals = 원본 지움.
+      CAD_Trim / CAD_Extend : 대상 하나, (px,py,pz) = 지울 부분 / 늘릴 끝 가까운 점. 경계 ids(0개 = 씬의 선·폴리선 전부).
+                   원·호는 제 평면, 선·폴리선은 (nx,ny,nz)(0 = 지금 작업 평면)에 투영해 교차. 못 하면 false(변화 없음).
     """
     _a_boundaryIds = _n.array(_c.c_uint32, boundaryIds)
     return _f.CAD_Trim(id, px, py, pz, _a_boundaryIds, boundaryCount, nx, ny, nz)
@@ -421,6 +465,14 @@ def CAD_Trim(id: int, px: float, py: float, pz: float, boundaryIds: Sequence | N
 
 def CAD_Extend(id: int, px: float, py: float, pz: float, boundaryIds: Sequence | None, boundaryCount: int, nx: float, ny: float, nz: float) -> bool:
     """C: bool CAD_Extend(uint32_t id, float px, float py, float pz, const uint32_t* boundaryIds, uint32_t boundaryCount, float nx, float ny, float nz)
+
+    오프셋·대칭·자르기·연장 — 클릭 대신 점을 값으로(도구와 같은 계산, 전부 undo 1). 좌표는 월드.
+    outIds/outCapacity 는 새 객체 id 받을 곳(null 이면 안 받음). 반환 = 새로 만든 개수.
+      CAD_Offset : 선·원·호·폴리선을 distance(>0) 만큼 (sx,sy,sz) 쪽으로 평행 복제.
+      CAD_Mirror : 미러선 (x1..z1)→(x2..z2) 과 작업 평면 법선 (nx,ny,nz)(0,0,0 = 지금 작업 평면)이 이루는 면으로 반사 복제.
+                   선·원·호·폴리선·메시. deleteOriginals = 원본 지움.
+      CAD_Trim / CAD_Extend : 대상 하나, (px,py,pz) = 지울 부분 / 늘릴 끝 가까운 점. 경계 ids(0개 = 씬의 선·폴리선 전부).
+                   원·호는 제 평면, 선·폴리선은 (nx,ny,nz)(0 = 지금 작업 평면)에 투영해 교차. 못 하면 false(변화 없음).
     """
     _a_boundaryIds = _n.array(_c.c_uint32, boundaryIds)
     return _f.CAD_Extend(id, px, py, pz, _a_boundaryIds, boundaryCount, nx, ny, nz)
@@ -428,6 +480,14 @@ def CAD_Extend(id: int, px: float, py: float, pz: float, boundaryIds: Sequence |
 
 def CAD_CreateTube(x: float, y: float, z: float, outerRadius: float, innerRadius: float, height: float) -> int:
     """C: uint32_t CAD_CreateTube(float x, float y, float z, float outerRadius, float innerRadius, float height)
+
+    오프셋·대칭·자르기·연장 — 클릭 대신 점을 값으로(도구와 같은 계산, 전부 undo 1). 좌표는 월드.
+    outIds/outCapacity 는 새 객체 id 받을 곳(null 이면 안 받음). 반환 = 새로 만든 개수.
+      CAD_Offset : 선·원·호·폴리선을 distance(>0) 만큼 (sx,sy,sz) 쪽으로 평행 복제.
+      CAD_Mirror : 미러선 (x1..z1)→(x2..z2) 과 작업 평면 법선 (nx,ny,nz)(0,0,0 = 지금 작업 평면)이 이루는 면으로 반사 복제.
+                   선·원·호·폴리선·메시. deleteOriginals = 원본 지움.
+      CAD_Trim / CAD_Extend : 대상 하나, (px,py,pz) = 지울 부분 / 늘릴 끝 가까운 점. 경계 ids(0개 = 씬의 선·폴리선 전부).
+                   원·호는 제 평면, 선·폴리선은 (nx,ny,nz)(0 = 지금 작업 평면)에 투영해 교차. 못 하면 false(변화 없음).
     """
     return _f.CAD_CreateTube(x, y, z, outerRadius, innerRadius, height)
 
@@ -448,18 +508,42 @@ def CAD_SetFeatureDimensionsVisible(visible: bool) -> None:
 
 def CAD_GetFeatureDimensionsVisible() -> bool:
     """C: bool CAD_GetFeatureDimensionsVisible(void)
+
+    피처 치수 — 솔리드를 만든 치수(솔리드웍스 Instant3D 식). 상자: 가로·세로·높이 / 원기둥: 지름·높이 /
+    돌출: 높이 + 단면·컷 스케치의 원 지름, 직사각형 가로·세로. 값은 월드 단위.
+    일반 폴리선 단면(12꼭짓점까지)은 변마다 길이 — 바꾸면 그 변 끝 너머 꼭짓점을 같이 민다(STRETCH, 직각 유지).
+    kind: 0=가로 1=세로 2=높이 3=지름 4=변 5=위치(원 컷·원 보스 중심 — 바닥 단면 모서리에서 거리, 바꾸면 그 원 스케치를 옮긴다).
+    sketchId = 값이 사는 스케치(0 = 솔리드 자체). 위치 치수는 크기 치수 뒤에 붙는다(기존 번호는 그대로). 모양을 못 만드는 값이면 false + CAD_GetLastError.
+    Set 은 재생성(스케치 치수는 스케치를 고쳐 피처가 다음 프레임에 따라온다), undo 1. 실패 false.
+    Visible = 선택한 솔리드 위에 파란 치수 표시(명령 fdim, 상태바 "치수") — 더블클릭하면 명령행이 새 값을 기다린다.
     """
     return _f.CAD_GetFeatureDimensionsVisible()
 
 
 def CAD_GetFeatureDimensionCount(id: int) -> int:
     """C: uint32_t CAD_GetFeatureDimensionCount(uint32_t id)
+
+    피처 치수 — 솔리드를 만든 치수(솔리드웍스 Instant3D 식). 상자: 가로·세로·높이 / 원기둥: 지름·높이 /
+    돌출: 높이 + 단면·컷 스케치의 원 지름, 직사각형 가로·세로. 값은 월드 단위.
+    일반 폴리선 단면(12꼭짓점까지)은 변마다 길이 — 바꾸면 그 변 끝 너머 꼭짓점을 같이 민다(STRETCH, 직각 유지).
+    kind: 0=가로 1=세로 2=높이 3=지름 4=변 5=위치(원 컷·원 보스 중심 — 바닥 단면 모서리에서 거리, 바꾸면 그 원 스케치를 옮긴다).
+    sketchId = 값이 사는 스케치(0 = 솔리드 자체). 위치 치수는 크기 치수 뒤에 붙는다(기존 번호는 그대로). 모양을 못 만드는 값이면 false + CAD_GetLastError.
+    Set 은 재생성(스케치 치수는 스케치를 고쳐 피처가 다음 프레임에 따라온다), undo 1. 실패 false.
+    Visible = 선택한 솔리드 위에 파란 치수 표시(명령 fdim, 상태바 "치수") — 더블클릭하면 명령행이 새 값을 기다린다.
     """
     return _f.CAD_GetFeatureDimensionCount(id)
 
 
 def CAD_GetFeatureDimension(id: int, index: int) -> tuple[int, float, int] | None:
     """C: bool CAD_GetFeatureDimension(uint32_t id, uint32_t index, int* outKind, float* outValue, uint32_t* outSketchId)
+
+    피처 치수 — 솔리드를 만든 치수(솔리드웍스 Instant3D 식). 상자: 가로·세로·높이 / 원기둥: 지름·높이 /
+    돌출: 높이 + 단면·컷 스케치의 원 지름, 직사각형 가로·세로. 값은 월드 단위.
+    일반 폴리선 단면(12꼭짓점까지)은 변마다 길이 — 바꾸면 그 변 끝 너머 꼭짓점을 같이 민다(STRETCH, 직각 유지).
+    kind: 0=가로 1=세로 2=높이 3=지름 4=변 5=위치(원 컷·원 보스 중심 — 바닥 단면 모서리에서 거리, 바꾸면 그 원 스케치를 옮긴다).
+    sketchId = 값이 사는 스케치(0 = 솔리드 자체). 위치 치수는 크기 치수 뒤에 붙는다(기존 번호는 그대로). 모양을 못 만드는 값이면 false + CAD_GetLastError.
+    Set 은 재생성(스케치 치수는 스케치를 고쳐 피처가 다음 프레임에 따라온다), undo 1. 실패 false.
+    Visible = 선택한 솔리드 위에 파란 치수 표시(명령 fdim, 상태바 "치수") — 더블클릭하면 명령행이 새 값을 기다린다.
     """
     outKind = _c.c_int()
     outValue = _c.c_float()
@@ -471,6 +555,14 @@ def CAD_GetFeatureDimension(id: int, index: int) -> tuple[int, float, int] | Non
 
 def CAD_SetFeatureDimension(id: int, index: int, value: float) -> bool:
     """C: bool CAD_SetFeatureDimension(uint32_t id, uint32_t index, float value)
+
+    피처 치수 — 솔리드를 만든 치수(솔리드웍스 Instant3D 식). 상자: 가로·세로·높이 / 원기둥: 지름·높이 /
+    돌출: 높이 + 단면·컷 스케치의 원 지름, 직사각형 가로·세로. 값은 월드 단위.
+    일반 폴리선 단면(12꼭짓점까지)은 변마다 길이 — 바꾸면 그 변 끝 너머 꼭짓점을 같이 민다(STRETCH, 직각 유지).
+    kind: 0=가로 1=세로 2=높이 3=지름 4=변 5=위치(원 컷·원 보스 중심 — 바닥 단면 모서리에서 거리, 바꾸면 그 원 스케치를 옮긴다).
+    sketchId = 값이 사는 스케치(0 = 솔리드 자체). 위치 치수는 크기 치수 뒤에 붙는다(기존 번호는 그대로). 모양을 못 만드는 값이면 false + CAD_GetLastError.
+    Set 은 재생성(스케치 치수는 스케치를 고쳐 피처가 다음 프레임에 따라온다), undo 1. 실패 false.
+    Visible = 선택한 솔리드 위에 파란 치수 표시(명령 fdim, 상태바 "치수") — 더블클릭하면 명령행이 새 값을 기다린다.
     """
     return _f.CAD_SetFeatureDimension(id, index, value)
 
@@ -504,12 +596,18 @@ def CAD_ApplyMaterial(id: int, nameUtf8: str | None) -> bool:
 
 def CAD_GetMaterialCount() -> int:
     """C: uint32_t CAD_GetMaterialCount(void)
+
+    재질 — textures/ 의 파일 이름(확장자 없이, 예 "wood_oak_veneer"). 이름에 metal·steel 이 들면 금속 셰이딩.
+    nameUtf8 이 null/"" 이면 재질 빼기. 재질 패널 클릭과 같다(앱과 같이 undo 없음). 없는 이름·id 는 false.
     """
     return _f.CAD_GetMaterialCount()
 
 
 def CAD_GetMaterialName(index: int) -> str | None:
     """C: int CAD_GetMaterialName(uint32_t index, char* buf, int bufLen)
+
+    재질 — textures/ 의 파일 이름(확장자 없이, 예 "wood_oak_veneer"). 이름에 metal·steel 이 들면 금속 셰이딩.
+    nameUtf8 이 null/"" 이면 재질 빼기. 재질 패널 클릭과 같다(앱과 같이 undo 없음). 없는 이름·id 는 false.
     """
     _cap = 256
     while True:

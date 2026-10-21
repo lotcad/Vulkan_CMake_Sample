@@ -32,6 +32,8 @@ def CAD_SetSection(mode: int, axis: int, pos: float, flip: bool, thickness: floa
 def CAD_SetSectionBox(minX: float, minY: float, minZ: float, maxX: float, maxY: float, maxZ: float) -> bool:
     """C: bool CAD_SetSectionBox(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
 
+    mode 0 끄기 1 평면(axis 위치 pos 보다 큰 쪽을 자름, flip 이면 반대) 2 슬라이스(pos 중심 thickness 두께만 남김) 3 상자(SetSectionBox).
+    axis 0 X 1 Y 2 Z. thickness 는 슬라이스에만(0 이하면 지금 값 유지). 틀린 값 false.
     상자 값만(켜기는 SetSection(3,…))
     """
     return _f.CAD_SetSectionBox(minX, minY, minZ, maxX, maxY, maxZ)
@@ -39,6 +41,9 @@ def CAD_SetSectionBox(minX: float, minY: float, minZ: float, maxX: float, maxY: 
 
 def CAD_SetSectionOptions(showArrows: bool, selectedOnly: bool) -> None:
     """C: void CAD_SetSectionOptions(bool showArrows, bool selectedOnly)
+
+    mode 0 끄기 1 평면(axis 위치 pos 보다 큰 쪽을 자름, flip 이면 반대) 2 슬라이스(pos 중심 thickness 두께만 남김) 3 상자(SetSectionBox).
+    axis 0 X 1 Y 2 Z. thickness 는 슬라이스에만(0 이하면 지금 값 유지). 틀린 값 false.
     """
     _f.CAD_SetSectionOptions(showArrows, selectedOnly)
 

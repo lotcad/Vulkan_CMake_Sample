@@ -74,6 +74,10 @@ def CAD_GetParticleSettingsJson(id: int) -> str | None:
 
 def CAD_SetParticleSettingsJson(id: int, json: str | None) -> bool:
     """C: bool CAD_SetParticleSettingsJson(uint32_t id, const char* json)
+
+    Settings — JSON schema v1 of particle_preset_io.h (version, unit, style, rate, lifetime, speed, radius, spread,
+    size, acceleration, start_color, end_color, capacity, seed). Get returns unit "m". Set accepts a partial object:
+    only the given keys change (unit "mm" converts the given length keys). Undo 1 step. Fail: false + CAD_GetLastError.
     """
     return _f.CAD_SetParticleSettingsJson(id, _n.text(json))
 
@@ -81,6 +85,9 @@ def CAD_SetParticleSettingsJson(id: int, json: str | None) -> bool:
 def CAD_GetParticleLiveCount(id: int) -> int:
     """C: uint32_t CAD_GetParticleLiveCount(uint32_t id)
 
+    Settings — JSON schema v1 of particle_preset_io.h (version, unit, style, rate, lifetime, speed, radius, spread,
+    size, acceleration, start_color, end_color, capacity, seed). Get returns unit "m". Set accepts a partial object:
+    only the given keys change (unit "mm" converts the given length keys). Undo 1 step. Fail: false + CAD_GetLastError.
     0 = none / not an emitter
     """
     return _f.CAD_GetParticleLiveCount(id)
@@ -98,6 +105,8 @@ def CAD_GetParticlePresetCount() -> int:
 def CAD_GetParticlePresetName(index: int) -> str | None:
     """C: int CAD_GetParticlePresetName(uint32_t index, char* out, int cap)
 
+    Preset library — effects/*.json sorted by name, loaded on first use (no panel needed, works on iOS).
+    Path is absolute UTF-8, ready for CAD_CreateParticleEmitterFromPreset. Effekseer files are not listed.
     -1 = out of range
     """
     _cap = 256
@@ -115,6 +124,8 @@ def CAD_GetParticlePresetName(index: int) -> str | None:
 def CAD_GetParticlePresetPath(index: int) -> str | None:
     """C: int CAD_GetParticlePresetPath(uint32_t index, char* out, int cap)
 
+    Preset library — effects/*.json sorted by name, loaded on first use (no panel needed, works on iOS).
+    Path is absolute UTF-8, ready for CAD_CreateParticleEmitterFromPreset. Effekseer files are not listed.
     -1 = out of range
     """
     _cap = 256

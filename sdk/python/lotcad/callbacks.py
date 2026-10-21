@@ -72,6 +72,18 @@ def CAD_SetOnSelectionChanged(cb: Callable | None) -> None:
 
 def CAD_SetOnObjectCreated(cb: Callable | None) -> None:
     """C: void CAD_SetOnObjectCreated (void (*cb)(uint32_t id))
+
+    알림(콜백)
+
+    엔진 → 호스트 UI 방향의 알림. 이게 없으면 호스트는 **매 프레임 물어보는 수밖에**
+    없다(선택이 바뀌었는지 알려고 GetSelectedCount 를 계속 호출하는 식).
+    속성 패널·씬 트리·제목표시줄의 * 표시 같은 걸 붙이려면 사실상 필수다.
+    ObjectARX 의 리액터(AcDbDatabaseReactor)와 같은 역할.
+
+    ⚠️ 호출 시점은 **CAD_Tick 안**이다 — 프레임당 한 번, 엔진과 같은 스레드.
+       그래서 콜백 안에서 다른 CAD_* 를 불러도 안전하다.
+       변화가 **한 프레임에 여러 번** 나도 한 번으로 합쳐 알린다(UI 갱신엔 충분).
+    nullptr 를 주면 해제된다.
     """
     _cb_cb = _n.callback(CAD_SetOnObjectCreated_cb, cb, ())
     _n.keep("CAD_SetOnObjectCreated.cb", _cb_cb, replace=True)
@@ -80,6 +92,18 @@ def CAD_SetOnObjectCreated(cb: Callable | None) -> None:
 
 def CAD_SetOnObjectDeleted(cb: Callable | None) -> None:
     """C: void CAD_SetOnObjectDeleted (void (*cb)(uint32_t id))
+
+    알림(콜백)
+
+    엔진 → 호스트 UI 방향의 알림. 이게 없으면 호스트는 **매 프레임 물어보는 수밖에**
+    없다(선택이 바뀌었는지 알려고 GetSelectedCount 를 계속 호출하는 식).
+    속성 패널·씬 트리·제목표시줄의 * 표시 같은 걸 붙이려면 사실상 필수다.
+    ObjectARX 의 리액터(AcDbDatabaseReactor)와 같은 역할.
+
+    ⚠️ 호출 시점은 **CAD_Tick 안**이다 — 프레임당 한 번, 엔진과 같은 스레드.
+       그래서 콜백 안에서 다른 CAD_* 를 불러도 안전하다.
+       변화가 **한 프레임에 여러 번** 나도 한 번으로 합쳐 알린다(UI 갱신엔 충분).
+    nullptr 를 주면 해제된다.
     """
     _cb_cb = _n.callback(CAD_SetOnObjectDeleted_cb, cb, ())
     _n.keep("CAD_SetOnObjectDeleted.cb", _cb_cb, replace=True)
@@ -88,6 +112,18 @@ def CAD_SetOnObjectDeleted(cb: Callable | None) -> None:
 
 def CAD_SetOnDocumentDirty(cb: Callable | None) -> None:
     """C: void CAD_SetOnDocumentDirty (void (*cb)(bool dirty))
+
+    알림(콜백)
+
+    엔진 → 호스트 UI 방향의 알림. 이게 없으면 호스트는 **매 프레임 물어보는 수밖에**
+    없다(선택이 바뀌었는지 알려고 GetSelectedCount 를 계속 호출하는 식).
+    속성 패널·씬 트리·제목표시줄의 * 표시 같은 걸 붙이려면 사실상 필수다.
+    ObjectARX 의 리액터(AcDbDatabaseReactor)와 같은 역할.
+
+    ⚠️ 호출 시점은 **CAD_Tick 안**이다 — 프레임당 한 번, 엔진과 같은 스레드.
+       그래서 콜백 안에서 다른 CAD_* 를 불러도 안전하다.
+       변화가 **한 프레임에 여러 번** 나도 한 번으로 합쳐 알린다(UI 갱신엔 충분).
+    nullptr 를 주면 해제된다.
     """
     _cb_cb = _n.callback(CAD_SetOnDocumentDirty_cb, cb, ())
     _n.keep("CAD_SetOnDocumentDirty.cb", _cb_cb, replace=True)
@@ -222,6 +258,8 @@ def CAD_RequestSetView(viewType: int) -> None:
 
 def CAD_RequestSetProjection(ortho: bool) -> None:
     """C: void CAD_RequestSetProjection(bool ortho)
+
+    viewType: 0=Front 1=Top 2=Right 3=Isometric 4=Left 5=Bottom 6=Back
     """
     _f.CAD_RequestSetProjection(ortho)
 
@@ -246,6 +284,9 @@ def CAD_RequestSetViewPivot(x: float, y: float, z: float, axis: int) -> None:
 
 def CAD_RequestClearViewPivot() -> None:
     """C: void CAD_RequestClearViewPivot(void)
+
+    뷰 회전 피벗 (viewucs) — 작업평면 UCS 와 별개로, 화면을 돌릴 때의 중심/축을 지정한다.
+    axis: -1=축 자유(피벗만 고정), 0=X 축 고정, 1=Y, 2=Z (축 고정 시 그 축 기준 턴테이블 회전)
     """
     _f.CAD_RequestClearViewPivot()
 

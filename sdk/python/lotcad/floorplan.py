@@ -59,16 +59,14 @@ def CAD_FloorplanExtractFromImage(path: str | None, widthMm: float) -> str | Non
     "outerThicknessMm","innerThicknessMm","scaleEstimated","doorCount","imageWidthMm","imageOrigin":[x,y],"summary"}
     — imageWidthMm/imageOrigin = 이미지 **전체**의 실폭·좌하단(바닥에 깔 때). 실패 -1 + CAD_GetLastError. 2회 호출 규약.
     """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_FloorplanExtractFromImage(_n.text(path), widthMm, _buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
+    _need = _f.CAD_FloorplanExtractFromImage(_n.text(path), widthMm, None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
+    if _need < 0:
+        return None
+    _cap = _need + 1
+    _buf = _c.create_string_buffer(_cap)
+    if _f.CAD_FloorplanExtractFromImage(_n.text(path), widthMm, _buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
+        return None
+    return _n.decode(_buf.value)
 
 
 def CAD_FloorplanExtractFromRgba(rgba: Sequence | None, w: int, h: int, widthMm: float) -> str | None:

@@ -45,13 +45,35 @@ def CAD_LinkStart(port: int, clamp: bool) -> bool:
 def CAD_LinkStop() -> None:
     """C: void CAD_LinkStop(void)
 
-    CAD_API bool     CAD_LinkStart(int port, bool clamp);       /* port 0 = 빈 포트를 고름(CAD_LinkPort 로 확인). 실패 false + CAD_GetLastError
+    외부 연결(link) — 태그 추적 스크립트·로봇·머리 추적 같은 바깥 프로세스가 붙는 TCP 문
+    127.0.0.1:port 에서 듣고, 줄 하나 = JSON 객체 하나("\\n" 구분). 처리는 엔진 메인 스레드(다음 tick)에서.
+      {"type":"pose","id":"기둥A"|12,"x":..,"y":..,"yaw":90,"mode":"clamp"|"twin"}
+          id 는 객체 이름 또는 번호. (x,y) = 객체의 **월드 경계 중심**(원점 아님), 단위 = 도면 단위(mm). z 는 그대로.
+          yaw 는 도, 0 = +Y, 시계 방향 양수(내비 규약). 생략하면 향 유지.
+          mode 생략 시 CAD_LinkStart 의 clamp. clamp = 벽(다른 메시)에 막히면 벽 앞에 선다(도면이 진실),
+          twin = 그대로 비춘다(현실이 진실). 직전 위치와의 속도가 몸 크기의 0.3배/초를 넘으면 걷기 애니가 켜지고,
+          0.5초 동안 소식이 없으면 꺼진다.
+      {"type":"ping"}  →  엔진이 {"type":"pong"} 을 되돌린다.
+    명령행 `link [on|off|port N|clamp|twin]` 과 같은 것. 파이썬 예: tools/tag_tracker.py(AprilTag), tools/fake_pose.py.
+    로컬 전용 — 원격·토큰은 없다.
     """
     _f.CAD_LinkStop()
 
 
 def CAD_LinkPort() -> int:
     """C: int CAD_LinkPort(void)
+
+    외부 연결(link) — 태그 추적 스크립트·로봇·머리 추적 같은 바깥 프로세스가 붙는 TCP 문
+    127.0.0.1:port 에서 듣고, 줄 하나 = JSON 객체 하나("\\n" 구분). 처리는 엔진 메인 스레드(다음 tick)에서.
+      {"type":"pose","id":"기둥A"|12,"x":..,"y":..,"yaw":90,"mode":"clamp"|"twin"}
+          id 는 객체 이름 또는 번호. (x,y) = 객체의 **월드 경계 중심**(원점 아님), 단위 = 도면 단위(mm). z 는 그대로.
+          yaw 는 도, 0 = +Y, 시계 방향 양수(내비 규약). 생략하면 향 유지.
+          mode 생략 시 CAD_LinkStart 의 clamp. clamp = 벽(다른 메시)에 막히면 벽 앞에 선다(도면이 진실),
+          twin = 그대로 비춘다(현실이 진실). 직전 위치와의 속도가 몸 크기의 0.3배/초를 넘으면 걷기 애니가 켜지고,
+          0.5초 동안 소식이 없으면 꺼진다.
+      {"type":"ping"}  →  엔진이 {"type":"pong"} 을 되돌린다.
+    명령행 `link [on|off|port N|clamp|twin]` 과 같은 것. 파이썬 예: tools/tag_tracker.py(AprilTag), tools/fake_pose.py.
+    로컬 전용 — 원격·토큰은 없다.
     """
     return _f.CAD_LinkPort()
 
@@ -59,7 +81,17 @@ def CAD_LinkPort() -> int:
 def CAD_LinkSend(jsonLine: str | None) -> bool:
     """C: bool CAD_LinkSend(const char* jsonLine)
 
-    CAD_API int      CAD_LinkPort(void);                         /* 0 = 닫힘
+    외부 연결(link) — 태그 추적 스크립트·로봇·머리 추적 같은 바깥 프로세스가 붙는 TCP 문
+    127.0.0.1:port 에서 듣고, 줄 하나 = JSON 객체 하나("\\n" 구분). 처리는 엔진 메인 스레드(다음 tick)에서.
+      {"type":"pose","id":"기둥A"|12,"x":..,"y":..,"yaw":90,"mode":"clamp"|"twin"}
+          id 는 객체 이름 또는 번호. (x,y) = 객체의 **월드 경계 중심**(원점 아님), 단위 = 도면 단위(mm). z 는 그대로.
+          yaw 는 도, 0 = +Y, 시계 방향 양수(내비 규약). 생략하면 향 유지.
+          mode 생략 시 CAD_LinkStart 의 clamp. clamp = 벽(다른 메시)에 막히면 벽 앞에 선다(도면이 진실),
+          twin = 그대로 비춘다(현실이 진실). 직전 위치와의 속도가 몸 크기의 0.3배/초를 넘으면 걷기 애니가 켜지고,
+          0.5초 동안 소식이 없으면 꺼진다.
+      {"type":"ping"}  →  엔진이 {"type":"pong"} 을 되돌린다.
+    명령행 `link [on|off|port N|clamp|twin]` 과 같은 것. 파이썬 예: tools/tag_tracker.py(AprilTag), tools/fake_pose.py.
+    로컬 전용 — 원격·토큰은 없다.
     """
     return _f.CAD_LinkSend(_n.text(jsonLine))
 

@@ -64,6 +64,12 @@ def CAD_SetUserDataPath(pathUtf8: str | None) -> bool:
 
 def CAD_GetUserDataPath() -> str | None:
     """C: int CAD_GetUserDataPath(char* buf, int bufLen)
+
+    사용자 설정 폴더(창 위치·패널 배치·언어·그래픽·외부 연결 .ini, 사용자 파티클 프리셋, 사용자 plugins/) — CAD_CreateEngine **전에**.
+    NULL = OS 기본 폴더(Windows %APPDATA%\\LotCAD · macOS ~/Library/Application Support/LotCAD · 리눅스 ~/.config/lotcad,
+           환경 변수 LOTCAD_USER_DIR 가 있으면 그것 — 처음 한 번 실행 폴더의 .ini 를 옮겨 담는다),
+    "" = 실행 폴더(기본값 — 부르지 않으면 이것), 그 밖 = 그 폴더(없으면 만든다). 설치 폴더가 읽기 전용인 호스트는 NULL 을 넘길 것.
+    에셋(models·textures·fonts·effects·languages)은 그대로 CAD_SetRuntimeAssetPath / 실행 폴더에서 읽는다.
     """
     _cap = 256
     while True:
@@ -80,55 +86,107 @@ def CAD_GetUserDataPath() -> str | None:
 def CAD_CreateEngine() -> bool:
     """C: bool CAD_CreateEngine(void)
 
-    CAD_API int  CAD_GetUserDataPath(char* buf, int bufLen);   /* 빈 글 = 실행 폴더
+    사용자 설정 폴더(창 위치·패널 배치·언어·그래픽·외부 연결 .ini, 사용자 파티클 프리셋, 사용자 plugins/) — CAD_CreateEngine **전에**.
+    NULL = OS 기본 폴더(Windows %APPDATA%\\LotCAD · macOS ~/Library/Application Support/LotCAD · 리눅스 ~/.config/lotcad,
+           환경 변수 LOTCAD_USER_DIR 가 있으면 그것 — 처음 한 번 실행 폴더의 .ini 를 옮겨 담는다),
+    "" = 실행 폴더(기본값 — 부르지 않으면 이것), 그 밖 = 그 폴더(없으면 만든다). 설치 폴더가 읽기 전용인 호스트는 NULL 을 넘길 것.
+    에셋(models·textures·fonts·effects·languages)은 그대로 CAD_SetRuntimeAssetPath / 실행 폴더에서 읽는다.
     """
     return _f.CAD_CreateEngine()
 
 
 def CAD_DestroyEngine() -> None:
     """C: void CAD_DestroyEngine(void)
+
+    사용자 설정 폴더(창 위치·패널 배치·언어·그래픽·외부 연결 .ini, 사용자 파티클 프리셋, 사용자 plugins/) — CAD_CreateEngine **전에**.
+    NULL = OS 기본 폴더(Windows %APPDATA%\\LotCAD · macOS ~/Library/Application Support/LotCAD · 리눅스 ~/.config/lotcad,
+           환경 변수 LOTCAD_USER_DIR 가 있으면 그것 — 처음 한 번 실행 폴더의 .ini 를 옮겨 담는다),
+    "" = 실행 폴더(기본값 — 부르지 않으면 이것), 그 밖 = 그 폴더(없으면 만든다). 설치 폴더가 읽기 전용인 호스트는 NULL 을 넘길 것.
+    에셋(models·textures·fonts·effects·languages)은 그대로 CAD_SetRuntimeAssetPath / 실행 폴더에서 읽는다.
     """
     _f.CAD_DestroyEngine()
 
 
 def CAD_Tick() -> bool:
     """C: bool CAD_Tick(void)
+
+    사용자 설정 폴더(창 위치·패널 배치·언어·그래픽·외부 연결 .ini, 사용자 파티클 프리셋, 사용자 plugins/) — CAD_CreateEngine **전에**.
+    NULL = OS 기본 폴더(Windows %APPDATA%\\LotCAD · macOS ~/Library/Application Support/LotCAD · 리눅스 ~/.config/lotcad,
+           환경 변수 LOTCAD_USER_DIR 가 있으면 그것 — 처음 한 번 실행 폴더의 .ini 를 옮겨 담는다),
+    "" = 실행 폴더(기본값 — 부르지 않으면 이것), 그 밖 = 그 폴더(없으면 만든다). 설치 폴더가 읽기 전용인 호스트는 NULL 을 넘길 것.
+    에셋(models·textures·fonts·effects·languages)은 그대로 CAD_SetRuntimeAssetPath / 실행 폴더에서 읽는다.
     """
     return _f.CAD_Tick()
 
 
 def CAD_ShouldClose() -> bool:
     """C: bool CAD_ShouldClose(void)
+
+    사용자 설정 폴더(창 위치·패널 배치·언어·그래픽·외부 연결 .ini, 사용자 파티클 프리셋, 사용자 plugins/) — CAD_CreateEngine **전에**.
+    NULL = OS 기본 폴더(Windows %APPDATA%\\LotCAD · macOS ~/Library/Application Support/LotCAD · 리눅스 ~/.config/lotcad,
+           환경 변수 LOTCAD_USER_DIR 가 있으면 그것 — 처음 한 번 실행 폴더의 .ini 를 옮겨 담는다),
+    "" = 실행 폴더(기본값 — 부르지 않으면 이것), 그 밖 = 그 폴더(없으면 만든다). 설치 폴더가 읽기 전용인 호스트는 NULL 을 넘길 것.
+    에셋(models·textures·fonts·effects·languages)은 그대로 CAD_SetRuntimeAssetPath / 실행 폴더에서 읽는다.
     """
     return _f.CAD_ShouldClose()
 
 
 def CAD_SetIgnoreCloseRequest(ignore: bool) -> None:
     """C: void CAD_SetIgnoreCloseRequest(bool ignore)
+
+    사용자 설정 폴더(창 위치·패널 배치·언어·그래픽·외부 연결 .ini, 사용자 파티클 프리셋, 사용자 plugins/) — CAD_CreateEngine **전에**.
+    NULL = OS 기본 폴더(Windows %APPDATA%\\LotCAD · macOS ~/Library/Application Support/LotCAD · 리눅스 ~/.config/lotcad,
+           환경 변수 LOTCAD_USER_DIR 가 있으면 그것 — 처음 한 번 실행 폴더의 .ini 를 옮겨 담는다),
+    "" = 실행 폴더(기본값 — 부르지 않으면 이것), 그 밖 = 그 폴더(없으면 만든다). 설치 폴더가 읽기 전용인 호스트는 NULL 을 넘길 것.
+    에셋(models·textures·fonts·effects·languages)은 그대로 CAD_SetRuntimeAssetPath / 실행 폴더에서 읽는다.
     """
     _f.CAD_SetIgnoreCloseRequest(ignore)
 
 
 def CAD_SetRuntimeAssetPath(path: str | None) -> bool:
     """C: bool CAD_SetRuntimeAssetPath(const char* path)
+
+    사용자 설정 폴더(창 위치·패널 배치·언어·그래픽·외부 연결 .ini, 사용자 파티클 프리셋, 사용자 plugins/) — CAD_CreateEngine **전에**.
+    NULL = OS 기본 폴더(Windows %APPDATA%\\LotCAD · macOS ~/Library/Application Support/LotCAD · 리눅스 ~/.config/lotcad,
+           환경 변수 LOTCAD_USER_DIR 가 있으면 그것 — 처음 한 번 실행 폴더의 .ini 를 옮겨 담는다),
+    "" = 실행 폴더(기본값 — 부르지 않으면 이것), 그 밖 = 그 폴더(없으면 만든다). 설치 폴더가 읽기 전용인 호스트는 NULL 을 넘길 것.
+    에셋(models·textures·fonts·effects·languages)은 그대로 CAD_SetRuntimeAssetPath / 실행 폴더에서 읽는다.
     """
     return _f.CAD_SetRuntimeAssetPath(_n.text(path))
 
 
 def CAD_AttachView(nativeHandle: int | None, width: int, height: int) -> None:
     """C: void CAD_AttachView(void* nativeHandle, int width, int height)
+
+    사용자 설정 폴더(창 위치·패널 배치·언어·그래픽·외부 연결 .ini, 사용자 파티클 프리셋, 사용자 plugins/) — CAD_CreateEngine **전에**.
+    NULL = OS 기본 폴더(Windows %APPDATA%\\LotCAD · macOS ~/Library/Application Support/LotCAD · 리눅스 ~/.config/lotcad,
+           환경 변수 LOTCAD_USER_DIR 가 있으면 그것 — 처음 한 번 실행 폴더의 .ini 를 옮겨 담는다),
+    "" = 실행 폴더(기본값 — 부르지 않으면 이것), 그 밖 = 그 폴더(없으면 만든다). 설치 폴더가 읽기 전용인 호스트는 NULL 을 넘길 것.
+    에셋(models·textures·fonts·effects·languages)은 그대로 CAD_SetRuntimeAssetPath / 실행 폴더에서 읽는다.
     """
     _f.CAD_AttachView(nativeHandle, width, height)
 
 
 def CAD_ResizeView(width: int, height: int) -> None:
     """C: void CAD_ResizeView(int width, int height)
+
+    사용자 설정 폴더(창 위치·패널 배치·언어·그래픽·외부 연결 .ini, 사용자 파티클 프리셋, 사용자 plugins/) — CAD_CreateEngine **전에**.
+    NULL = OS 기본 폴더(Windows %APPDATA%\\LotCAD · macOS ~/Library/Application Support/LotCAD · 리눅스 ~/.config/lotcad,
+           환경 변수 LOTCAD_USER_DIR 가 있으면 그것 — 처음 한 번 실행 폴더의 .ini 를 옮겨 담는다),
+    "" = 실행 폴더(기본값 — 부르지 않으면 이것), 그 밖 = 그 폴더(없으면 만든다). 설치 폴더가 읽기 전용인 호스트는 NULL 을 넘길 것.
+    에셋(models·textures·fonts·effects·languages)은 그대로 CAD_SetRuntimeAssetPath / 실행 폴더에서 읽는다.
     """
     _f.CAD_ResizeView(width, height)
 
 
 def CAD_DetachView() -> None:
     """C: void CAD_DetachView(void)
+
+    사용자 설정 폴더(창 위치·패널 배치·언어·그래픽·외부 연결 .ini, 사용자 파티클 프리셋, 사용자 plugins/) — CAD_CreateEngine **전에**.
+    NULL = OS 기본 폴더(Windows %APPDATA%\\LotCAD · macOS ~/Library/Application Support/LotCAD · 리눅스 ~/.config/lotcad,
+           환경 변수 LOTCAD_USER_DIR 가 있으면 그것 — 처음 한 번 실행 폴더의 .ini 를 옮겨 담는다),
+    "" = 실행 폴더(기본값 — 부르지 않으면 이것), 그 밖 = 그 폴더(없으면 만든다). 설치 폴더가 읽기 전용인 호스트는 NULL 을 넘길 것.
+    에셋(models·textures·fonts·effects·languages)은 그대로 CAD_SetRuntimeAssetPath / 실행 폴더에서 읽는다.
     """
     _f.CAD_DetachView()
 

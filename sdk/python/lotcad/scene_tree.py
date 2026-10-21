@@ -122,6 +122,9 @@ def CAD_GetInsertAttributesJson(id: int) -> str | None:
 
 def CAD_SetInsertAttributesJson(id: int, jsonArray: str | None) -> bool:
     """C: bool CAD_SetInsertAttributesJson(uint32_t id, const char* jsonArray)
+
+    블록 참조의 속성 글 값 — JSON 문자열 배열(속성 글 id 순). Get: 반환 = 길이, 블록 참조가 아니면 -1.
+    Set: 같은 개수의 배열 — 그 INSERT 만 바뀐다(복사한 INSERT 와 같이 쓰던 묶음은 사본으로), 되돌리기 1. 실패면 false + CAD_GetLastError
     """
     return _f.CAD_SetInsertAttributesJson(id, _n.text(jsonArray))
 
@@ -143,17 +146,44 @@ def CAD_XrefReload(nameUtf8: str | None) -> bool:
 
 def CAD_XrefSetPath(nameUtf8: str | None, pathOrKindUtf8: str | None) -> bool:
     """C: bool CAD_XrefSetPath(const char* nameUtf8, const char* pathOrKindUtf8)
+
+    외부 참조(XREF — 정의 표에서 "xref" 가 있는 블록, ObjectARX acedXrefReload·acedXrefBind·acedXrefDetach·setPathName). 목록·경로·찾음 여부는
+    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 false + CAD_GetLastError.
+    Reload : 그 파일을 다시 읽어 정의를 바꾼다(그 INSERT 들이 따라 바뀜)
+    SetPath: pathOrKind = "absolute" | "relative" | "none"(파일 이름만) 이면 경로 모양만(상대는 도면을 저장한 뒤),
+    그 밖은 새 경로 — 적고 그 파일로 다시 읽는다(옮긴 파일 다시 찾기)
+    Bind   : 보통 블록으로 굳힘 — 딸린 이름 "SITE|문" → "SITE$0$문"(블록·도면층·선종류)
+    Detach : 그 INSERT·정의를 지움(다른 블록 안에 들어 있으면 거부)
+    저장(.lot·DXF·DWG)엔 경로만 쓰고 열 때 다시 읽는다 — 상대 경로는 저장 자리 기준으로 다시 맞춘다.
     """
     return _f.CAD_XrefSetPath(_n.text(nameUtf8), _n.text(pathOrKindUtf8))
 
 
 def CAD_XrefBind(nameUtf8: str | None) -> bool:
     """C: bool CAD_XrefBind(const char* nameUtf8)
+
+    외부 참조(XREF — 정의 표에서 "xref" 가 있는 블록, ObjectARX acedXrefReload·acedXrefBind·acedXrefDetach·setPathName). 목록·경로·찾음 여부는
+    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 false + CAD_GetLastError.
+    Reload : 그 파일을 다시 읽어 정의를 바꾼다(그 INSERT 들이 따라 바뀜)
+    SetPath: pathOrKind = "absolute" | "relative" | "none"(파일 이름만) 이면 경로 모양만(상대는 도면을 저장한 뒤),
+    그 밖은 새 경로 — 적고 그 파일로 다시 읽는다(옮긴 파일 다시 찾기)
+    Bind   : 보통 블록으로 굳힘 — 딸린 이름 "SITE|문" → "SITE$0$문"(블록·도면층·선종류)
+    Detach : 그 INSERT·정의를 지움(다른 블록 안에 들어 있으면 거부)
+    저장(.lot·DXF·DWG)엔 경로만 쓰고 열 때 다시 읽는다 — 상대 경로는 저장 자리 기준으로 다시 맞춘다.
     """
     return _f.CAD_XrefBind(_n.text(nameUtf8))
 
 
 def CAD_XrefDetach(nameUtf8: str | None) -> bool:
     """C: bool CAD_XrefDetach(const char* nameUtf8)
+
+    외부 참조(XREF — 정의 표에서 "xref" 가 있는 블록, ObjectARX acedXrefReload·acedXrefBind·acedXrefDetach·setPathName). 목록·경로·찾음 여부는
+    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 false + CAD_GetLastError.
+    Reload : 그 파일을 다시 읽어 정의를 바꾼다(그 INSERT 들이 따라 바뀜)
+    SetPath: pathOrKind = "absolute" | "relative" | "none"(파일 이름만) 이면 경로 모양만(상대는 도면을 저장한 뒤),
+    그 밖은 새 경로 — 적고 그 파일로 다시 읽는다(옮긴 파일 다시 찾기)
+    Bind   : 보통 블록으로 굳힘 — 딸린 이름 "SITE|문" → "SITE$0$문"(블록·도면층·선종류)
+    Detach : 그 INSERT·정의를 지움(다른 블록 안에 들어 있으면 거부)
+    저장(.lot·DXF·DWG)엔 경로만 쓰고 열 때 다시 읽는다 — 상대 경로는 저장 자리 기준으로 다시 맞춘다.
     """
     return _f.CAD_XrefDetach(_n.text(nameUtf8))

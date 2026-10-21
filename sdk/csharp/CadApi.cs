@@ -22,6 +22,7 @@ namespace LotCAD
         /// <c>CadApi.Str((b, n) =&gt; CadApi.CAD_GetObjectJson(id, b, n))</c>.
         /// 반환이 음수면 null. 버퍼가 모자라 보이면(반환 ≥ cap−1) 키워 다시 부른다 —
         /// "필요한 길이" 를 돌려주는 함수와 "잘라 복사한 길이" 를 돌려주는 함수 둘 다 맞게 읽힌다.
+        /// ⚠️ 부를 때 무언가를 **실행**하는 함수(2회 호출 규약)는 <see cref="StrOnce"/> — 여기선 두 번 실행될 수 있다.
         /// </summary>
         public static string Str(Func<byte[], int, int> getter, int initialCapacity = 256)
         {
@@ -36,6 +37,24 @@ namespace LotCAD
                 if (len < 0) len = cap;
                 return Encoding.UTF8.GetString(buf, 0, len);
             }
+        }
+
+        /// <summary>
+        /// **2회 호출 규약** 함수를 읽는다 — 헤더 주석에 "2회 호출" · "null 이면 길이만" 이라 적힌 것
+        /// (해석 CAD_WindTunnel·CAD_Water·CAD_StructuralAnalysis, CAD_GetObjectJson, CAD_McpCall …).
+        /// buf=null 로 길이를 물을 때 **한 번 실행**하고, 같은 인자로 버퍼를 주면 다시 실행하지 않고 그 결과를 준다.
+        /// 이런 함수를 <see cref="Str"/> 로 읽으면 버퍼가 모자랄 때 다시 불러 **두 번 실행**된다(해석 start·run → "이미 도는 중").
+        /// 예: <c>CadApi.StrOnce((b, n) =&gt; CadApi.CAD_WindTunnel(json, b, n))</c>. 실패(음수)면 null.
+        /// </summary>
+        public static string StrOnce(Func<byte[], int, int> getter)
+        {
+            int need = getter(null, 0);
+            if (need < 0) return null;
+            var buf = new byte[need + 1];
+            if (getter(buf, buf.Length) < 0) return null;
+            int len = Array.IndexOf(buf, (byte)0);
+            if (len < 0) len = buf.Length;
+            return Encoding.UTF8.GetString(buf, 0, len);
         }
     }
 

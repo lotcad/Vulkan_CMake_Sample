@@ -39,6 +39,9 @@ def CAD_NavBuildMap(paramsJson: str | None) -> bool:
 
 def CAD_NavShowGrid(on: bool) -> None:
     """C: void CAD_NavShowGrid(bool on)
+
+    agentId = 대상의 대표 객체 id(차체·바퀴처럼 조각 모델은 가장 큰 조각). 단위 = 장면 단위(m 장면이면 m, mm 도면이면 mm).
+    지도 — paramsJson: {"cellSize","agentRadius","minZ","maxZ","margin","maxCells"} 중 준 키만 자동값 위에 덮음. NULL/"" = 자동.
     """
     _f.CAD_NavShowGrid(on)
 
@@ -54,6 +57,7 @@ def CAD_NavAddAgent(objectId: int, isVehicle: bool) -> int:
 def CAD_NavAddSelected() -> int:
     """C: uint32_t CAD_NavAddSelected(void)
 
+    대상 — 장면 객체를 주행 대상으로. 반환 agentId(0 실패). 자동 수집(뼈·바퀴 클립)된 대상도 Remove/Clear 하면 다시 안 들어온다.
     반환 = 추가된 수
     """
     return _f.CAD_NavAddSelected()
@@ -61,12 +65,16 @@ def CAD_NavAddSelected() -> int:
 
 def CAD_NavRemoveAgent(agentId: int) -> bool:
     """C: bool CAD_NavRemoveAgent(uint32_t agentId)
+
+    대상 — 장면 객체를 주행 대상으로. 반환 agentId(0 실패). 자동 수집(뼈·바퀴 클립)된 대상도 Remove/Clear 하면 다시 안 들어온다.
     """
     return _f.CAD_NavRemoveAgent(agentId)
 
 
 def CAD_NavClearAgents() -> None:
     """C: void CAD_NavClearAgents(void)
+
+    대상 — 장면 객체를 주행 대상으로. 반환 agentId(0 실패). 자동 수집(뼈·바퀴 클립)된 대상도 Remove/Clear 하면 다시 안 들어온다.
     """
     _f.CAD_NavClearAgents()
 
@@ -89,12 +97,16 @@ def CAD_NavSetGoal(agentId: int, x: float, y: float, z: float) -> bool:
 
 def CAD_NavStart(agentId: int) -> bool:
     """C: bool CAD_NavStart(uint32_t agentId)
+
+    목적지 — 경로 계획까지(출발은 Start). 길이 없으면 false + CAD_GetLastError.
     """
     return _f.CAD_NavStart(agentId)
 
 
 def CAD_NavStop(agentId: int) -> bool:
     """C: bool CAD_NavStop(uint32_t agentId)
+
+    목적지 — 경로 계획까지(출발은 Start). 길이 없으면 false + CAD_GetLastError.
     """
     return _f.CAD_NavStop(agentId)
 
@@ -102,6 +114,7 @@ def CAD_NavStop(agentId: int) -> bool:
 def CAD_NavReset(agentId: int) -> bool:
     """C: bool CAD_NavReset(uint32_t agentId)
 
+    목적지 — 경로 계획까지(출발은 Start). 길이 없으면 false + CAD_GetLastError.
     정지·경로 삭제·출발 자리로
     """
     return _f.CAD_NavReset(agentId)

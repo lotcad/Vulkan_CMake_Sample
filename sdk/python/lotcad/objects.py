@@ -59,16 +59,14 @@ def CAD_GetObjectJson(id: int) -> str | None:
     단위 mm, 좌표 월드. 키 이름은 lot_object_json.h 한 곳에서 정하며 AI 선택 문맥·씬 요약과 같다.
     반환 = 길이(널 제외), 없는 id/실패 = -1. outUtf8=NULL 이면 길이만(2회 호출 규약).
     """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_GetObjectJson(id, _buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
+    _need = _f.CAD_GetObjectJson(id, None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
+    if _need < 0:
+        return None
+    _cap = _need + 1
+    _buf = _c.create_string_buffer(_cap)
+    if _f.CAD_GetObjectJson(id, _buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
+        return None
+    return _n.decode(_buf.value)
 
 
 def CAD_GetObjectProperty(id: int, key: str | None) -> str | None:
@@ -99,6 +97,17 @@ def CAD_GetObjectProperty(id: int, key: str | None) -> str | None:
 
 def CAD_SetObjectProperty(id: int, key: str | None, valueJson: str | None) -> bool:
     """C: bool CAD_SetObjectProperty(uint32_t id, const char* key, const char* valueJson)
+
+    이름으로 속성 하나 읽기·쓰기 — 키는 CAD_GetObjectJson 의 키와 같다.
+      공통    name, color, colorByLayer, visible, layer(이름|id), linetype(이름|id|"bylayer"), linetypeScale,
+              position, rotation[x,y,z,w], scale
+      line    start, end          polyline  points, closed        circle  center, radius
+      arc     center, radius, startDeg, endDeg                     text    text, height, font
+      dimension p1, p2, p3, dimLinePoint, precision                mesh    intensity(조명)
+    Get: 값의 JSON 텍스트(예: 50.0 / [1,2,3] / "이름"), 반환=길이, 없으면 -1.
+    Set: valueJson 은 JSON(따옴표 없는 글자는 문자열로 받음). 좌표·길이는 월드 mm. 딸린 모델을 다시 만들고
+         undo 한 단계로 남긴다. 실패(없는 키·형식 오류·잠긴 도면층) 면 false — 이유는 CAD_GetStatusMessage 가 아니라
+         CAD_GetLastError 로.
     """
     return _f.CAD_SetObjectProperty(id, _n.text(key), _n.text(valueJson))
 
@@ -201,6 +210,19 @@ def CAD_GetPolylinePoints(id: int, outXyz: Any, cap: int) -> tuple[int, bool]:
 
 def CAD_SetPolylinePoints(id: int, xyz: Sequence | None, count: int, closed: bool) -> bool:
     """C: bool CAD_SetPolylinePoints(uint32_t id, const float* xyz, uint32_t count, bool closed)
+
+    닫기·열기·반전·정점 삽입/삭제는 전부 "정점 목록을 바꾸는 일" 이라, 하위 명령마다
+    함수를 늘리는 대신 목록을 통째로 읽고 쓰게 한다. 호스트가 받아서 고쳐 되돌려주면 된다.
+
+    uint32_t n = CAD_GetPolylinePoints(id, NULL, 0, NULL);   // 개수 질의
+    float* buf = malloc(n * 3 * sizeof(float));
+    bool closed = false;
+    CAD_GetPolylinePoints(id, buf, n, &closed);
+    ... 고친 뒤 ...
+    CAD_SetPolylinePoints(id, buf, n, closed);               // undo 1스텝으로 적재
+
+    xyz 는 3 × count 개 float. 좌표는 객체 로컬 (그립/스케치와 같은 공간).
+    Set 은 정점이 2개 미만이면 실패. Polyline 이 아닌 객체는 0 / false.
     """
     _a_xyz = _n.array(_c.c_float, xyz)
     return _f.CAD_SetPolylinePoints(id, _a_xyz, count, closed)
@@ -226,6 +248,9 @@ def CAD_GetObjectKind(id: int) -> int:
 
 def CAD_ObjectExists(id: int) -> bool:
     """C: bool CAD_ObjectExists(uint32_t id)
+
+    종류: 0=Mesh 1=Line 2=Polyline 3=Circle 4=Arc 5=Text 6=Dimension
+    7=PointCloud 8=ParticleEmitter, 없으면 -1.
     """
     return _f.CAD_ObjectExists(id)
 
@@ -250,6 +275,7 @@ def CAD_SetObjectVisible(id: int, visible: bool) -> bool:
 def CAD_IsObjectVisible(id: int) -> bool:
     """C: bool CAD_IsObjectVisible(uint32_t id)
 
+    Viewport visibility; hidden objects remain in the document but cannot be picked/snapped.
     false for missing IDs
     """
     return _f.CAD_IsObjectVisible(id)
@@ -273,6 +299,8 @@ def CAD_SetLayerColor(id: int, r: float, g: float, b: float) -> bool:
 
 def CAD_GetLayerColor(id: int) -> tuple[float, float, float] | None:
     """C: bool CAD_GetLayerColor(uint32_t id,float* r,float* g,float* b)
+
+    RGB in [0,1]. Layer 0 has fixed white ByLayer color.
     """
     r = _c.c_float()
     g = _c.c_float()
@@ -284,6 +312,8 @@ def CAD_GetLayerColor(id: int) -> tuple[float, float, float] | None:
 
 def CAD_SetObjectColorByLayer(id: int, enabled: bool) -> bool:
     """C: bool CAD_SetObjectColorByLayer(uint32_t id,bool enabled)
+
+    RGB in [0,1]. Layer 0 has fixed white ByLayer color.
     """
     return _f.CAD_SetObjectColorByLayer(id, enabled)
 
@@ -291,6 +321,7 @@ def CAD_SetObjectColorByLayer(id: int, enabled: bool) -> bool:
 def CAD_GetObjectColorByLayer(id: int) -> int:
     """C: int CAD_GetObjectColorByLayer(uint32_t id)
 
+    RGB in [0,1]. Layer 0 has fixed white ByLayer color.
     0=individual, 1=ByLayer, -1=missing
     """
     return _f.CAD_GetObjectColorByLayer(id)
@@ -298,12 +329,16 @@ def CAD_GetObjectColorByLayer(id: int) -> int:
 
 def CAD_SetSelectedColorByLayer(enabled: bool) -> int:
     """C: uint32_t CAD_SetSelectedColorByLayer(bool enabled)
+
+    RGB in [0,1]. Layer 0 has fixed white ByLayer color.
     """
     return _f.CAD_SetSelectedColorByLayer(enabled)
 
 
 def CAD_GetObjectEffectiveColor(id: int) -> tuple[float, float, float] | None:
     """C: bool CAD_GetObjectEffectiveColor(uint32_t id,float* r,float* g,float* b)
+
+    RGB in [0,1]. Layer 0 has fixed white ByLayer color.
     """
     r = _c.c_float()
     g = _c.c_float()
@@ -324,24 +359,36 @@ def CAD_SetObjectOpacity(id: int, opacity: float) -> bool:
 
 def CAD_GetObjectOpacity(id: int) -> float:
     """C: float CAD_GetObjectOpacity(uint32_t id)
+
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     """
     return _f.CAD_GetObjectOpacity(id)
 
 
 def CAD_SetLayerOpacity(id: int, opacity: float) -> bool:
     """C: bool CAD_SetLayerOpacity(uint32_t id, float opacity)
+
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     """
     return _f.CAD_SetLayerOpacity(id, opacity)
 
 
 def CAD_GetLayerOpacity(id: int) -> float:
     """C: float CAD_GetLayerOpacity(uint32_t id)
+
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     """
     return _f.CAD_GetLayerOpacity(id)
 
 
 def CAD_SetSelectedOpacity(opacity: float) -> int:
     """C: uint32_t CAD_SetSelectedOpacity(float opacity)
+
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     """
     return _f.CAD_SetSelectedOpacity(opacity)
 
@@ -349,7 +396,8 @@ def CAD_SetSelectedOpacity(opacity: float) -> int:
 def CAD_GetLayerIds(out: Any, capacity: int) -> int:
     """C: uint32_t CAD_GetLayerIds(uint32_t* out, uint32_t capacity)
 
-    CAD_API uint32_t CAD_SetSelectedOpacity(float opacity);   /* 선택 전부, 되돌리기 1단계 → 바뀐 수
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     required count, includes 0
     """
     return _f.CAD_GetLayerIds(out, capacity)
@@ -357,6 +405,9 @@ def CAD_GetLayerIds(out: Any, capacity: int) -> int:
 
 def CAD_GetLayerName(id: int) -> str | None:
     """C: int CAD_GetLayerName(uint32_t id, char* out, int capacity)
+
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     """
     _cap = 256
     while True:
@@ -372,29 +423,44 @@ def CAD_GetLayerName(id: int) -> str | None:
 
 def CAD_RenameLayer(id: int, name: str | None) -> bool:
     """C: bool CAD_RenameLayer(uint32_t id, const char* name)
+
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     """
     return _f.CAD_RenameLayer(id, _n.text(name))
 
 
 def CAD_SetLayerVisible(id: int, visible: bool) -> bool:
     """C: bool CAD_SetLayerVisible(uint32_t id, bool visible)
+
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     """
     return _f.CAD_SetLayerVisible(id, visible)
 
 
 def CAD_IsLayerVisible(id: int) -> bool:
     """C: bool CAD_IsLayerVisible(uint32_t id)
+
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     """
     return _f.CAD_IsLayerVisible(id)
 
 
 def CAD_SetLayerLocked(id: int, locked: bool) -> bool:
     """C: bool CAD_SetLayerLocked(uint32_t id, bool locked)
+
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     """
     return _f.CAD_SetLayerLocked(id, locked)
 
 
 def CAD_IsLayerLocked(id: int) -> bool:
     """C: bool CAD_IsLayerLocked(uint32_t id)
+
+    불투명도 0..1 (1 = 불투명). 객체 것 × 도면층 것이 화면에 쓰인다 — 메시(채움)에만, 선·문자는 그대로.
+       객체 것은 되돌리기 1단계. 이름 기반 속성 "opacity" 와 같은 값. Get 은 없으면 -1.
     """
     return _f.CAD_IsLayerLocked(id)

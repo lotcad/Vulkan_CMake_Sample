@@ -44,6 +44,9 @@ def CAD_CreatePointCloud() -> int:
 
 def CAD_UpdatePointCloud(id: int, xyz: Sequence | None, rgba: Sequence | None, count: int) -> bool:
     """C: bool CAD_UpdatePointCloud(uint32_t id, const float* xyz, const unsigned char* rgba, uint32_t count)
+
+    Load an Effekseer .efkefc/.efk with referenced resources. Inserted stopped.
+    CAD_SetParticlePlayback also controls these objects. Files embed in .lot.
     """
     _a_xyz = _n.array(_c.c_float, xyz)
     _a_rgba = _n.array(_c.c_ubyte, rgba)
@@ -60,5 +63,7 @@ def CAD_SetPointCloudSize(id: int, pointSizePx: float) -> bool:
 
 def CAD_GetPointCloudCount(id: int) -> int:
     """C: uint32_t CAD_GetPointCloudCount(uint32_t id)
+
+    화면 픽셀 크기 (1~64 로 클램프). 기본 2.
     """
     return _f.CAD_GetPointCloudCount(id)

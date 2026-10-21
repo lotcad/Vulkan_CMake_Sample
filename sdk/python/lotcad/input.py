@@ -85,6 +85,12 @@ def CAD_SetDimensionTextScreenFixed(enabled: bool) -> None:
 
 def CAD_GetDimensionTextScreenFixed() -> bool:
     """C: bool CAD_GetDimensionTextScreenFixed(void)
+
+    치수 **문자**를 줌과 무관하게 화면상 같은 크기로 그릴지 (기본 false).
+    모바일에서 치수는 도면 요소보다 "측정 도구" 에 가깝다 — 줌아웃하면 글자가 같이 작아져
+    값을 못 읽는 게 문제였다. 켜면 글자가 항상 읽히는 크기로 남는다(선·화살표는 그대로).
+    데스크톱은 끄는 게 맞다 — 도면 출력에선 월드 크기여야 한다.
+    매 프레임 비용은 없다(플래그를 정점에 굽는다). 전환 시 기존 치수를 한 번 다시 만든다.
     """
     return _f.CAD_GetDimensionTextScreenFixed()
 

@@ -101,6 +101,8 @@ def CAD_GetSketchConstraintIds(outIds: Any, capacity: int) -> int:
 
 def CAD_GetSketchConstraintInfo(constraintId: int) -> CAD_SketchConstraintInfo | None:
     """C: bool CAD_GetSketchConstraintInfo(uint32_t constraintId, CAD_SketchConstraintInfo* outInfo)
+
+    반환=필요한 전체 개수. outIds/capacity가 작으면 앞부분만 복사한다.
     """
     outInfo = CAD_SketchConstraintInfo()
     if not _f.CAD_GetSketchConstraintInfo(constraintId, _c.byref(outInfo)):

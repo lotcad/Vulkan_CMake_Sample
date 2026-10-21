@@ -40,12 +40,24 @@ def CAD_BeginGetPoint(prompt: str | None) -> None:
 
 def CAD_BeginGetEntSel(prompt: str | None) -> None:
     """C: void CAD_BeginGetEntSel(const char* prompt)
+
+    비동기: Begin 후 사용자가 클릭할 때까지 대기. 호스트가 매 프레임 bool 폴링.
+    IsPicking=true            → 대기 중
+    IsPicking=false + Try=true  → 완료 (좌표/엔티티 소비)
+    IsPicking=false + Try=false → 취소(ESC)
+    EntSel 은 빈 곳/비객체 클릭을 통과 안 시킴(유효 객체만 완료). Point 는 어디든 좌표 반환.
     """
     _f.CAD_BeginGetEntSel(_n.text(prompt))
 
 
 def CAD_IsPicking() -> bool:
     """C: bool CAD_IsPicking(void)
+
+    비동기: Begin 후 사용자가 클릭할 때까지 대기. 호스트가 매 프레임 bool 폴링.
+    IsPicking=true            → 대기 중
+    IsPicking=false + Try=true  → 완료 (좌표/엔티티 소비)
+    IsPicking=false + Try=false → 취소(ESC)
+    EntSel 은 빈 곳/비객체 클릭을 통과 안 시킴(유효 객체만 완료). Point 는 어디든 좌표 반환.
     """
     return _f.CAD_IsPicking()
 
@@ -66,6 +78,8 @@ def CAD_TryGetPickResult() -> tuple[float, float, float, int] | None:
 
 def CAD_CancelPick() -> None:
     """C: void CAD_CancelPick(void)
+
+    완료됐으면 true(1회 소비) + 좌표(+EntSel 은 outId). Point 는 outId=0. 대기/취소면 false.
     """
     _f.CAD_CancelPick()
 
@@ -82,24 +96,40 @@ def CAD_SetSubobjectSelectionMode(mode: int) -> bool:
 
 def CAD_GetSubobjectSelectionMode() -> int:
     """C: int CAD_GetSubobjectSelectionMode(void)
+
+    Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
+    Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
+    GetSelectedFaceTriangles returns required count; writes up to capacity if out != NULL.
     """
     return _f.CAD_GetSubobjectSelectionMode()
 
 
 def CAD_PickSubobject(ox: float, oy: float, oz: float, dx: float, dy: float, dz: float) -> bool:
     """C: bool CAD_PickSubobject(float ox, float oy, float oz, float dx, float dy, float dz)
+
+    Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
+    Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
+    GetSelectedFaceTriangles returns required count; writes up to capacity if out != NULL.
     """
     return _f.CAD_PickSubobject(ox, oy, oz, dx, dy, dz)
 
 
 def CAD_GetSubobjectSelectionId() -> int:
     """C: uint32_t CAD_GetSubobjectSelectionId(void)
+
+    Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
+    Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
+    GetSelectedFaceTriangles returns required count; writes up to capacity if out != NULL.
     """
     return _f.CAD_GetSubobjectSelectionId()
 
 
 def CAD_GetSelectedFaceTriangles(out: Any, capacity: int) -> int:
     """C: uint32_t CAD_GetSelectedFaceTriangles(uint32_t* out, uint32_t capacity)
+
+    Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
+    Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
+    GetSelectedFaceTriangles returns required count; writes up to capacity if out != NULL.
     """
     return _f.CAD_GetSelectedFaceTriangles(out, capacity)
 

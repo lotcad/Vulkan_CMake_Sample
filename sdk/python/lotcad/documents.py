@@ -35,6 +35,9 @@ def CAD_GetDocumentCount() -> int:
 
 def CAD_GetActiveDocument() -> int:
     """C: int CAD_GetActiveDocument(void)
+
+    여러 파일을 동시에 열고 탭으로 전환한다. 호스트(WPF/Qt)가 **자기 탭 UI** 를 그릴 수 있도록
+    목록 조회 + 전환/열기/닫기를 모두 노출한다. 전환은 상태 swap 이라 비용이 거의 없다.
     """
     return _f.CAD_GetActiveDocument()
 
@@ -44,31 +47,29 @@ def CAD_GetDocumentTitle(index: int) -> str | None:
 
     탭 라벨용 — 표시 이름(파일명 또는 "제목 없음"). 길이 반환, -1=실패. buf 는 null 허용(길이만 조회).
     """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_GetDocumentTitle(index, _buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
+    _need = _f.CAD_GetDocumentTitle(index, None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
+    if _need < 0:
+        return None
+    _cap = _need + 1
+    _buf = _c.create_string_buffer(_cap)
+    if _f.CAD_GetDocumentTitle(index, _buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
+        return None
+    return _n.decode(_buf.value)
 
 
 def CAD_GetDocumentPath(index: int) -> str | None:
     """C: int CAD_GetDocumentPath (int index, char* outUtf8, int cap)
+
+    탭 라벨용 — 표시 이름(파일명 또는 "제목 없음"). 길이 반환, -1=실패. buf 는 null 허용(길이만 조회).
     """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_GetDocumentPath(index, _buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
+    _need = _f.CAD_GetDocumentPath(index, None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
+    if _need < 0:
+        return None
+    _cap = _need + 1
+    _buf = _c.create_string_buffer(_cap)
+    if _f.CAD_GetDocumentPath(index, _buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
+        return None
+    return _n.decode(_buf.value)
 
 
 def CAD_IsDocumentDirty(index: int) -> bool:
@@ -97,6 +98,8 @@ def CAD_OpenDocument(pathUtf8: str | None) -> int:
 
 def CAD_ActivateDocument(index: int) -> bool:
     """C: bool CAD_ActivateDocument(int index)
+
+    파일을 새 탭으로 열기. 반환 = 문서 인덱스, 실패 -1.
     """
     return _f.CAD_ActivateDocument(index)
 

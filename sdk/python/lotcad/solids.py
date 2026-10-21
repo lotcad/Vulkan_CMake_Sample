@@ -40,6 +40,10 @@ def CAD_BooleanUnion(keepOriginals: bool) -> None:
 
 def CAD_BooleanIntersection(keepOriginals: bool) -> None:
     """C: void CAD_BooleanIntersection(bool keepOriginals)
+
+    **요청형**(예전부터 있던 셋) — 반환값 없음, 다음 프레임에 실행. 결과 id·실패를 알 수 없다.
+    Union/Intersection 은 **부른 순간의 선택**(메시만)이 대상. keepOriginals=false 면 원본 삭제(되돌리기 한 단계).
+    결과가 필요하거나 여러 번 이어 부를 땐 아래 바로 실행형(CAD_BooleanUnionIds …)을 쓴다.
     """
     _f.CAD_BooleanIntersection(keepOriginals)
 
