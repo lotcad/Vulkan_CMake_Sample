@@ -21,6 +21,7 @@ namespace LotCadWinForms
         static readonly Color Line      = ColorTranslator.FromHtml("#2E3136");
 
         readonly VulkanPanel _render = new VulkanPanel { Dock = DockStyle.Fill, BackColor = Color.Black };
+        readonly AnalysisPanel _analysis = new AnalysisPanel { Dock = DockStyle.Right, Visible = false };   // 해석 — 툴바·메뉴가 연다
         readonly Label _status = new Label { Text = "준비", AutoSize = true, ForeColor = TextBody, Dock = DockStyle.Left };
         readonly Label _info = new Label { Text = "", AutoSize = true, ForeColor = TextInfo, Dock = DockStyle.Right };
         readonly Label _sceneInfo = new Label { Text = "객체 0 · 선택 0", AutoSize = true, ForeColor = TextInfo };
@@ -41,6 +42,7 @@ namespace LotCadWinForms
 
             // 도킹은 나중에 넣은 것부터 자리를 잡는다 → 채움(렌더)을 먼저, 메뉴를 마지막에.
             Controls.Add(_render);
+            Controls.Add(_analysis);
             Controls.Add(BuildSidePanel());
             Controls.Add(BuildStatusBar());
             Controls.Add(BuildToolbar());
@@ -61,6 +63,8 @@ namespace LotCadWinForms
             // 화면 주기에 맞춰 기다려 주므로 CPU 를 헛돌리지 않는다.
             Application.Idle += OnIdle;
             FormClosed += (s, e) => Application.Idle -= OnIdle;
+            // 해석 상태 폴링을 엔진 정리(렌더 영역 핸들 파괴)보다 **먼저** 멈춘다 — 헐린 엔진에 묻지 않게
+            FormClosing += (s, e) => _analysis.Shutdown();
         }
 
         void OnIdle(object sender, EventArgs e)
@@ -95,6 +99,10 @@ namespace LotCadWinForms
                 null,
                 Item("줌 맞춤", (s, e) => CadApi.CAD_RequestZoomExtents()),
                 Item("투영 전환 (Ortho/Persp)", (s, e) => CadApi.CAD_RequestToggleProjection())));
+            menu.Items.Add(Menu("해석(&A)",
+                Item("바람 터널", (s, e) => _analysis.ShowPage(0)),
+                Item("물", (s, e) => _analysis.ShowPage(1)),
+                Item("구조 해석", (s, e) => _analysis.ShowPage(2))));
             return menu;
         }
 
@@ -137,6 +145,12 @@ namespace LotCadWinForms
             bar.Controls.Add(ToolButton("Iso", (s, e) => CadApi.CAD_RequestSetView(3)));
             bar.Controls.Add(ToolButton("줌맞춤", (s, e) => CadApi.CAD_RequestZoomExtents()));
             bar.Controls.Add(ToolButton("투영", (s, e) => CadApi.CAD_RequestToggleProjection()));
+
+            bar.Controls.Add(Separator());
+            bar.Controls.Add(GroupLabel("해석"));
+            bar.Controls.Add(ToolButton("바람 터널", (s, e) => _analysis.ShowPage(0)));
+            bar.Controls.Add(ToolButton("물", (s, e) => _analysis.ShowPage(1)));
+            bar.Controls.Add(ToolButton("구조 해석", (s, e) => _analysis.ShowPage(2)));
             return bar;
         }
 

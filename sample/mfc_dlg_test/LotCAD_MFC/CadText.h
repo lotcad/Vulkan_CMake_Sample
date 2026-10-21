@@ -33,6 +33,20 @@ inline std::wstring CadLastError()
 	return Utf8ToWide(buf);
 }
 
+// JSON 을 넘겨 JSON 을 받는 함수(해석 CAD_WindTunnel · CAD_Water · CAD_StructuralAnalysis 등) — 2회 호출 규약.
+// out=NULL 로 길이를 물을 때 **한 번 실행**하고, 같은 인자로 버퍼를 주면 다시 실행하지 않고 그 결과를 준다.
+// 고정 버퍼로 먼저 불렀다 모자라 다시 부르면 start·run 이 두 번 들어간다("이미 도는 중") — 반드시 이 순서로.
+// 실패면 빈 문자열(이유는 CadLastError()).
+inline std::string CadCallJson(int (*fn)(const char*, char*, int), const std::string& argsJson)
+{
+	const int need = fn(argsJson.c_str(), nullptr, 0);   // 길이를 물으며 실행
+	if (need < 0) return {};
+	std::string out(need + 1, '\0');
+	if (fn(argsJson.c_str(), &out[0], need + 1) < 0) return {};   // 같은 인자 → 결과만
+	out.resize(strlen(out.c_str()));
+	return out;
+}
+
 // "2회 호출 규약" JSON 읽기 — 먼저 길이를 묻고, 그만큼 버퍼를 잡아 다시 부른다.
 //   std::string json = CadReadJson(CAD_GetSectionStateJson);
 template <class Fn>

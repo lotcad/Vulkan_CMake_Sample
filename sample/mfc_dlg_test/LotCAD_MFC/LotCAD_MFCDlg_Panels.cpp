@@ -83,6 +83,9 @@ void CLotCADMFCDlg::TogglePanel(int kind)
 	case kPanelSection:   OpenSectionPanel();  break;
 	case kPanelNav:       OpenNavPanel();      break;
 	case kPanelParticles: OpenParticlePanel(); break;
+	case kPanelWind:      OpenWindPanel();     break;   // 해석 — LotCAD_MFCDlg_Analysis.cpp
+	case kPanelWater:     OpenWaterPanel();    break;
+	case kPanelSim:       OpenSimPanel();      break;
 	}
 	RelayoutNow();
 }

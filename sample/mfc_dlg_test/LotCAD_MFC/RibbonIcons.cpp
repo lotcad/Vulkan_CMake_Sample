@@ -83,6 +83,26 @@ namespace {
 			auto v = Map(pts);
 			g.FillPolygon(&fill, v.data(), (INT)v.size());
 		}
+		// 정한 색으로 채우기 (해석 아이콘의 파란 흐름·빨간 응력처럼 강조색이 아닌 것)
+		void FillPolyColor(std::initializer_list<PointF> pts, COLORREF c, BYTE alpha = 255)
+		{
+			SolidBrush b(ToColor(c, alpha));
+			auto v = Map(pts);
+			g.FillPolygon(&b, v.data(), (INT)v.size());
+		}
+		void FillCircleColor(float x, float y, float rad, COLORREF c)
+		{
+			SolidBrush b(ToColor(c));
+			g.FillEllipse(&b, E(x, y, rad, rad));
+		}
+		// 단위 좌표 점 목록 → 꺾은선 (계산으로 만든 곡선용)
+		void Lines(const std::vector<PointF>& unit)
+		{
+			std::vector<PointF> v;
+			for (const PointF& p : unit) v.push_back(P(p.X, p.Y));
+			g.DrawLines(&pen, v.data(), (INT)v.size());
+		}
+		void Width(float factor) { pen.SetWidth((std::max)(1.2f, r * 0.15f) * factor); }   // 1 = 기본 굵기
 
 		// (x,y) 가 촉 끝, (dx,dy) 가 가리키는 방향인 화살촉.
 		void Arrow(float x, float y, float dx, float dy)
@@ -366,6 +386,53 @@ void DrawRibbonIcon(Graphics& g, RibbonIcon icon, float cx, float cy, float r, C
 		p.Line(0, 0.75f,  0.55f, -0.35f);  p.Dot(0.65f, -0.55f);
 		p.Dot(-0.85f, 0.1f);  p.Dot(0.85f, 0.1f);
 		break;
+
+	// ── 해석 — 엔진 리본(ui/lot_ribbon.cpp)과 같은 그림 ──
+	case RibbonIcon::AnaWind: {     // 물체(작은 원) 둘레로 휘어 지나가는 흐름선 셋 + 바람 방향(+X)
+		const COLORREF blue = RGB(89, 179, 255);
+		p.FillCircleColor(0.15f, 0.0f, 0.28f, color);
+		p.SetColor(blue);
+		for (float y : { -0.65f, 0.65f }) {           // 위·아래 흐름선은 물체 쪽으로 불룩
+			const float bend = y < 0.0f ? -0.25f : 0.25f;
+			std::vector<PointF> pts;
+			for (int i = 0; i < 6; ++i) {
+				const float x = -0.95f + 1.8f * i / 5.0f;
+				const float bump = std::exp(-((x - 0.15f) * (x - 0.15f)) / 0.12f);
+				pts.emplace_back(x, y + bend * bump);
+			}
+			p.Lines(pts);
+		}
+		p.Line(-0.95f, 0.0f, -0.25f, 0.0f);            // 가운데 흐름선은 물체 앞뒤로 끊긴다
+		p.Line(0.55f, 0.0f, 0.95f, 0.0f);
+		p.FillPolyColor({ { 0.95f, 0.0f }, { 0.7f, -0.15f }, { 0.7f, 0.15f } }, blue);
+		break;
+	}
+	case RibbonIcon::AnaWater: {    // 그릇 + 물결
+		const COLORREF blue = RGB(77, 153, 255);
+		p.FillPolyColor({ { -0.74f, 0.1f }, { 0.74f, 0.1f }, { 0.69f, 0.75f }, { -0.69f, 0.75f } }, blue, 90);
+		p.Poly({ { -0.85f, -0.7f }, { -0.7f, 0.8f }, { 0.7f, 0.8f }, { 0.85f, -0.7f } });
+		std::vector<PointF> wave;
+		for (int i = 0; i < 9; ++i) {
+			const float x = -0.76f + 1.52f * i / 8.0f;
+			wave.emplace_back(x, -0.05f + 0.13f * std::sin(x * 7.0f));
+		}
+		p.SetColor(blue);
+		p.Width(1.3f);
+		p.Lines(wave);
+		break;
+	}
+	case RibbonIcon::AnaStress: {   // 벽에 박힌 보 + 끝에 누르는 화살표, 뿌리 쪽 빨강
+		p.FillPolyColor({ { -0.9f, -0.15f }, { -0.45f, -0.15f }, { -0.45f, 0.2f }, { -0.9f, 0.2f } }, RGB(255, 77, 51));
+		p.Width(1.5f);
+		p.Line(-0.9f, -0.9f, -0.9f, 0.9f);              // 벽
+		p.Width(0.7f);
+		for (float y = -0.8f; y < 0.9f; y += 0.4f) p.Line(-0.9f, y, -1.1f, y + 0.2f);   // 벽 빗금
+		p.Width(1.0f);
+		p.Rect(-0.9f, -0.15f, 1.65f, 0.35f);           // 보
+		p.Line(0.62f, -0.95f, 0.62f, -0.2f);           // 하중
+		p.Arrow(0.62f, -0.2f, 0.0f, 1.0f);
+		break;
+	}
 
 	case RibbonIcon::None:
 	default:

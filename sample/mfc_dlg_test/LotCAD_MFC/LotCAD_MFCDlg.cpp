@@ -132,6 +132,7 @@ BEGIN_MESSAGE_MAP(CLotCADMFCDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_SIZE()
+	ON_WM_DESTROY()
 	// 메뉴 명령은 ON_COMMAND — 버튼(ON_BN_CLICKED)과 달리 알림 코드가 없다.
 	ON_COMMAND(ID_CAD_OPEN,       &CLotCADMFCDlg::OnCadOpen)
 	ON_COMMAND(ID_CAD_SAVEAS,     &CLotCADMFCDlg::OnCadSaveAs)
@@ -199,6 +200,14 @@ BOOL CLotCADMFCDlg::OnInitDialog()
 	CAD_SetVisualStyle(m_visualStyle);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
+}
+
+// WM_DESTROY 는 부모가 자식보다 먼저 받는다 — 여기서 패널을 닫아 상태 폴링(해석 status 등)을 멈춘 뒤에야
+// 자식인 3D 뷰가 엔진을 헌다(CRenderPane::OnDestroy). 헐린 엔진에 묻지 않게.
+void CLotCADMFCDlg::OnDestroy()
+{
+	if (m_panel.GetSafeHwnd()) m_panel.Close();
+	CDialogEx::OnDestroy();
 }
 
 void CLotCADMFCDlg::OnSize(UINT nType, int cx, int cy)

@@ -103,6 +103,9 @@
       <Command>
         set ENG=$(ProjectDir)..\..\..\sdk
         copy /Y "%ENG%\LotCADCore.dll" "$(OutDir)" &gt;nul
+        rem 해석 모듈 — 구조 해석·바람 터널이 실행 중에 엔진 옆에서 불러온다
+        if exist "%ENG%\LotCADSim.dll" copy /Y "%ENG%\LotCADSim.dll" "$(OutDir)" &gt;nul
+        if exist "%ENG%\LotCADCfd.dll" copy /Y "%ENG%\LotCADCfd.dll" "$(OutDir)" &gt;nul
         if exist "%ENG%\models"   xcopy /Y /E /I "%ENG%\models"   "$(OutDir)models"   &gt;nul
         if exist "%ENG%\fonts"    xcopy /Y /E /I "%ENG%\fonts"    "$(OutDir)fonts"    &gt;nul
         if exist "%ENG%\textures" xcopy /Y /E /I "%ENG%\textures" "$(OutDir)textures" &gt;nul
@@ -188,6 +191,9 @@
       <Command>
         set ENG=$(ProjectDir)..\..\..\sdk
         copy /Y "%ENG%\LotCADCore.dll" "$(OutDir)" &gt;nul
+        rem 해석 모듈 — 구조 해석·바람 터널이 실행 중에 엔진 옆에서 불러온다
+        if exist "%ENG%\LotCADSim.dll" copy /Y "%ENG%\LotCADSim.dll" "$(OutDir)" &gt;nul
+        if exist "%ENG%\LotCADCfd.dll" copy /Y "%ENG%\LotCADCfd.dll" "$(OutDir)" &gt;nul
         if exist "%ENG%\models"   xcopy /Y /E /I "%ENG%\models"   "$(OutDir)models"   &gt;nul
         if exist "%ENG%\fonts"    xcopy /Y /E /I "%ENG%\fonts"    "$(OutDir)fonts"    &gt;nul
         if exist "%ENG%\textures" xcopy /Y /E /I "%ENG%\textures" "$(OutDir)textures" &gt;nul
@@ -211,6 +217,7 @@
     <ClInclude Include="RibbonIcons.h" />
     <ClInclude Include="CadStatusBar.h" />
     <ClInclude Include="CadText.h" />
+    <ClInclude Include="MiniJson.h" />
     <ClInclude Include="ToolPanel.h" />
     <ClInclude Include="CommandLine.h" />
     <ClInclude Include="DarkTheme.h" />
@@ -233,6 +240,7 @@
     <ClCompile Include="RibbonBar.cpp" />
     <ClCompile Include="RibbonIcons.cpp" />
     <ClCompile Include="LotCAD_MFCDlg.cpp" />
+    <ClCompile Include="LotCAD_MFCDlg_Analysis.cpp" />
     <ClCompile Include="LotCAD_MFCDlg_Panels.cpp" />
     <ClCompile Include="LotCAD_MFCDlg_Ribbon.cpp" />
     <ClCompile Include="LotCAD_MFCDlg_StatusBar.cpp" />

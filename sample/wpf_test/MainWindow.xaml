@@ -87,6 +87,11 @@
                 <MenuItem Header="줌 맞춤" Foreground="#1B1B1B" Click="OnZoom"/>
                 <MenuItem Header="투영 전환 (Ortho/Persp)" Foreground="#1B1B1B" Click="OnToggleProj"/>
             </MenuItem>
+            <MenuItem Header="해석(_A)" Foreground="#E6E6E6">
+                <MenuItem Header="바람 터널" Foreground="#1B1B1B" Click="OnWindTunnel"/>
+                <MenuItem Header="물" Foreground="#1B1B1B" Click="OnWater"/>
+                <MenuItem Header="구조 해석" Foreground="#1B1B1B" Click="OnStructural"/>
+            </MenuItem>
         </Menu>
 
         <!-- 툴바 -->
@@ -113,6 +118,12 @@
                 <Button Content="Iso"    Style="{StaticResource ToolBtn}" Click="OnViewIso"/>
                 <Button Content="줌맞춤" Style="{StaticResource ToolBtn}" Click="OnZoom"/>
                 <Button Content="투영"   Style="{StaticResource ToolBtn}" Click="OnToggleProj"/>
+
+                <Border Style="{StaticResource VSep}"/>
+                <TextBlock Text="해석" Style="{StaticResource GroupLabel}"/>
+                <Button Content="바람 터널" Style="{StaticResource ToolBtn}" Click="OnWindTunnel"/>
+                <Button Content="물"        Style="{StaticResource ToolBtn}" Click="OnWater"/>
+                <Button Content="구조 해석" Style="{StaticResource ToolBtn}" Click="OnStructural"/>
             </StackPanel>
         </Border>
 
@@ -124,12 +135,15 @@
             </DockPanel>
         </Border>
 
-        <!-- 좌: 정보, 우: Vulkan 렌더 -->
+        <!-- 좌: 정보, 가운데: Vulkan 렌더, 우: 해석 패널(툴바·메뉴 "해석" 이 연다) -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="230"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
+
+            <local:AnalysisPanel Grid.Column="2" x:Name="Analysis"/>
 
             <Border Grid.Column="0" Background="#1E1F22" BorderBrush="#111214" BorderThickness="0,0,1,0">
                 <StackPanel Margin="14">

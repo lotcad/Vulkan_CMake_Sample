@@ -24,6 +24,9 @@ BEGIN_MESSAGE_MAP(CToolPanel, CWnd)
 	ON_WM_DRAWITEM()
 	ON_WM_LBUTTONUP()
 	ON_WM_TIMER()
+	ON_WM_VSCROLL()
+	ON_WM_MOUSEWHEEL()
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -46,7 +49,11 @@ BOOL CToolPanel::Create(CWnd* parent, UINT id)
 	m_inputBrush.CreateSolidBrush(DarkTheme::InputBg);
 
 	const CString cls = AfxRegisterWndClass(0, ::LoadCursor(nullptr, IDC_ARROW));
-	return CWnd::Create(cls, nullptr, WS_CHILD | WS_CLIPCHILDREN, CRect(0, 0, Width(), 100), parent, id);
+	if (!CWnd::Create(cls, nullptr, WS_CHILD | WS_CLIPCHILDREN | WS_VSCROLL, CRect(0, 0, Width(), 100), parent, id))
+		return FALSE;
+	SetWindowTheme(GetSafeHwnd(), L"DarkMode_Explorer", nullptr);   // 어두운 스크롤바
+	ShowScrollBar(SB_VERT, FALSE);   // 내용이 길 때만 보인다(UpdateScroll)
+	return TRUE;
 }
 
 int CToolPanel::Width() const { return S(kWidth); }
@@ -56,6 +63,7 @@ void CToolPanel::Open(const wchar_t* title, int kind)
 	Close();
 	m_title = title;
 	m_kind  = kind;
+	m_scroll = 0;
 	m_y     = S(kHeaderH) + S(4);
 	ShowWindow(SW_SHOW);
 	SetTimer(1, 250, nullptr);
@@ -71,6 +79,8 @@ void CToolPanel::Close()
 	onTick  = nullptr;
 	m_kind  = 0;
 	ClearControls();
+	m_scroll = 0;
+	ShowScrollBar(SB_VERT, FALSE);
 	ShowWindow(SW_HIDE);
 	if (closed) closed();
 }
@@ -85,6 +95,8 @@ void CToolPanel::ClearControls()
 	m_toggles.clear();
 	m_choices.clear();
 	m_sliders.clear();
+	m_lists.clear();
+	m_numbers.clear();
 	m_status = nullptr;
 }
 
@@ -179,6 +191,94 @@ void CToolPanel::AddButton(const wchar_t* text, std::function<void()> onClick)
 	m_y += S(30);
 }
 
+int CToolPanel::AddList(int lines, std::function<void(int)> onSelect)
+{
+	const UINT id = m_nextId++;
+	CListBox* list = Keep(new CListBox);
+	list->Create(WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT,
+	             CRect(ContentLeft(), m_y, ContentLeft() + ContentWidth(), m_y + lines * S(kLineH) + S(4)), this, id);
+	list->SetFont(&m_font);
+	SetWindowTheme(list->GetSafeHwnd(), L"DarkMode_Explorer", nullptr);   // 어두운 스크롤바
+	m_lists[id] = std::move(onSelect);
+	m_y += lines * S(kLineH) + S(10);
+	return (int)id;
+}
+
+void CToolPanel::SetListItems(int list, const std::vector<std::wstring>& items, int selected)
+{
+	auto* box = (CListBox*)GetDlgItem((UINT)list);
+	if (!box) return;
+	box->SetRedraw(FALSE);
+	box->ResetContent();
+	for (const std::wstring& item : items) box->AddString(item.c_str());
+	box->SetCurSel(selected);   // SetCurSel 은 LBN_SELCHANGE 를 보내지 않는다 — 콜백이 안 불린다
+	box->SetRedraw(TRUE);
+	box->Invalidate();
+}
+
+void CToolPanel::AddButtonRow(const std::vector<std::pair<std::wstring, std::function<void()>>>& buttons)
+{
+	const int n = (int)buttons.size();
+	const int gap = S(4);
+	const int w = (ContentWidth() - gap * (n - 1)) / (n > 0 ? n : 1);
+	for (int i = 0; i < n; ++i) {
+		const UINT id = m_nextId++;
+		CButton* button = Keep(new CButton);
+		const int x = ContentLeft() + i * (w + gap);
+		button->Create(buttons[i].first.c_str(), WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW,
+		               CRect(x, m_y, x + w, m_y + S(26)), this, id);
+		button->SetFont(&m_font);
+		m_clicks[id] = buttons[i].second;
+	}
+	m_y += S(30);
+}
+
+int CToolPanel::AddNumbers(const wchar_t* label, const std::vector<double>& values,
+                           const wchar_t* buttonText, std::function<void()> onClick)
+{
+	AddLabel(label, S(18), DarkTheme::TextDim, &m_font);
+	const int row = (int)m_numbers.size() + 1;
+	const int n = (int)values.size();
+	const int gap = S(4);
+	const int buttonW = buttonText ? S(52) : 0;   // 줄 끝 버튼 자리
+	const int w = (ContentWidth() - buttonW - gap * (n - (buttonText ? 0 : 1))) / (n > 0 ? n : 1);
+	if (buttonText) {
+		const UINT id = m_nextId++;
+		CButton* button = Keep(new CButton);
+		const int x = ContentLeft() + ContentWidth() - buttonW;
+		button->Create(buttonText, WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW,
+		               CRect(x, m_y - S(2), x + buttonW, m_y + S(24)), this, id);
+		button->SetFont(&m_font);
+		m_clicks[id] = std::move(onClick);
+	}
+	for (int i = 0; i < n; ++i) {
+		CEdit* edit = Keep(new CEdit);
+		const int x = ContentLeft() + i * (w + gap);
+		edit->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_AUTOHSCROLL,
+		             CRect(x, m_y, x + w, m_y + S(22)), this, m_nextId++);
+		edit->SetFont(&m_font);
+		wchar_t text[64];
+		swprintf_s(text, L"%g", values[i]);
+		edit->SetWindowText(text);
+		m_numbers[row].push_back(edit);
+	}
+	m_y += S(28);
+	return row;
+}
+
+std::vector<double> CToolPanel::GetNumbers(int row) const
+{
+	std::vector<double> out;
+	auto it = m_numbers.find(row);
+	if (it == m_numbers.end()) return out;
+	for (CEdit* edit : it->second) {
+		CString text;
+		edit->GetWindowText(text);
+		out.push_back(_wtof(text));
+	}
+	return out;
+}
+
 void CToolPanel::AddStatus(int lines)
 {
 	m_y += S(6);
@@ -227,6 +327,11 @@ BOOL CToolPanel::OnCommand(WPARAM wParam, LPARAM lParam)
 		fn(((CButton*)GetDlgItem(id))->GetCheck() == BST_CHECKED);
 		return TRUE;
 	}
+	if (code == LBN_SELCHANGE && m_lists.count(id)) {
+		auto fn = m_lists[id];
+		fn(((CListBox*)GetDlgItem(id))->GetCurSel());
+		return TRUE;
+	}
 	if (code == CBN_SELCHANGE && m_choices.count(id)) {
 		auto fn = m_choices[id];
 		fn(((CComboBox*)GetDlgItem(id))->GetCurSel());
@@ -249,8 +354,75 @@ void CToolPanel::OnHScroll(UINT nSBCode, UINT, CScrollBar* pScrollBar)
 
 void CToolPanel::OnTimer(UINT_PTR)
 {
+	UpdateScroll();   // 내용을 다 쌓은 뒤 첫 틱에 스크롤 범위가 맞춰진다
 	auto fn = onTick;
 	if (fn) fn();
+}
+
+
+// ── 스크롤 ──────────────────────────────────────────────────────────────
+// 컨트롤은 스크롤 0 기준으로 놓고(m_y), 스크롤하면 창 내용을 통째로 옮긴다(SW_SCROLLCHILDREN).
+// 제목 줄도 같이 올라간다 — 닫기는 리본 버튼(같은 버튼 = 닫기)으로도 된다.
+
+void CToolPanel::UpdateScroll()
+{
+	if (!GetSafeHwnd()) return;
+	CRect rc;
+	GetClientRect(&rc);
+	const int content = m_y + S(8);
+	const bool need = m_kind != 0 && content > rc.Height();
+	ShowScrollBar(SB_VERT, need);
+	if (!need) { if (m_scroll) ScrollTo(0); return; }
+	SCROLLINFO si = { sizeof(si), SIF_RANGE | SIF_PAGE | SIF_POS };
+	si.nMin = 0;
+	si.nMax = content - 1;
+	si.nPage = (UINT)rc.Height();
+	si.nPos = m_scroll;
+	SetScrollInfo(SB_VERT, &si, TRUE);
+	ScrollTo(m_scroll);   // 창이 커져 범위가 줄었으면 끝을 맞춘다
+}
+
+void CToolPanel::ScrollTo(int pos)
+{
+	CRect rc;
+	GetClientRect(&rc);
+	const int maxPos = (std::max)(0, m_y + S(8) - rc.Height());
+	pos = (std::max)(0, (std::min)(pos, maxPos));
+	if (pos == m_scroll) return;
+	ScrollWindowEx(0, m_scroll - pos, nullptr, nullptr, nullptr, nullptr, SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
+	m_scroll = pos;
+	SetScrollPos(SB_VERT, pos, TRUE);
+	Invalidate(FALSE);
+}
+
+void CToolPanel::OnVScroll(UINT nSBCode, UINT, CScrollBar*)
+{
+	SCROLLINFO si = { sizeof(si), SIF_ALL };
+	GetScrollInfo(SB_VERT, &si);
+	int pos = m_scroll;
+	switch (nSBCode) {
+	case SB_LINEUP:        pos -= S(kLineH) * 2; break;
+	case SB_LINEDOWN:      pos += S(kLineH) * 2; break;
+	case SB_PAGEUP:        pos -= (int)si.nPage; break;
+	case SB_PAGEDOWN:      pos += (int)si.nPage; break;
+	case SB_THUMBTRACK:
+	case SB_THUMBPOSITION: pos = si.nTrackPos; break;
+	case SB_TOP:           pos = 0; break;
+	case SB_BOTTOM:        pos = si.nMax; break;
+	}
+	ScrollTo(pos);
+}
+
+BOOL CToolPanel::OnMouseWheel(UINT, short zDelta, CPoint)
+{
+	ScrollTo(m_scroll - zDelta / WHEEL_DELTA * S(kLineH) * 3);
+	return TRUE;
+}
+
+void CToolPanel::OnSize(UINT nType, int cx, int cy)
+{
+	CWnd::OnSize(nType, cx, cy);
+	UpdateScroll();
 }
 
 
@@ -264,16 +436,17 @@ void CToolPanel::OnPaint()
 	CRect rc;
 	GetClientRect(&rc);
 	dc.FillSolidRect(rc, DarkTheme::BodyBg);
-	dc.FillSolidRect(CRect(0, 0, rc.right, S(kHeaderH)), DarkTheme::TabBarBg);   // 제목 줄
-	dc.FillSolidRect(CRect(0, 0, 1, rc.bottom), DarkTheme::Separator);           // 3D 뷰와의 경계
+	const int top = -m_scroll;   // 제목 줄도 내용과 같이 스크롤된다
+	dc.FillSolidRect(CRect(0, top, rc.right, top + S(kHeaderH)), DarkTheme::TabBarBg);   // 제목 줄
+	dc.FillSolidRect(CRect(0, 0, 1, rc.bottom), DarkTheme::Separator);                   // 3D 뷰와의 경계
 
 	dc.SetBkMode(TRANSPARENT);
 	CFont* old = dc.SelectObject(&m_boldFont);
 	dc.SetTextColor(DarkTheme::Text);
-	CRect titleRc(S(12), 0, rc.right - S(36), S(kHeaderH));
+	CRect titleRc(S(12), top, rc.right - S(36), top + S(kHeaderH));
 	dc.DrawText(m_title.c_str(), (int)m_title.size(), &titleRc, DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX);
 
-	m_closeRc = CRect(rc.right - S(34), 0, rc.right, S(kHeaderH));
+	m_closeRc = CRect(rc.right - S(34), top, rc.right, top + S(kHeaderH));
 	dc.SelectObject(&m_font);
 	dc.SetTextColor(DarkTheme::TextDim);
 	CRect x = m_closeRc;

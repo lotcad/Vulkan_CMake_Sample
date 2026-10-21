@@ -70,6 +70,7 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg void OnDestroy();   // 패널(상태 폴링)을 엔진보다 먼저 닫는다
 	DECLARE_MESSAGE_MAP()
 
 	CRibbonBar    m_ribbon;             // 위쪽 리본 (탭 홈/2D/3D) — 구성은 LotCAD_MFCDlg_Ribbon.cpp
@@ -78,11 +79,14 @@ protected:
 	CCadStatusBar m_statusBar;          // 맨 아래 토글 줄 — 구성은 LotCAD_MFCDlg_StatusBar.cpp
 	CToolPanel    m_panel;              // 오른쪽 도구 패널 (단면·내비·파티클) — 내용은 LotCAD_MFCDlg_Panels.cpp
 
-	enum PanelKind { kPanelNone = 0, kPanelSection, kPanelNav, kPanelParticles };
+	enum PanelKind { kPanelNone = 0, kPanelSection, kPanelNav, kPanelParticles, kPanelWind, kPanelWater, kPanelSim };
 	void TogglePanel(int kind);         // 리본 버튼 — 같은 패널이면 닫고 아니면 연다
 	void OpenSectionPanel();
 	void OpenNavPanel();
 	void OpenParticlePanel();
+	void OpenWindPanel();               // 해석 — LotCAD_MFCDlg_Analysis.cpp
+	void OpenWaterPanel();
+	void OpenSimPanel();
 	void RelayoutNow();                 // 패널이 열리고 닫힐 때 — 3D 뷰 폭을 다시 정한다
 	int m_viewLeft = 0, m_viewTop = 0;  // view anchor (리본 아래)
 	int m_marginRight = 0;

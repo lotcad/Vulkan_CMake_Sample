@@ -39,6 +39,16 @@ public:
 	               std::function<void(float)> onChange);
 	void AddToggle(const wchar_t* label, bool value, std::function<void(bool)> onChange);
 	void AddButton(const wchar_t* text, std::function<void()> onClick);
+	// 버튼 여럿을 한 줄에 (예: 정지 · 일시정지 · 초기화)
+	void AddButtonRow(const std::vector<std::pair<std::wstring, std::function<void()>>>& buttons);
+	// 목록(해석의 면 고르기 등) — 반환 = 목록 번호. 항목은 SetListItems 로 바꾼다. onSelect(-1) = 고른 줄 없음.
+	int  AddList(int lines, std::function<void(int)> onSelect);
+	void SetListItems(int list, const std::vector<std::wstring>& items, int selected);   // 콜백은 부르지 않는다
+	// 숫자 입력란 한 줄(예: 힘 x · y · z) — 반환 = 줄 번호, 값은 GetNumbers 로 읽는다.
+	// button 을 주면 같은 줄 끝에 그 버튼을 둔다(예: [x][y][z][걸기]).
+	int  AddNumbers(const wchar_t* label, const std::vector<double>& values,
+	                const wchar_t* button = nullptr, std::function<void()> onClick = nullptr);
+	std::vector<double> GetNumbers(int row) const;
 	void AddStatus(int lines = 5);        // 아래 상태 글 — SetStatus 로 바꾼다
 	void SetStatus(const std::wstring& text);
 	void SetSliderValue(int slider, float value);   // 콜백은 부르지 않는다
@@ -56,6 +66,10 @@ protected:
 	afx_msg void   OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDis);              // 다크 버튼
 	afx_msg void   OnLButtonUp(UINT nFlags, CPoint point);                        // 제목 줄 X
 	afx_msg void   OnTimer(UINT_PTR nIDEvent);
+	// 내용이 패널보다 길면 세로로 스크롤 (구조 해석처럼 컨트롤이 많은 패널)
+	afx_msg void   OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	afx_msg BOOL   OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+	afx_msg void   OnSize(UINT nType, int cx, int cy);
 	DECLARE_MESSAGE_MAP()
 
 private:
@@ -69,7 +83,8 @@ private:
 	};
 
 	int   m_kind = 0;
-	int   m_y    = 0;        // 다음 컨트롤을 놓을 y
+	int   m_y    = 0;        // 다음 컨트롤을 놓을 y (스크롤 0 기준)
+	int   m_scroll = 0;      // 지금 스크롤한 만큼(픽셀)
 	UINT  m_nextId = 100;
 	std::wstring m_title;
 	CRect m_closeRc;
@@ -80,6 +95,8 @@ private:
 	std::map<UINT, std::function<void(bool)>> m_toggles; // 체크
 	std::map<UINT, std::function<void(int)>>  m_choices; // 콤보
 	std::map<UINT, Slider>                    m_sliders;
+	std::map<UINT, std::function<void(int)>>  m_lists;   // 목록 선택
+	std::map<int, std::vector<CEdit*>>        m_numbers; // 숫자 입력란 줄
 	CStatic* m_status = nullptr;
 
 	float  m_scale = 1.0f;
@@ -88,9 +105,12 @@ private:
 
 	int  S(int px) const { return (int)(px * m_scale + 0.5f); }
 	int  ContentLeft() const  { return S(12); }
-	int  ContentWidth() const { return Width() - S(24); }
+	// 세로 스크롤바 자리를 늘 비워 둔다 — 내용이 길어 스크롤바가 나타나도 컨트롤이 가려지지 않게
+	int  ContentWidth() const { return Width() - S(24) - GetSystemMetrics(SM_CXVSCROLL); }
 	CStatic* AddLabel(const wchar_t* text, int height, COLORREF color, CFont* font);
 	template <class T> T* Keep(T* wnd) { m_controls.emplace_back(wnd); return wnd; }
 	void ClearControls();
+	void UpdateScroll();     // 내용 높이(m_y)·창 높이로 스크롤바를 맞춘다
+	void ScrollTo(int pos);
 	std::wstring SliderText(const Slider& s, float value) const;
 };

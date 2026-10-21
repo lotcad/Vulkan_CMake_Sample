@@ -51,6 +51,9 @@
     <ClInclude Include="CadText.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="MiniJson.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
     <ClInclude Include="ToolPanel.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -81,6 +84,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="ToolPanel.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LotCAD_MFCDlg_Analysis.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="LotCAD_MFCDlg_Panels.cpp">

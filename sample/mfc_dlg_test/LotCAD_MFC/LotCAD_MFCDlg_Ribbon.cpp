@@ -125,6 +125,15 @@ void CLotCADMFCDlg::BuildRibbon()
 	           [this] { return m_panel.Kind() == kPanelNav; });
 	r.AddLarge(L"파티클", I::Particles,  [this] { TogglePanel(kPanelParticles); },
 	           [this] { return m_panel.Kind() == kPanelParticles; });
+
+	// 해석 — 엔진 리본의 해석 탭과 같은 셋. 패널은 LotCAD_MFCDlg_Analysis.cpp
+	r.AddGroup(L"해석");
+	r.AddLarge(L"바람 터널", I::AnaWind,   [this] { TogglePanel(kPanelWind); },
+	           [this] { return m_panel.Kind() == kPanelWind; });
+	r.AddLarge(L"물",        I::AnaWater,  [this] { TogglePanel(kPanelWater); },
+	           [this] { return m_panel.Kind() == kPanelWater; });
+	r.AddLarge(L"구조 해석", I::AnaStress, [this] { TogglePanel(kPanelSim); },
+	           [this] { return m_panel.Kind() == kPanelSim; });
 }
 
 // 차집합 — 엔진의 차집합은 기준(A)·빼기(B)를 고르는 대화상자를 여는데 임베드에선 그 창이 안 보인다.

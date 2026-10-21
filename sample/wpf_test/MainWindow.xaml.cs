@@ -12,6 +12,8 @@ namespace LotCadWpf
         {
             InitializeComponent();
             Loaded += OnLoaded;
+            // 해석 상태 폴링을 엔진 정리(Closed 의 _host.Dispose)보다 **먼저** 멈춘다 — 헐린 엔진에 묻지 않게
+            Closing += (s, e) => Analysis.Shutdown();
             Closed += OnClosed;
         }
 
@@ -60,5 +62,10 @@ namespace LotCadWpf
         void OnViewIso(object s, RoutedEventArgs e)    => CadApi.CAD_RequestSetView(3);
         void OnZoom(object s, RoutedEventArgs e)       => CadApi.CAD_RequestZoomExtents();
         void OnToggleProj(object s, RoutedEventArgs e) => CadApi.CAD_RequestToggleProjection();
+
+        // ── 해석 — 오른쪽 패널의 그 페이지를 연다 ──
+        void OnWindTunnel(object s, RoutedEventArgs e) => Analysis.ShowPage(0);
+        void OnWater(object s, RoutedEventArgs e)      => Analysis.ShowPage(1);
+        void OnStructural(object s, RoutedEventArgs e) => Analysis.ShowPage(2);
     }
 }

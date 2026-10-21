@@ -22,6 +22,8 @@ enum class RibbonIcon
 	Union, Difference, Intersect, Slice,
 	// 도구
 	Section, Navigation, Particles,
+	// 해석 (엔진 ui/lot_ribbon.cpp 의 SubdIcon::AnaWind · AnaWater · AnaStress 를 옮긴 것)
+	AnaWind, AnaWater, AnaStress,
 };
 
 // (cx, cy) 를 중심으로 반지름 r 인 정사각형 안에 그린다. color = 선 색.

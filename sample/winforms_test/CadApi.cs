@@ -103,6 +103,44 @@ namespace LotCadWinForms
         // ── 조회 ──
         [DllImport(DLL)] public static extern uint CAD_GetObjectCount();
         [DllImport(DLL)] public static extern uint CAD_GetSelectedCount();
+        [DllImport(DLL)] [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool CAD_GetSelectedObjectId(uint index, out uint id);
+        [DllImport(DLL)] public static extern int CAD_GetLastError(byte[] outUtf8, int cap);   // 직전 실패 이유
+
+        // ── 해석 — 바람 터널 · 물 · 구조 해석 ── (Analysis.cs 가 쓴다)
+        // argsJson = {"op": …} 를 UTF-8 로, 결과 JSON 이 outUtf8 에. 반환 = 길이, 실패 -1.
+        // ⚠️ 2회 호출 규약: outUtf8=null 로 길이를 물을 때 **한 번 실행**하고, 같은 인자로 버퍼를 주면 그 결과만 준다.
+        //    고정 버퍼로 먼저 불렀다 모자라 다시 부르면 start·run 이 두 번 들어간다 → 아래 CallOnce 로만 읽는다.
+        // 해석 모듈 LotCADSim.dll · LotCADCfd.dll 이 LotCADCore.dll 옆에 있어야 한다(csproj 가 같이 복사).
+        [DllImport(DLL)] public static extern int CAD_WindTunnel(byte[] argsJson, byte[] outUtf8, int cap);
+        [DllImport(DLL)] public static extern int CAD_Water(byte[] argsJson, byte[] outUtf8, int cap);
+        [DllImport(DLL)] public static extern int CAD_StructuralAnalysis(byte[] argsJson, byte[] outUtf8, int cap);
+
+        public delegate int JsonFn(byte[] argsJson, byte[] outUtf8, int cap);
+
+        /// <summary>2회 호출 규약대로 한 번만 실행하고 결과 글을 받는다. 실패면 null.</summary>
+        public static string CallOnce(JsonFn fn, string argsJson)
+        {
+            byte[] args = Utf8(argsJson);
+            int need = fn(args, null, 0);          // 길이를 물으며 실행
+            if (need < 0) return null;
+            var buf = new byte[need + 1];
+            if (fn(args, buf, buf.Length) < 0) return null;   // 같은 인자 → 다시 실행하지 않고 결과만
+            return FromUtf8(buf);
+        }
+
+        public static string LastError()
+        {
+            var buf = new byte[1024];
+            CAD_GetLastError(buf, buf.Length);
+            return FromUtf8(buf);
+        }
+
+        static string FromUtf8(byte[] buf)
+        {
+            int len = Array.IndexOf(buf, (byte)0);
+            return System.Text.Encoding.UTF8.GetString(buf, 0, len < 0 ? buf.Length : len);
+        }
 
         // 한글 경로를 위한 UTF-8 변환 — 위 파일 API 에 넘길 때 반드시 이걸 거친다.
         public static byte[] Utf8(string s) =>
