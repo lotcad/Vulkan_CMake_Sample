@@ -960,9 +960,9 @@ CAD_API int  CAD_AiGetLastAnswer(char* out, int cap);   // 모델의 답 문장(
 CAD_API int  CAD_AiGetNotes(char* out, int cap);        // 액션별 결과 줄(\n 구분)
 CAD_API void CAD_AiCancel(void);                  // 진행 중 답을 버리고 대기 액션도 지움
 // 동기 — 호스트가 자기 LLM(Claude API 등)으로 받은 액션 JSON(배열 또는 {"actions":[…]}, lot_ai_prompt.h 계약)을 바로.
-//   MCP ai_actions 와 같은 처리 + 되돌리기 한 단계. 반환 = notes 길이(2회 호출), 실패 -1 + GetLastError.
+//   MCP ai_actions 와 같은 처리 + 되돌리기 한 단계. 반환 = notes 길이(2회 호출 — 길이만 묻는 첫 호출에서 한 번 실행, 같은 프레임 같은 인자의 다음 호출은 그 결과), 실패 -1 + GetLastError.
 CAD_API int  CAD_RunAiActionsJson(const char* actionsJson, char* outNotes, int cap);
-// MCP 도구를 TCP 없이 직접 — CAD_GetMcpToolsJson 짝. 결과 = MCP content JSON. 실패 -1.
+// MCP 도구를 TCP 없이 직접 — CAD_GetMcpToolsJson 짝. 결과 = MCP content JSON. 실패 -1. 2회 호출은 한 번만 실행(위와 같음).
 CAD_API int  CAD_McpCall(const char* toolName, const char* argsJson, char* out, int cap);
 
 // ── 실시간 단면 — 셰이더가 잘라 보여 준다(보기 상태, undo 없음). 패널(section 명령)과 같은 상태라 둘이 같이 움직인다.
@@ -1076,7 +1076,8 @@ CAD_API bool     CAD_GetBoundsWorld(uint32_t id,
                                     float* maxX, float* maxY, float* maxZ);
 CAD_API bool     CAD_GetCenterWorld(uint32_t id, float* x, float* y, float* z);
 
-// 자체 Mini B-Rep 정보. featureType: 0=Box, 1=Cylinder, 2=Extrude.
+// 자체 Mini B-Rep 정보. featureType: 0=Box, 1=Cylinder, 2=Extrude, 3=Sphere, 4=Cone, 5=Torus.
+// 파라미터(CAD_GetBRepParameters/Set…): Sphere = radius · Cone = radius(밑면)·height · Torus = radius(큰)·height 자리에 관 반지름.
 // volume/surfaceArea는 객체의 현재 축척·회전을 반영한 월드 값이다.
 // 임포트 메시나 아직 B-Rep으로 복원하지 않은 Boolean 결과는 false.
 // 원통 차집합 결과의 타공 편집 가능 여부는 CAD_GetBooleanCylinderCutCount로 조회한다.
@@ -1439,7 +1440,8 @@ CAD_API uint32_t CAD_BooleanIntersectionIds(const uint32_t* ids, uint32_t count,
 // 차집합 — 기준 baseIds 에서 cutIds 전부를 뺀다.
 //   perBase=false: union(기준) − union(빼는 것) → 결과 1개(기준들이 한 덩어리로 합쳐짐, 오토캐드 SUBTRACT 와 같음)
 //   perBase=true : 기준마다 따로(판 3장에 같은 구멍 → 판 3장). 통째로 깎여 사라진 기준은 결과가 없다.
-// 반환 = 결과 개수(실패 0), outIds 에 cap 개까지 결과 id. outIds=NULL 이면 개수만.
+// 반환 = 결과 개수(실패 0), outIds 에 cap 개까지 결과 id. outIds=NULL 이면 **빼기는 하고** 개수만 — 같은 프레임에 같은 인자로
+// 버퍼를 들고 다시 부르면 다시 빼지 않고 그 결과 id 를 준다(2회 호출 규약). CAD_Offset·CAD_Mirror·CAD_CheckInterference 도 같다.
 CAD_API uint32_t CAD_BooleanSubtract(const uint32_t* baseIds, uint32_t baseCount,
                                      const uint32_t* cutIds, uint32_t cutCount,
                                      bool keepOriginals, bool perBase,
@@ -1532,6 +1534,21 @@ CAD_API bool     CAD_Plot(const char* path, bool selectedOnly, bool monochrome, 
  * part|spin|balloons|bom|manual", ids, id, t, seconds, turns, dir[3], distance, step, show, path, paper}. 결과 JSON(ok·error·t·steps·parts·items…)
  * 을 outUtf8 에(cap 바이트, null 이면 길이만). 반환 = 길이, 실패 -1. manual 은 여러 프레임 작업 — status 의 manual_busy 로 끝을 본다. */
 CAD_API int      CAD_ExplodeView(const char* argsJson, char* outUtf8, int cap);
+
+/* 해석 — MCP 도구 wind_tunnel · water · structural_analysis 와 같은 창구(엔진 windTunnelOp·waterOp·simOp). argsJson = {"op": …, …}
+ * (없으면 status), 결과 JSON(ok·error·message·상태)을 outUtf8 에(cap 바이트, null 이면 길이만). 반환 = 길이, 실패 -1.
+ * 켜기(start)는 다음 프레임에, 구조 해석 풀이(run·converge)는 작업 스레드에서 — status 로 끝을 본다.
+ * 2회 호출(outUtf8 null 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
+ *  바람 터널: status · start {ids|id, grid fast|normal|fine, wind 0.02~0.10} · stop · reset · pause · play ·
+ *             view {field speed|pressure|vortex|smoke, plane x|y|z, at 0~1, smoke, surface} · wind {value}      — 바람은 +X
+ *  물:        status · start {id(그릇), level 0~1, grid} · stop · reset · pause · play · tilt {x, y 도} · shake {amplitude 0~1, period}
+ *  구조 해석: status(faces = 면 번호·넓이·가운데·법선) · open {id} · close · clear · run · cancel · converge(요소 × 0.7 로 한 번 더) ·
+ *             set {type stress|heat|modal|buckling, material, size, units mm|m, modes, thermal, ref_temp, wind, wind_speed, show, scale, animate} ·
+ *             fix|free {face} · force {face, force[3] N} · pressure {face, value MPa} · temp {face, value °C} · flux {face, value W} · convect {face, h, ambient}
+ *             face = 번호 또는 그 면 가까운 점 [x,y,z]. 결과는 status 의 result(응력·변위·안전율·온도·진동수·좌굴 배수·convergence). */
+CAD_API int      CAD_WindTunnel(const char* argsJson, char* outUtf8, int cap);
+CAD_API int      CAD_Water(const char* argsJson, char* outUtf8, int cap);
+CAD_API int      CAD_StructuralAnalysis(const char* argsJson, char* outUtf8, int cap);
 /* MCP 도구 목록(JSON 배열) — 엔진을 만들지 않아도 된다. LotCAD --mcp 브리지가 앱이 꺼져 있을 때 목록을 보여 주는 데 쓴다.
  * 반환 = 길이, 실패 -1. */
 CAD_API int      CAD_GetMcpToolsJson(char* outUtf8, int cap);

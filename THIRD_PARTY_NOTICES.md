@@ -66,6 +66,10 @@ glTF 모델은 Khronos Group 의 glTF-Sample-Assets / glTF-Sample-Models 저장�
 |---|---|---|
 | `Bricks104_4K-PNG_Color.png` | ambientCG (https://ambientcg.com) | CC0-1.0 |
 | `Tiles_Stone_005_basecolor.png` | 3dtextures.me (https://3dtextures.me) | CC0-1.0 |
+| `metal_brushed_steel.jpg` | ambientCG — Metal009 | CC0-1.0 |
+| `wood_oak_veneer.jpg` | Poly Haven (https://polyhaven.com) — Oak Veneer 01 | CC0-1.0 |
+| `fabric_cotton_white.jpg`, `fabric_linen_grey.jpg`, `fabric_denim.jpg`, `fabric_velvet_blue.jpg`, `fabric_gingham_red.jpg`, `leather_brown.jpg` | ambientCG — Fabric019, Fabric082A, Fabric069, Fabric084, Fabric055, Leather037 (1K 색 지도) | CC0-1.0 |
+| `concrete_smooth.jpg`, `marble_grey.jpg`, `wood_floor_oak.jpg`, `wood_dark_walnut.jpg`, `plastic_grey.jpg`, `metal_rusted.jpg`, `asphalt.jpg`, `plaster_white.jpg` | ambientCG — Concrete034, Marble012, WoodFloor051, Wood051, Plastic010, Metal063, Asphalt033, Plaster001 (1K 색 지도) | CC0-1.0 |
 
 ## 3. 샘플이 사용하는 프레임워크 (SDK 에는 미포함)
 
