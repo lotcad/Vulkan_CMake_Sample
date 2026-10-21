@@ -130,6 +130,15 @@ namespace LotCAD
         public static extern int CAD_ExplodeView([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] outUtf8, int cap);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_WindTunnel([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] outUtf8, int cap);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_Water([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] outUtf8, int cap);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_StructuralAnalysis([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] outUtf8, int cap);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_GetMcpToolsJson(byte[] outUtf8, int cap);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]

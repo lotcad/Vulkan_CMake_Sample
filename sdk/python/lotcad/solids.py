@@ -85,7 +85,8 @@ def CAD_BooleanSubtract(baseIds: Sequence | None, baseCount: int, cutIds: Sequen
     차집합 — 기준 baseIds 에서 cutIds 전부를 뺀다.
     perBase=false: union(기준) − union(빼는 것) → 결과 1개(기준들이 한 덩어리로 합쳐짐, 오토캐드 SUBTRACT 와 같음)
     perBase=true : 기준마다 따로(판 3장에 같은 구멍 → 판 3장). 통째로 깎여 사라진 기준은 결과가 없다.
-    반환 = 결과 개수(실패 0), outIds 에 cap 개까지 결과 id. outIds=NULL 이면 개수만.
+    반환 = 결과 개수(실패 0), outIds 에 cap 개까지 결과 id. outIds=NULL 이면 **빼기는 하고** 개수만 — 같은 프레임에 같은 인자로
+    버퍼를 들고 다시 부르면 다시 빼지 않고 그 결과 id 를 준다(2회 호출 규약). CAD_Offset·CAD_Mirror·CAD_CheckInterference 도 같다.
     """
     _a_baseIds = _n.array(_c.c_uint32, baseIds)
     _a_cutIds = _n.array(_c.c_uint32, cutIds)

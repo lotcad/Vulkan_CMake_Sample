@@ -9,7 +9,7 @@ from typing import Any, Callable, Sequence  # noqa: F401  (형식 힌트)
 from . import _native as _n
 from ._types import *  # noqa: F401,F403
 
-__all__ = ['CAD_CreateEllipse', 'CAD_CreateSpline', 'CAD_CreateLeader', 'CAD_StretchWindowXY', 'CAD_Lengthen', 'CAD_BreakObject', 'CAD_CheckInterference', 'CAD_CheckMesh', 'CAD_RepairMeshes', 'CAD_RepairMeshesEx', 'CAD_SmoothMeshes', 'CAD_DecimateMeshes', 'CAD_StitchMeshes', 'CAD_ThickenMeshes', 'CAD_RemeshMeshes', 'CAD_AddEdgeBevel', 'CAD_GetEdgeBevelCount', 'CAD_Array3DRect', 'CAD_Array3DPolar', 'CAD_Align3D', 'CAD_CreateWedge', 'CAD_CreatePyramid', 'CAD_CreateSphere', 'CAD_CreateCylinder', 'CAD_CreateCone', 'CAD_CreateTorus', 'CAD_CreateHatch', 'CAD_Plot', 'CAD_ExplodeView', 'CAD_GetMcpToolsJson', 'CAD_Offset', 'CAD_Mirror', 'CAD_Trim', 'CAD_Extend', 'CAD_CreateTube', 'CAD_SetFeatureDimensionsVisible', 'CAD_GetFeatureDimensionsVisible', 'CAD_GetFeatureDimensionCount', 'CAD_GetFeatureDimension', 'CAD_SetFeatureDimension', 'CAD_Sweep', 'CAD_Revolve', 'CAD_ApplyMaterial', 'CAD_GetMaterialCount', 'CAD_GetMaterialName', 'CAD_CaptureViewport', 'CAD_OrbitCamera', 'CAD_ShowMessage']
+__all__ = ['CAD_CreateEllipse', 'CAD_CreateSpline', 'CAD_CreateLeader', 'CAD_StretchWindowXY', 'CAD_Lengthen', 'CAD_BreakObject', 'CAD_CheckInterference', 'CAD_CheckMesh', 'CAD_RepairMeshes', 'CAD_RepairMeshesEx', 'CAD_SmoothMeshes', 'CAD_DecimateMeshes', 'CAD_StitchMeshes', 'CAD_ThickenMeshes', 'CAD_RemeshMeshes', 'CAD_AddEdgeBevel', 'CAD_GetEdgeBevelCount', 'CAD_Array3DRect', 'CAD_Array3DPolar', 'CAD_Align3D', 'CAD_CreateWedge', 'CAD_CreatePyramid', 'CAD_CreateSphere', 'CAD_CreateCylinder', 'CAD_CreateCone', 'CAD_CreateTorus', 'CAD_CreateHatch', 'CAD_Plot', 'CAD_ExplodeView', 'CAD_WindTunnel', 'CAD_Water', 'CAD_StructuralAnalysis', 'CAD_GetMcpToolsJson', 'CAD_Offset', 'CAD_Mirror', 'CAD_Trim', 'CAD_Extend', 'CAD_CreateTube', 'CAD_SetFeatureDimensionsVisible', 'CAD_GetFeatureDimensionsVisible', 'CAD_GetFeatureDimensionCount', 'CAD_GetFeatureDimension', 'CAD_SetFeatureDimension', 'CAD_Sweep', 'CAD_Revolve', 'CAD_ApplyMaterial', 'CAD_GetMaterialCount', 'CAD_GetMaterialName', 'CAD_CaptureViewport', 'CAD_OrbitCamera', 'CAD_ShowMessage']
 
 _f = _n.native
 
@@ -42,6 +42,9 @@ _n.bind("CAD_CreateTorus", _c.c_uint32, [_c.c_float, _c.c_float, _c.c_float, _c.
 _n.bind("CAD_CreateHatch", _c.c_uint32, [_c.POINTER(_c.c_uint32), _c.c_uint32, _c.c_char_p, _c.c_float, _c.c_float])
 _n.bind("CAD_Plot", _c.c_bool, [_c.c_char_p, _c.c_bool, _c.c_bool, _c.c_float, _c.c_float, _c.c_int])
 _n.bind("CAD_ExplodeView", _c.c_int, [_c.c_char_p, _c.POINTER(_c.c_char), _c.c_int])
+_n.bind("CAD_WindTunnel", _c.c_int, [_c.c_char_p, _c.POINTER(_c.c_char), _c.c_int])
+_n.bind("CAD_Water", _c.c_int, [_c.c_char_p, _c.POINTER(_c.c_char), _c.c_int])
+_n.bind("CAD_StructuralAnalysis", _c.c_int, [_c.c_char_p, _c.POINTER(_c.c_char), _c.c_int])
 _n.bind("CAD_GetMcpToolsJson", _c.c_int, [_c.POINTER(_c.c_char), _c.c_int])
 _n.bind("CAD_Offset", _c.c_uint32, [_c.POINTER(_c.c_uint32), _c.c_uint32, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.POINTER(_c.c_uint32), _c.c_uint32])
 _n.bind("CAD_Mirror", _c.c_uint32, [_c.POINTER(_c.c_uint32), _c.c_uint32, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_bool, _c.POINTER(_c.c_uint32), _c.c_uint32])
@@ -304,6 +307,63 @@ def CAD_ExplodeView(argsJson: str | None) -> str | None:
     while True:
         _buf = _c.create_string_buffer(_cap)
         _r = _f.CAD_ExplodeView(_n.text(argsJson), _buf, _cap)
+        if _r < 0:
+            return None
+        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
+            _cap = max(_r + 1, _cap * 2)
+            continue
+        return _n.decode(_buf.value)
+
+
+def CAD_WindTunnel(argsJson: str | None) -> str | None:
+    """C: int CAD_WindTunnel(const char* argsJson, char* outUtf8, int cap)
+
+    해석 — MCP 도구 wind_tunnel · water · structural_analysis 와 같은 창구(엔진 windTunnelOp·waterOp·simOp). argsJson = {"op": …, …}
+    (없으면 status), 결과 JSON(ok·error·message·상태)을 outUtf8 에(cap 바이트, null 이면 길이만). 반환 = 길이, 실패 -1.
+    켜기(start)는 다음 프레임에, 구조 해석 풀이(run·converge)는 작업 스레드에서 — status 로 끝을 본다.
+    2회 호출(outUtf8 null 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
+     바람 터널: status · start {ids|id, grid fast|normal|fine, wind 0.02~0.10} · stop · reset · pause · play ·
+                view {field speed|pressure|vortex|smoke, plane x|y|z, at 0~1, smoke, surface} · wind {value}      — 바람은 +X
+     물:        status · start {id(그릇), level 0~1, grid} · stop · reset · pause · play · tilt {x, y 도} · shake {amplitude 0~1, period}
+     구조 해석: status(faces = 면 번호·넓이·가운데·법선) · open {id} · close · clear · run · cancel · converge(요소 × 0.7 로 한 번 더) ·
+                set {type stress|heat|modal|buckling, material, size, units mm|m, modes, thermal, ref_temp, wind, wind_speed, show, scale, animate} ·
+                fix|free {face} · force {face, force[3] N} · pressure {face, value MPa} · temp {face, value °C} · flux {face, value W} · convect {face, h, ambient}
+                face = 번호 또는 그 면 가까운 점 [x,y,z]. 결과는 status 의 result(응력·변위·안전율·온도·진동수·좌굴 배수·convergence).
+    """
+    _cap = 256
+    while True:
+        _buf = _c.create_string_buffer(_cap)
+        _r = _f.CAD_WindTunnel(_n.text(argsJson), _buf, _cap)
+        if _r < 0:
+            return None
+        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
+            _cap = max(_r + 1, _cap * 2)
+            continue
+        return _n.decode(_buf.value)
+
+
+def CAD_Water(argsJson: str | None) -> str | None:
+    """C: int CAD_Water(const char* argsJson, char* outUtf8, int cap)
+    """
+    _cap = 256
+    while True:
+        _buf = _c.create_string_buffer(_cap)
+        _r = _f.CAD_Water(_n.text(argsJson), _buf, _cap)
+        if _r < 0:
+            return None
+        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
+            _cap = max(_r + 1, _cap * 2)
+            continue
+        return _n.decode(_buf.value)
+
+
+def CAD_StructuralAnalysis(argsJson: str | None) -> str | None:
+    """C: int CAD_StructuralAnalysis(const char* argsJson, char* outUtf8, int cap)
+    """
+    _cap = 256
+    while True:
+        _buf = _c.create_string_buffer(_cap)
+        _r = _f.CAD_StructuralAnalysis(_n.text(argsJson), _buf, _cap)
         if _r < 0:
             return None
         if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시

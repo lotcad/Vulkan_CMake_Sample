@@ -110,7 +110,7 @@ def CAD_RunAiActionsJson(actionsJson: str | None) -> str | None:
     """C: int CAD_RunAiActionsJson(const char* actionsJson, char* outNotes, int cap)
 
     동기 — 호스트가 자기 LLM(Claude API 등)으로 받은 액션 JSON(배열 또는 {"actions":[…]}, lot_ai_prompt.h 계약)을 바로.
-    MCP ai_actions 와 같은 처리 + 되돌리기 한 단계. 반환 = notes 길이(2회 호출), 실패 -1 + GetLastError.
+    MCP ai_actions 와 같은 처리 + 되돌리기 한 단계. 반환 = notes 길이(2회 호출 — 길이만 묻는 첫 호출에서 한 번 실행, 같은 프레임 같은 인자의 다음 호출은 그 결과), 실패 -1 + GetLastError.
     """
     _cap = 256
     while True:
@@ -127,7 +127,7 @@ def CAD_RunAiActionsJson(actionsJson: str | None) -> str | None:
 def CAD_McpCall(toolName: str | None, argsJson: str | None) -> str | None:
     """C: int CAD_McpCall(const char* toolName, const char* argsJson, char* out, int cap)
 
-    MCP 도구를 TCP 없이 직접 — CAD_GetMcpToolsJson 짝. 결과 = MCP content JSON. 실패 -1.
+    MCP 도구를 TCP 없이 직접 — CAD_GetMcpToolsJson 짝. 결과 = MCP content JSON. 실패 -1. 2회 호출은 한 번만 실행(위와 같음).
     """
     _cap = 256
     while True:
