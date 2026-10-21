@@ -13,7 +13,8 @@ Windows · macOS(Apple Silicon) · Ubuntu 에서 같은 코드로 돈다.
 
 `setup` 은 이 폴더에 가상환경(`.venv`)을 만들고 PySide6 를 설치한다. 파이썬 3.9 이상이 필요하다.
 
-- **Ubuntu** — 시스템 패키지가 필요하다. `setup.sh` 가 없는 것을 알려 준다:
+- **Ubuntu** — 시스템 패키지가 필요하다. `setup.sh` 가 없는 것만 모아 설치할지 묻고 `sudo apt-get` 으로 깐다
+  (`./setup.sh -y` 는 묻지 않고, CI 처럼 터미널이 아니면 명령만 알려 주고 멈춘다). 직접 깔려면:
   `sudo apt install python3-venv libvulkan1 mesa-vulkan-drivers libgtk-3-0 libxcb-cursor0`.
   Wayland 세션에서도 Qt 를 X11(XWayland)로 띄운다 — 엔진의 리눅스 임베드가 X11 창만 받기 때문.
 - **macOS** — 엔진 라이브러리는 Apple Silicon(arm64) 전용이라 파이썬도 arm64 여야 한다. Vulkan SDK 는 필요 없다(MoltenVK 내장).

@@ -32,6 +32,11 @@ int main(int argc, char* argv[]) {
     //    winId() 가 X11 XID 가 아닌 Wayland 핸들이 되어 xlib surface 가 깨진다
     //    ("surface is not supported by the physicalDevice" → swapchain acquire 실패).
     qputenv("QT_QPA_PLATFORM", "xcb");
+
+    // 엔진은 CAD_Tick 안에서 GTK 이벤트를 돌린다(gtk_main_iteration_do). Qt 가 같은 glib 루프를 쓰면
+    // Qt 이벤트(창 닫기·타이머)가 CAD_Tick 안에서 처리돼, 틱 도중에 CAD_DestroyEngine 이 불리고 세그폴트가 난다.
+    // Qt 는 glib 대신 자체 이벤트 루프를 쓰게 한다 — QGuiApplication 보다 먼저.
+    qputenv("QT_NO_GLIB", "1");
 #endif
 
     // Vulkan SDK를 쓰는 개발 환경에서는 validation layer/ICD 경로를 자동 설정한다.

@@ -13,8 +13,11 @@ sys.path.insert(0, os.path.normpath(os.path.join(HERE, "..", "..", "sdk", "pytho
 
 # 엔진의 리눅스 임베드는 X11 창만 받는다 — Wayland 세션에서도 Qt 를 X11(XWayland)로 띄운다.
 # (Wayland 로 뜨면 winId() 가 X11 창 번호가 아니라 엔진이 화면을 못 붙인다.) QApplication 보다 먼저.
+# 또 엔진은 CAD_Tick 안에서 GTK 이벤트를 돌린다(gtk_main_iteration_do) — Qt 가 같은 glib 루프를 쓰면 Qt 이벤트
+# (창 닫기·타이머)가 CAD_Tick 안에서 처리돼, 틱 도중에 엔진이 헐리고 세그폴트가 난다. Qt 는 자체 루프로.
 if sys.platform.startswith("linux"):
     os.environ["QT_QPA_PLATFORM"] = "xcb"
+    os.environ["QT_NO_GLIB"] = "1"
 
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
