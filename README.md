@@ -7,7 +7,7 @@ macOS(`libLotCADCore.dylib`) · Linux(`libLotCADCore.so`) — 도 들어 있어*
 macOS 라이브러리에는 MoltenVK 가 들어 있습니다(아래 [플랫폼별 준비물](#플랫폼별-준비물)).
 모바일(iOS 정적 라이브러리 · Android `.so`)은 GitHub Releases 에서 받아 `sdk/` 바로 아래에 둡니다.
 
-(동봉된 데스크톱 바이너리는 공개용 스냅숏(Release — LotCAD 0.1.0 Beta: macOS 는 엔진 db53815, Windows·Linux 는 9858582(db53815 이후). 헤더는 db53815 기준)으로, 평소 개발 중 빌드 결과는 git 이 추적하지 않습니다 — `.gitignore` 참고.
+(동봉된 데스크톱 바이너리는 공개용 스냅숏(Release — LotCAD 0.1.0 Beta: macOS 는 엔진 db53815, Windows 는 9858582, Linux 는 c62936a(9858582 + 호스트 창에서 해석 API 크래시 수정). 헤더는 db53815 기준)으로, 평소 개발 중 빌드 결과는 git 이 추적하지 않습니다 — `.gitignore` 참고.
 안드로이드는 엔진 `.so` 를 iOS 처럼 Releases 에서 받습니다.)
 
 ```
@@ -19,6 +19,7 @@ macOS 라이브러리에는 MoltenVK 가 들어 있습니다(아래 [플랫폼�
 │   ├── LotCADCore.dll/.lib  Windows 라이브러리 (동봉)
 │   ├── libLotCADCore.dylib  macOS 라이브러리 (동봉, arm64 · macOS 14+, MoltenVK 내장)
 │   ├── libLotCADCore.so     Linux 라이브러리 (동봉)
+│   ├── libLotCADSim.so · libLotCADCfd.so  Linux 해석 모듈 (동봉 — 구조 해석 · 바람 터널·물. 엔진이 쓸 때 불러온다)
 │   ├── lib-ios-sim/        iOS 정적 라이브러리 (시뮬레이터) — Releases 에서 받음 (아래 참조)
 │   ├── lib-ios-device/     iOS 정적 라이브러리 (실기)       — Releases 에서 받음
 │   ├── lib-android/        Android 엔진 .so (arm64-v8a · x86_64) — Releases 에서 받음
@@ -74,6 +75,10 @@ DLL 과 `models/` 를 같이 꺼내 실행 파일 옆으로 복사합니다).
 | macOS | `libLotCADCore.dylib` | rpath 로 `sdk/` 를 직접 참조 — MoltenVK 가 정적으로 들어 있어 Vulkan 로더·SDK 불필요 |
 
 Windows 는 링크에 import library(`.lib`)가 따로 필요합니다. `sdk/LotCADCore.lib` 로 함께 들어 있습니다.
+
+**해석 모듈** — 구조 해석(`LotCADSim`)과 바람 터널·물(`LotCADCfd`)은 코어에 들어 있지 않고, 해석을 켤 때 엔진이
+**엔진 라이브러리 옆**에서 불러옵니다(링크 불필요). 없으면 `CAD_StructuralAnalysis` 의 run · `CAD_WindTunnel`/`CAD_Water` 의
+start 가 error 로 알려 줍니다. 지금은 Linux 것(`libLotCADSim.so` · `libLotCADCfd.so`)만 동봉 — 해석 메뉴 예제는 python · qml_test.
 
 ### iOS 정적 라이브러리는 Releases 에서 내려받기
 

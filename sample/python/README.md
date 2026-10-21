@@ -1,7 +1,8 @@
 # python — PySide6 호스트 샘플
 
 LotCAD 엔진을 파이썬(PySide6) 창 안에 띄운다. MFC 샘플과 같은 구성 —
-리본(홈 / 2D / 3D) · 3D 뷰 · 오토캐드식 명령행 · 상태바 토글(치수·그리드·스타일·투영·직교·극좌표·객체스냅).
+리본(홈 / 2D / 3D / 해석) · 3D 뷰 · 오토캐드식 명령행 · 상태바 토글(치수·그리드·스타일·투영·직교·극좌표·객체스냅) ·
+해석 패널(바람 터널 · 물 · 구조 해석).
 Windows · macOS(Apple Silicon) · Ubuntu 에서 같은 코드로 돈다.
 
 ## 실행
@@ -54,11 +55,30 @@ lotcad.CAD_DestroyEngine()
 |------|------|
 | `main.py` | 시작 — 바인딩 경로·Qt 플랫폼(리눅스 X11)·테마 |
 | `cad_view.py` | 3D 뷰 — 엔진이 그리는 네이티브 창(`QWindow`)을 붙이고 마우스를 넘긴다 |
-| `main_window.py` | 리본 버튼에 엔진 명령 달기 · 파일 메뉴 · 키 처리 · 차집합 |
+| `main_window.py` | 리본 버튼에 엔진 명령 달기 · 파일·해석 메뉴 · 키 처리 · 차집합 |
+| `analysis.py` | 해석 패널 — `CAD_WindTunnel` · `CAD_Water` · `CAD_StructuralAnalysis` (2회 호출 규약을 직접 지킨다) |
 | `command_line.py` | 명령행 — 기록·안내문(`CAD_SetOnPrompt`)·↑↓ 기록·빈 Enter 반복·Esc 취소 |
 | `ribbon.py` | 리본 틀 (CAD 를 모른다 — 버튼마다 함수를 받는다) |
 | `status_bar.py` | 상태바 토글 · F3/F8/F10 |
 | `theme.py` | 다크 테마 색 |
 
 엔진 명령 중 자체 패널·대화상자를 여는 것(array, dp, section, nav, particle …)은 호스트 창 안에서 그려지지 않는다.
-리본은 명령행에서 값을 묻는 명령(3a, dim …)이나 C API 를 쓴다.
+리본은 명령행에서 값을 묻는 명령(3a, dim …)이나 C API 를 쓴다. 해석도 엔진 패널 대신 `analysis.py` 패널이 C API 로 한다.
+
+## 해석
+
+리본 **해석** 탭(또는 해석 메뉴) → 오른쪽 해석 패널. 대상은 3D 뷰에서 선택한 솔리드.
+
+![바람 터널 — 원기둥 둘레 속도 단면](screenshots/analysis_wind.png)
+
+![구조 해석 — 외팔보 왼쪽 끝 고정, 오른쪽 끝 5 kN](screenshots/analysis_sim.png)
+
+| 탭 | 흐름 |
+|----|------|
+| 바람 터널 | 솔리드 선택 → 시작(다음 프레임에 켜짐) → 색(속도·압력·소용돌이·연기)·단면·표면 압력. 바람은 +X |
+| 물 | 닫힌 솔리드(그릇) 선택 → 물 높이 → 시작 → 기울이기·흔들기(공진) |
+| 구조 해석 | 솔리드 선택 → 열기(면 목록) → 면 골라 고정·힘·압력(열전도면 온도·열·대류) → 실행 → 응력·변위·안전율 |
+
+해석 모듈(`libLotCADSim` · `libLotCADCfd`)이 엔진 라이브러리 옆(`sdk/`)에 있어야 한다.
+⚠️ 결과 JSON 이 256바이트를 넘을 수 있어 자동 생성 바인딩(`lotcad.CAD_WindTunnel` 등)은 버퍼를 키워 **다시** 부른다 —
+start·run 이 두 번 들어가 "이미 도는 중" 이 되므로 `analysis.call()` 처럼 길이를 먼저 묻고(NULL) 같은 인자로 버퍼를 넘긴다.

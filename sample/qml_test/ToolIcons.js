@@ -289,7 +289,52 @@ function drawIcon(ctx, name, cx, cy, color, scale) {
     case "Manual":     // 접힌 모서리 종이 + 줄
         polyline(q, [[-5, -7], [2, -7], [5, -4], [5, 7], [-5, 7], [-5, -7]], 1.2);
         line(q, -3, -2, 3, -2, 1.0); line(q, -3, 1, 3, 1, 1.0); line(q, -3, 4, 3, 4, 1.0); break;
+
+    // ── 해석 — 엔진 ui/lot_ribbon.cpp 의 SubdIcon::Ana* (엔진은 r=7 단위로 그려 ×7) ──
+    case "AnaWind": {      // 물체(작은 원) 둘레로 휘어 지나가는 흐름선 셋
+        var wb = tint(q, "rgb(89,179,255)");
+        circleFilled(q, 0.15 * 7, 0, 0.28 * 7);
+        [-0.65, 0.0, 0.65].forEach(function (y) {
+            if (y === 0.0) {
+                line(wb, -0.95 * 7, 0, -0.25 * 7, 0, 1.3); line(wb, 0.55 * 7, 0, 0.95 * 7, 0, 1.3);
+                return;
+            }
+            var bend = y < 0 ? -0.25 : 0.25, pts = [];
+            for (var i = 0; i < 6; ++i) {
+                var x = -0.95 + 1.8 * i / 5.0;
+                var bump = Math.exp(-((x - 0.15) * (x - 0.15)) / 0.12);
+                pts.push([x * 7, (y + bend * bump) * 7]);
+            }
+            polyline(wb, pts, 1.3);
+        });
+        triangleFilled(wb, [[0.95 * 7, 0], [0.7 * 7, -0.15 * 7], [0.7 * 7, 0.15 * 7]]);
+        break;
     }
+    case "AnaWater": {     // 그릇 + 물결
+        line(q, -0.85 * 7, -0.7 * 7, -0.7 * 7, 0.8 * 7, 1.3);
+        line(q, -0.7 * 7, 0.8 * 7, 0.7 * 7, 0.8 * 7, 1.3);
+        line(q, 0.7 * 7, 0.8 * 7, 0.85 * 7, -0.7 * 7, 1.3);
+        var wave = [];
+        for (var wi = 0; wi < 9; ++wi) { var wx = -0.76 + 1.52 * wi / 8.0; wave.push([wx * 7, (-0.05 + 0.13 * Math.sin(wx * 7.0)) * 7]); }
+        polyline(tint(q, "rgb(77,153,255)"), wave, 1.3 * 1.3);
+        polyPath(q, [[-0.74 * 7, 0.1 * 7], [0.74 * 7, 0.1 * 7], [0.69 * 7, 0.75 * 7], [-0.69 * 7, 0.75 * 7]]);
+        q.d.closePath(); q.d.fillStyle = "rgba(77,153,255,0.35)"; q.d.fill();
+        break;
+    }
+    case "AnaStress": {    // 벽에 박힌 보 + 끝에 누르는 화살표, 뿌리 쪽 빨강
+        line(q, -0.9 * 7, -0.9 * 7, -0.9 * 7, 0.9 * 7, 1.3 * 1.5);
+        for (var sy = -0.8; sy < 0.9; sy += 0.4) line(q, -0.9 * 7, sy * 7, -1.1 * 7, (sy + 0.2) * 7, 1.3 * 0.7);
+        rectFilled(tint(q, "rgb(255,77,51)"), -0.9 * 7, -0.15 * 7, -0.45 * 7, 0.2 * 7, 0);
+        rect(q, -0.9 * 7, -0.15 * 7, 0.75 * 7, 0.2 * 7, 0, 1.3);
+        arrow(q, 0.62 * 7, -0.95 * 7, 0.62 * 7, -0.2 * 7, 1.3, 0.35 * 7, 0.21 * 7);
+        break;
+    }
+    }
+}
+
+// 같은 자리·배율에 색만 다른 펜 — 해석 아이콘의 파랑·빨강(엔진도 테마색 대신 고정색).
+function tint(q, color) {
+    return new Pen(q.d, q.cx, q.cy, color, q.k);
 }
 
 // 촉 없는 원호 — PathArcTo + PathStroke. radius 는 이미 배율 적용된 값.

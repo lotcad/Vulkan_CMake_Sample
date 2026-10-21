@@ -13,11 +13,17 @@ ApplicationWindow {
     visible: true
     title: "LotCAD — Qt6 Cross-platform Host"
 
-    // 어느 기능 패널을 오른쪽에 띄울지. 0 닫힘 1 도면 2 단면.
+    // 어느 기능 패널을 오른쪽에 띄울지. 0 닫힘 1 도면 2 단면 3 해석.
     //
     // 왜 패널인가: 3D 뷰가 네이티브 자식 창이라 QML Popup/Dialog 를 같은 창에 띄우면 뷰 뒤로 숨는다.
     // 그래서 기능 UI 는 3D 영역 **바깥**에 두고, 메뉴만 별도 최상위 창(Platform.Menu)으로 띄운다.
     property int featurePage: 0
+
+    // 해석 패널을 그 종류 탭으로 연다(kind = wind | water | sim) — 리본 해석 탭·해석 메뉴가 부른다.
+    function openAnalysis(kind) {
+        analysisPanel.page = kind
+        win.featurePage = 3
+    }
 
     // 단면 슬라이더 기본값 계산 — 엔진이 주는 sceneBounds 구간에서 가운데/폭.
     function axisMid()  { return (SectionApi.posMin + SectionApi.posMax) / 2 }
@@ -66,6 +72,7 @@ ApplicationWindow {
             ToolButton { text: "뷰";     onClicked: viewMenu.open(this) }
             ToolButton { text: "도면";   onClicked: drawingMenu.open(this) }
             ToolButton { text: "단면";   onClicked: sectionMenu.open(this) }
+            ToolButton { text: "해석";   onClicked: analysisMenu.open(this) }
             Item { Layout.fillWidth: true }
         }
     }
@@ -162,9 +169,22 @@ ApplicationWindow {
         Platform.MenuItem { text: "지금 단면을 2D 로 뽑기"; onTriggered: SectionApi.extractTo2D(false) }
     }
 
+    Platform.Menu {
+        id: analysisMenu
+        title: "해석"
+        Platform.MenuItem { text: "바람 터널"; onTriggered: win.openAnalysis("wind") }
+        Platform.MenuItem { text: "물";        onTriggered: win.openAnalysis("water") }
+        Platform.MenuItem { text: "구조 해석"; onTriggered: win.openAnalysis("sim") }
+        Platform.MenuSeparator {}
+        // 패널을 닫아도 해석은 계속 돈다(엔진 상태) — 한 번에 끄는 길
+        Platform.MenuItem { text: "모든 해석 끄기"
+                            onTriggered: { AnalysisApi.call("wind", { op: "stop" }); AnalysisApi.call("water", { op: "stop" })
+                                           AnalysisApi.call("sim", { op: "close" }) } }
+    }
+
     // 상단 리본 — 엔진 ImGui 리본(ui/lot_ribbon.cpp)과 같은 탭·그룹·아이콘 구성.
     // 3D 뷰가 네이티브 자식 창이라 리본은 그 바깥(header)에 있어야 가려지지 않는다.
-    header: Ribbon {}
+    header: Ribbon { onAnalysisRequested: (kind) => win.openAnalysis(kind) }
 
     RowLayout {
         anchors.fill: parent
@@ -213,7 +233,8 @@ ApplicationWindow {
             // 낮은 빈도로 읽어 맞춘다(매 프레임은 필요 없다).
             Timer {
                 interval: 200; repeat: true; running: featurePanel.visible
-                onTriggered: win.featurePage === 1 ? DrawingApi.refresh() : SectionApi.refresh()
+                onTriggered: win.featurePage === 1 ? DrawingApi.refresh()
+                           : win.featurePage === 3 ? AnalysisApi.refresh() : SectionApi.refresh()
             }
 
             ColumnLayout {
@@ -224,7 +245,7 @@ ApplicationWindow {
                 RowLayout {
                     Layout.fillWidth: true
                     Label {
-                        text: win.featurePage === 1 ? "도면 뷰" : "실시간 단면"
+                        text: win.featurePage === 1 ? "도면 뷰" : win.featurePage === 3 ? "해석" : "실시간 단면"
                         color: "#ddd"; font.bold: true
                     }
                     Item { Layout.fillWidth: true }
@@ -234,7 +255,7 @@ ApplicationWindow {
                 StackLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    currentIndex: win.featurePage - 1   // 1 도면 → 0, 2 단면 → 1
+                    currentIndex: win.featurePage - 1   // 1 도면 → 0, 2 단면 → 1, 3 해석 → 2
 
                     // ══ 도면 ══
                     ColumnLayout {
@@ -526,6 +547,9 @@ ApplicationWindow {
                             wrapMode: Text.Wrap
                         }
                     }
+
+                    // ══ 해석 ══ — 내용이 길어 AnalysisPanel.qml 로 나눴다
+                    AnalysisPanel { id: analysisPanel }
                 }
             }
         }

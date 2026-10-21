@@ -5,7 +5,7 @@ import LotCadQml
 
 // 리본 — 엔진 ui/lot_ribbon.cpp 를 QML 로 옮긴 것.
 //
-// 같게 맞춘 것: 탭(홈/2D/3D) 한 줄 + 아이콘 3줄 격자, 그룹마다 [큰 버튼…][작은 격자] + 아래 이름 띠 +
+// 같게 맞춘 것: 탭(홈/2D/3D/해석) 한 줄 + 아이콘 3줄 격자, 그룹마다 [큰 버튼…][작은 격자] + 아래 이름 띠 +
 // 세로 구분선, 활성 탭 밑줄, 탭 더블클릭으로 접기, 툴팁 "이름  (명령)\n설명", 강조 파랑.
 // 치수도 엔진 상수를 그대로 쓴다(폰트 14px 기준 ≈121px).
 //
@@ -132,8 +132,20 @@ Item {
                 { icon: "Exploded", label: "분해도",  cmd: "exview",        tip: "분해도 막대 켜고 끔 — 끌면 분해 정도", big: true },
                 { icon: "Balloon",  label: "풍선",    cmd: "balloon",       tip: "품번 풍선 켜고 끔 — 같은 모양 = 같은 번호, ×수량" },
                 { icon: "Bom",      label: "부품표",  cmd: "bom",           tip: "부품표 켜고 끔 — bom csv 로 저장" },
-                { icon: "Manual",   label: "설명서",  cmd: "exview manual", tip: "조립 설명서 PDF — 표지(부품표) + 조립 단계마다 한 쪽" } ] } ] }
+                { icon: "Manual",   label: "설명서",  cmd: "exview manual", tip: "조립 설명서 PDF — 표지(부품표) + 조립 단계마다 한 쪽" } ] } ] },
+
+        // 해석 — 엔진 리본의 해석 탭과 같은 버튼. 엔진은 자기 패널(ImGui)을 여는데 그 패널은 호스트 창에서 안 그려지므로
+        // 호스트의 해석 패널(Main.qml, AnalysisApi)을 연다. 대상은 지금 선택한 솔리드.
+        { name: "해석", groups: [
+            { caption: "유체", items: [
+                { icon: "AnaWind",  label: "풍동", cmd: "cfd",   tip: "바람 터널 — 고른 솔리드 둘레 공기 흐름(속도·압력 단면, 연기, 표면 압력)", big: true, act: "analysis:wind" },
+                { icon: "AnaWater", label: "물",   cmd: "water", tip: "물 — 고른 닫힌 솔리드를 그릇으로 물을 채워 출렁임(기울이기·흔들기)", big: true, act: "analysis:water" } ] },
+            { caption: "구조", items: [
+                { icon: "AnaStress", label: "구조해석", cmd: "sim", tip: "구조·열·진동·좌굴 — 고른 솔리드에 고정 면·하중 면, 재료 고르고 실행(응력·변위·안전율 색)", big: true, act: "analysis:sim" } ] } ] }
     ]
+
+    // 해석 버튼 — 패널은 Main.qml 에 있어 신호로 알린다(kind = wind | water | sim).
+    signal analysisRequested(string kind)
 
     function trigger(item) {
         if (item.act !== undefined) {
@@ -141,6 +153,7 @@ Item {
             else if (item.act === "deleteSelected") CadCommands.deleteSelected()
             else if (item.act === "undo")           CadCommands.undo()
             else if (item.act === "redo")           CadCommands.redo()
+            else if (item.act.startsWith("analysis:")) root.analysisRequested(item.act.substring(9))
             return
         }
         if (item.mode !== undefined) root.gizmoMode = item.mode

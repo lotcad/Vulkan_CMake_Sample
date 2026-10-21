@@ -8,8 +8,9 @@
 """
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QKeySequence
-from PySide6.QtWidgets import QFileDialog, QMainWindow, QMessageBox, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMessageBox, QVBoxLayout, QWidget
 
+import analysis
 import lotcad
 from cad_view import CadView
 from command_line import CommandLine
@@ -51,6 +52,14 @@ class MainWindow(QMainWindow):
         self.status = CadStatusBar(self)   # self.view 를 쓰므로 뷰 다음에
         self.setStatusBar(self.status)
 
+        # 해석 패널 — 오른쪽 독(처음엔 숨김). 리본 해석 탭·해석 메뉴가 연다.
+        self.analysis = analysis.AnalysisPanel()
+        self.analysis_dock = QDockWidget("해석", self)
+        self.analysis_dock.setWidget(self.analysis)
+        self.analysis_dock.setMinimumWidth(340)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.analysis_dock)
+        self.analysis_dock.hide()
+
         self.view.on_engine_ready = self._engine_ready
         self.view.on_key = self._view_key
 
@@ -61,10 +70,12 @@ class MainWindow(QMainWindow):
         self.status.apply_initial()
         self.status.refresh()
         self.ribbon.refresh()
+        self.analysis.start_polling()
 
     def closeEvent(self, event):
         # 창이 헐리기 **전에** 엔진을 정리해야 타이머가 사라진 화면에 그리지 않는다
         self.command_line.shutdown()
+        self.analysis.shutdown()
         self.view.shutdown()
         super().closeEvent(event)
 
@@ -104,6 +115,26 @@ class MainWindow(QMainWindow):
             menu.addAction(act)
         menu.addSeparator()
         menu.addAction("끝내기(&X)", self.close)
+
+        menu = self.menuBar().addMenu("해석(&A)")
+        menu.addAction("바람 터널", lambda: self.open_analysis("wind"))
+        menu.addAction("물", lambda: self.open_analysis("water"))
+        menu.addAction("구조 해석", lambda: self.open_analysis("sim"))
+        menu.addSeparator()
+        menu.addAction("모든 해석 끄기", self._stop_analyses)   # 패널을 닫아도 해석은 계속 돈다(엔진 상태)
+
+    # ── 해석 — 엔진 해석 패널 대신 호스트 패널(analysis.py) ──
+    def open_analysis(self, page):
+        self.analysis.show_page(page)
+        self.analysis_dock.show()
+        self.analysis_dock.raise_()
+        self.analysis.refresh()
+
+    def _stop_analyses(self):
+        analysis.call("wind", {"op": "stop"})
+        analysis.call("water", {"op": "stop"})
+        analysis.call("sim", {"op": "close"})
+        self.analysis.refresh()
 
     # 파일 선택은 호스트(Qt)가 맡고 엔진에는 경로만 넘긴다 — 포맷은 확장자로 엔진이 판별
     def _open(self):
@@ -210,3 +241,12 @@ class MainWindow(QMainWindow):
         g.add("차집합", self._subtract_step, is_on=lambda: bool(self._subtract_base),
               tip="기준 선택 → 차집합 → 뺄 것 선택 → 차집합")
         g.add("교집합", command("intersect"))
+
+        # 해석 — 엔진 리본의 해석 탭과 같은 버튼. 엔진은 자기 패널(ImGui)을 여는데 호스트 창에선 안 그려지므로
+        # 호스트 해석 패널을 연다. 대상은 지금 선택한 솔리드.
+        ana = r.add_tab("해석")
+        g = ana.add_group("유체")
+        g.add("풍동", lambda: self.open_analysis("wind"), tip="바람 터널 — 고른 솔리드 둘레 공기 흐름(속도·압력 단면, 연기, 표면 압력)")
+        g.add("물", lambda: self.open_analysis("water"), tip="물 — 고른 닫힌 솔리드를 그릇으로 물을 채워 출렁임(기울이기·흔들기)")
+        g = ana.add_group("구조")
+        g.add("구조해석", lambda: self.open_analysis("sim"), tip="구조·열·진동·좌굴 — 고정 면·하중 면, 재료 고르고 실행")

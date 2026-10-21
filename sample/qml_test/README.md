@@ -10,6 +10,7 @@ Qt6 QML 창에 LotCAD 엔진을 임베드하는 CMake 프로젝트입니다. Win
 ApplicationWindow (QML)
 ├── 상단 ToolBar → CadCommands → LotCAD C API
 ├── 좌측 도구 패널
+├── 우측 기능 패널 — 도면(DrawingApi) · 단면(SectionApi) · 해석(AnalysisApi, AnalysisPanel.qml)
 └── VulkanViewport (QQuickItem, C++)
     ├── 네이티브 자식 QWindow 생성
     ├── winId(HWND / XID / NSView) → CAD_AttachView
@@ -85,6 +86,7 @@ Windows의 Visual Studio 생성기에서는 실행파일이 `build/Debug` 또는
 
 - Windows: Qt `winId()`의 HWND를 엔진에 전달합니다.
 - Ubuntu: 엔진의 X11 surface를 사용하므로 Wayland에서도 Qt가 XWayland/xcb로 실행됩니다.
+  엔진이 `CAD_Tick` 안에서 GTK 이벤트를 돌리므로 Qt 는 glib 루프 대신 자체 루프(`QT_NO_GLIB=1`, main.cpp)를 씁니다.
 - macOS: Qt `winId()`가 나타내는 NSView를 MoltenVK 엔진에 전달합니다.
 
 ## 조작
@@ -94,3 +96,17 @@ Windows의 Visual Studio 생성기에서는 실행파일이 `build/Debug` 또는
 - 중간 클릭 드래그: 이동
 - 휠: 확대/축소
 - 상단/좌측 버튼: 생성, 스케치, 뷰 전환, Undo/Redo
+
+## 해석
+
+리본 **해석** 탭(풍동 · 물 · 구조해석) 또는 해석 메뉴 → 오른쪽 해석 패널. 대상은 3D 뷰에서 선택한 솔리드.
+
+![바람 터널 — 원기둥 둘레 속도 단면](screenshots/analysis_wind.png)
+엔진 해석 패널(ImGui)은 호스트 창에서 그려지지 않으므로 `AnalysisPanel.qml` 이 `AnalysisApi`(`analysis_api.h`)로
+`CAD_WindTunnel` · `CAD_Water` · `CAD_StructuralAnalysis` 를 부릅니다 — `{"op": …}` JSON, MCP 도구와 같은 op.
+
+- 바람 터널: 시작 → 색(속도·압력·소용돌이·연기) · 단면 · 표면 압력. 바람은 +X
+- 물: 닫힌 솔리드(그릇) → 물 높이 → 시작 → 기울이기 · 흔들기(공진)
+- 구조 해석: 열기(면 목록) → 면 골라 고정 · 힘 · 압력(열전도면 온도 · 열 · 대류) → 실행 → 응력 · 변위 · 안전율
+
+해석 모듈(`libLotCADSim` · `libLotCADCfd`)이 엔진 라이브러리 옆(`sdk/`)에 있어야 합니다.
