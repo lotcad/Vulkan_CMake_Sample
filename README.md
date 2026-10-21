@@ -15,6 +15,7 @@ macOS 라이브러리에는 MoltenVK 가 들어 있습니다(아래 [플랫폼�
 ├── sdk/                    ← 엔진 배포본 (빌드에 필요한 전부)
 │   ├── include/            LotCAD_API.h — 공개 C API
 │   ├── csharp/             C# 선언 (헤더에서 자동 생성, Windows) — C# 앱은 이 *.cs 를 포함
+│   ├── python/lotcad/      파이썬 바인딩 (헤더에서 자동 생성, 세 OS) — `import lotcad` 로 API 전부
 │   ├── LotCADCore.dll/.lib  Windows 라이브러리 (동봉)
 │   ├── libLotCADCore.dylib  macOS 라이브러리 (동봉, arm64 · macOS 14+, MoltenVK 내장)
 │   ├── libLotCADCore.so     Linux 라이브러리 (동봉)
@@ -27,6 +28,7 @@ macOS 라이브러리에는 MoltenVK 가 들어 있습니다(아래 [플랫폼�
     ├── mfc_dlg_test/       MFC (다이얼로그)
     ├── wpf_test/           WPF (C# P/Invoke)
     ├── qml_test/           Qt / QML
+    ├── python/             파이썬 (PySide6) — Windows · macOS · Ubuntu
     ├── swift_api_test/     Swift (macOS, SwiftUI + AppKit)
     ├── swift_ios_test/     Swift (iOS)
     └── android_test/       Android (Kotlin + JNI) — 엔진 .so 는 Releases
@@ -53,6 +55,7 @@ CAD_ExecuteCommand("box");    // 명령행과 같은 입구 — 명령 200개 �
 | cpp_api_test | `cmake -B build && cmake --build build` | `-DLOTCAD_SDK=<경로>` |
 | qml_test | `cmake -B build && cmake --build build` | `-DLOTCAD_ENGINE_BUILD=<경로>` |
 | mfc_dlg_test | Visual Studio | `EngineOut` (vcxproj) |
+| python | `setup.bat` → `run.bat` (Windows) · `./setup.sh` → `./run.sh` (macOS·Ubuntu) | 환경 변수 `LOTCAD_LIBRARY` (라이브러리 파일 경로) |
 | wpf_test | `dotnet build` | `CadCoreBuildDir` (csproj) |
 | swift_api_test | `swift build` | `Package.swift` 의 `buildDirectory` |
 | swift_ios_test | `xcodegen` → Xcode | `project.yml` 의 라이브러리 검색 경로 |

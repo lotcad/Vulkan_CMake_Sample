@@ -1,0 +1,4 @@
+# 셸 스크립트는 LF 여야 macOS·Ubuntu 에서 돈다(CRLF 면 "bad interpreter"). 배치 파일은 CRLF.
+*.sh  text eol=lf
+*.bat text eol=crlf
+*.py  text eol=lf

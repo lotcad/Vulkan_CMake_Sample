@@ -74,3 +74,6 @@ sdk/*.exp
 sdk/lib-ios-*/
 # Android 엔진 .so — Releases 에서 받는다 (엔진 build_android.sh 가 복사). ⚠️ .gitignore 는 줄 끝 주석을 못 쓴다.
 sdk/lib-android/
+
+# 파이썬 — 실행하면 생기는 캐시 (sdk/python/lotcad 를 불러올 때도 생긴다)
+__pycache__/
