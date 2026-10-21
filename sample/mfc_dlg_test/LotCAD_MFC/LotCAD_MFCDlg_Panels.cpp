@@ -98,8 +98,9 @@ void CLotCADMFCDlg::RelayoutNow()
 
 
 // ── 단면 ────────────────────────────────────────────────────────────────
-// 셰이더가 잘라 보여 주는 **보기 상태**(되돌리기 없음). 엔진 단면 패널과 같은 상태라,
-// 패널을 닫아도 단면은 남는다 — 다시 열면 지금 상태에서 이어서 고친다. 끄려면 방식 "끄기".
+// 셰이더가 잘라 보여 주는 **보기 상태**(되돌리기 없음). 엔진 단면 패널과 같은 상태다.
+// 패널을 닫으면 단면도 끈다 — 켜진 걸 잊으면 다른 것(파티클 등)이 잘려 안 보여 헷갈리기 때문.
+// (명령 section 등으로 이미 켜져 있으면 열 때 그 상태에서 시작한다.)
 
 void CLotCADMFCDlg::OpenSectionPanel()
 {
@@ -153,7 +154,7 @@ void CLotCADMFCDlg::OpenSectionPanel()
 		return Format(L"장면 범위  X %.1f ~ %.1f", st->min[0], st->max[0]) +
 		       Format(L"\nY %.1f ~ %.1f", st->min[1], st->max[1]) +
 		       Format(L" · Z %.1f ~ %.1f", st->min[2], st->max[2]) +
-		       L"\n닫아도 단면은 남습니다 — 끄려면 방식 '끄기'";
+		       L"\n패널을 닫으면 단면도 꺼집니다";
 	};
 	auto percent = [st] { return (st->pos - st->min[st->axis]) / st->Extent() * 100; };
 
@@ -197,7 +198,10 @@ void CLotCADMFCDlg::OpenSectionPanel()
 	});
 	p.AddStatus(4);
 	p.SetStatus(boundsText());
-	p.onClose = [this] { RelayoutNow(); };
+	p.onClose = [this] {
+		CAD_SetSection(0, 0, 0, false, 0);   // 0 = 끄기
+		RelayoutNow();
+	};
 
 	CAD_SetSectionOptions(st->arrows, st->selectedOnly);
 	apply();   // 열자마자 잘린 모습이 보이게

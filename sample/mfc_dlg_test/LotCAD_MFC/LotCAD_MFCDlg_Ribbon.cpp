@@ -111,7 +111,7 @@ void CLotCADMFCDlg::BuildRibbon()
 	// 두 번 누르는 버튼 — 첫 번째에 기준을 기억하는 동안 켜짐(강조색)으로 보인다.
 	r.AddSmall(L"차집합",   I::Difference, [this] { SubtractStep(); }, [this] { return !m_subtractBase.empty(); });
 	r.AddSmall(L"교집합",   I::Intersect,  Command("intersect"));
-	r.AddSmall(L"슬라이스", I::Slice,      Command("sl"));   // 단면 평면으로 자른다 — 평면은 '도구 > 단면' 패널에서
+	r.AddSmall(L"슬라이스", I::Slice,      Command("sl"));   // 단면 평면으로 자른다 — '도구 > 단면' 패널을 연 채로
 
 	// ── 도구 — 엔진에선 자체 패널이 여는 기능들. 임베드에선 그 패널이 안 보여 호스트 패널(ToolPanel)로 연다 ──
 	r.AddTab(L"도구");
