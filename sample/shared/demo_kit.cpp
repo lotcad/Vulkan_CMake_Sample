@@ -198,6 +198,18 @@ namespace {
         return list;
     }
 
+    // 패널 모드 전용 — 샘플 목록(registry)에는 안 나온다
+    std::vector<std::unique_ptr<Demo>>& panels() {
+        static std::vector<std::unique_ptr<Demo>> list = [] {
+            std::vector<std::unique_ptr<Demo>> v;
+            v.emplace_back(demo::makeWindDemo());
+            v.emplace_back(demo::makeWaterDemo());
+            v.emplace_back(demo::makeSimDemo());
+            return v;
+        }();
+        return list;
+    }
+
     Demo* g_current = nullptr;
     std::string g_str;   // 문자열 반환 보관(다음 호출까지 유효)
 
@@ -231,6 +243,19 @@ bool DemoKit_Start(const char* demoId) {
     }
     return false;
 }
+
+bool DemoKit_OpenPanel(const char* panelId) {
+    if (!panelId) return false;
+    for (auto& d : panels()) {
+        if (std::strcmp(d->id(), panelId) != 0) continue;
+        g_current = d.get();   // 장면은 건드리지 않는다 — setup 도 부르지 않는다
+        g_current->rebuild();
+        return true;
+    }
+    return false;
+}
+
+void DemoKit_ClosePanel(void) { g_current = nullptr; }
 
 const char* DemoKit_CurrentTitle(void) { return g_current ? g_current->title() : ""; }
 void DemoKit_Update(double dt) { if (g_current) g_current->update(dt); }

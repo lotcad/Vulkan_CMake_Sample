@@ -1,4 +1,6 @@
 import AppKit
+import CLotCAD
+import DemoKit
 import Foundation
 import UniformTypeIdentifiers
 
@@ -6,10 +8,10 @@ import UniformTypeIdentifiers
 ///
 ///   ┌ 풀다운 메뉴 (NSApp.mainMenu) ─────────────────────────────┐
 ///   │ 리본 (탭 + 그룹)                                            │
-///   ├────┬────┬──────────────────────────────────────────┬────┤
-///   │표준│그리│ Vulkan 뷰                                  │솔리│  ← 도킹 영역(좌/우)에 이름 붙은
-///   │    │기  │                                            │드  │     도구모음 띠가 나란히 붙는다
-///   ├────┴────┴──────────────────────────────────────────┴────┤
+///   ├────┬────┬─────────────────────────────┬────────────┬────┤
+///   │표준│그리│ Vulkan 뷰                     │ 해석 패널   │솔리│  ← 도킹 영역(좌/우)에 이름 붙은
+///   │    │기  │                               │ (열 때만)   │드  │     도구모음 띠가 나란히 붙는다
+///   ├────┴────┴─────────────────────────────┴────────────┴────┤
 ///   │ 명령: [        ]  프롬프트                          선택 N │
 ///   └─────────────────────────────────────────────────────────┘
 ///
@@ -30,6 +32,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
     private var commandBar: CommandBarView!
     private var leftArea: DockAreaView!
     private var rightArea: DockAreaView!
+
+    /// 해석 패널 — 바람 터널·물·구조 해석. 로직·조작 항목은 sample/shared/demo_analysis.cpp(demo_kit 패널 모드),
+    /// 그리는 것은 LotCADSamples 와 같은 범용 패널. 닫혀 있으면 폭 0.
+    private let analysisPanel = DemoPanel()
+    private let analysisHolder = NSView()
+    private var analysisWidth: NSLayoutConstraint!
+    private var analysisOpen = false
+    private var lastFrameTime: CFTimeInterval = 0
 
     /// 도구모음 띠 전부(보이든 숨었든). 플러그인 도구모음은 "plugin" 키.
     private var strips: [String: ToolbarStripView] = [:]
@@ -87,7 +97,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         // 스택 뷰의 "숨긴 뷰를 계층에서 뺐다 넣는" 동작이 도구모음 자리를 남기는 현상을 만들 수 있어
         // 그 경로를 아예 없앴다. 도킹 영역은 숨기지 않고 폭 0 이 된다.
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 1400, height: 880))
-        for v in [ribbon!, leftArea!, view, rightArea!, commandBar!] as [NSView] {
+        analysisHolder.wantsLayer = true
+        analysisHolder.clipsToBounds = true
+        analysisPanel.view.translatesAutoresizingMaskIntoConstraints = false
+        analysisPanel.view.isHidden = true
+        analysisHolder.addSubview(analysisPanel.view)
+        for v in [ribbon!, leftArea!, view, analysisHolder, rightArea!, commandBar!] as [NSView] {
             v.translatesAutoresizingMaskIntoConstraints = false
             container.addSubview(v)
         }
@@ -109,10 +124,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
             rightArea.bottomAnchor.constraint(equalTo: commandBar.topAnchor),
 
             view.leadingAnchor.constraint(equalTo: leftArea.trailingAnchor),
-            view.trailingAnchor.constraint(equalTo: rightArea.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: analysisHolder.leadingAnchor),
             view.topAnchor.constraint(equalTo: ribbon.bottomAnchor),
             view.bottomAnchor.constraint(equalTo: commandBar.topAnchor),
+
+            analysisHolder.trailingAnchor.constraint(equalTo: rightArea.leadingAnchor),
+            analysisHolder.topAnchor.constraint(equalTo: ribbon.bottomAnchor),
+            analysisHolder.bottomAnchor.constraint(equalTo: commandBar.topAnchor),
+            analysisPanel.view.leadingAnchor.constraint(equalTo: analysisHolder.leadingAnchor),
+            analysisPanel.view.topAnchor.constraint(equalTo: analysisHolder.topAnchor),
+            analysisPanel.view.bottomAnchor.constraint(equalTo: analysisHolder.bottomAnchor),
         ])
+        analysisWidth = analysisHolder.widthAnchor.constraint(equalToConstant: 0)
+        analysisWidth.isActive = true
 
         let window = NSWindow(
             contentRect: container.frame,
@@ -155,12 +179,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         installPluginUi()
         updateWindowTitle()
         startFrameTimer()
+        // 시험용: LOTCAD_ANALYSIS=sim 처럼 주면 그 해석 패널을 열고 시작한다(아래 runAnalysisTestHooks)
+        if let id = ProcessInfo.processInfo.environment["LOTCAD_ANALYSIS"] { showAnalysisPanel(id) }
     }
 
     @objc private func onFrameTimer(_ timer: Timer) {
         guard !isShuttingDown else { return }
         hostView?.flushPendingResize()
         guard hostView?.hasRenderableSize ?? false else { return }
+        let now = CACurrentMediaTime()
+        let dt = lastFrameTime == 0 ? 0 : now - lastFrameTime
+        lastFrameTime = now
+        // 해석 패널 — 상태 폴링(0.25초마다 {"op":"status"})은 DemoKit_Update 안에서. CAD_Tick 전에.
+        if analysisOpen { DemoKit_Update(dt) }
         if !engine.tick() {
             shutdownEngine()
             NSApp.terminate(nil)
@@ -170,6 +201,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         tickCount += 1
         if tickCount == 150, ProcessInfo.processInfo.environment["LOTCAD_LAYOUT_DUMP"] != nil {
             showLayoutDiagnostics()
+        }
+        if analysisOpen {
+            if tickCount % 6 == 0 { analysisPanel.refresh() }   // 패널 값·문구 ≈10Hz
+            runAnalysisTestHooks()
         }
         // 일회성 안내("각도: 선을 클릭하세요" 등)는 콜백이 없어 폴링한다 — 바뀔 때만 UI 를 건드린다.
         let transient = engine.transientMessage
@@ -525,6 +560,58 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         let count = engine.loadPlugins(directory: url.path)
         installPluginUi()
         commandBar.setTransient(count > 0 ? "플러그인 \(count)개 로드" : "올린 플러그인이 없습니다")
+    }
+
+    // MARK: - 해석 패널
+
+    /// "wind" | "water" | "sim". 다른 해석으로 바꿔도 앞 해석은 계속 돈다(정지는 패널 버튼).
+    func showAnalysisPanel(_ id: String) {
+        guard DemoKit_OpenPanel(id) else { return }
+        analysisOpen = true
+        analysisPanel.view.isHidden = false
+        analysisWidth.constant = 340
+        analysisPanel.refresh()
+        hostView?.notifyEngineResize()   // 뷰 폭이 줄었다 — 스왑체인 크기 맞추기
+    }
+
+    func hideAnalysisPanel() {
+        analysisOpen = false
+        DemoKit_ClosePanel()
+        analysisPanel.view.isHidden = true
+        analysisWidth.constant = 0
+        hostView?.notifyEngineResize()
+    }
+
+    // 시험용 (자동 확인) — LOTCAD_ANALYSIS 로 패널을 연 뒤
+    //   LOTCAD_PRESS="열기;실행" — 0.5초 간격으로 그 이름의 버튼을 누른다(없는 이름은 기다리기)
+    //   LOTCAD_SHOT=/경로/폴더 — 누르기가 끝나고 2초 뒤 화면을 analysis.png 로 찍고 패널 문구를 출력한 뒤 종료
+    private lazy var testPresses: [String] = (ProcessInfo.processInfo.environment["LOTCAD_PRESS"] ?? "")
+        .split(separator: ";").map(String.init)
+    private var testShotTick = 0
+
+    private func runAnalysisTestHooks() {
+        guard let shotDir = ProcessInfo.processInfo.environment["LOTCAD_SHOT"] else { return }
+        if !testPresses.isEmpty {
+            if tickCount % 30 == 0 {
+                let name = testPresses.removeFirst()
+                if let i = (0..<DemoKit_ControlCount()).first(where: {
+                    DemoKit_ControlKind($0) == 2 && String(cString: DemoKit_ControlLabel($0)) == name
+                }) {
+                    DemoKit_Press(i)
+                    print("[test] press \(name)")
+                }
+            }
+            return
+        }
+        if testShotTick == 0 { testShotTick = tickCount + 120 }
+        guard tickCount == testShotTick else { return }
+        print("[test] capture: \(CAD_CaptureViewport("\(shotDir)/analysis.png", false))")
+        print("[test] status: \(String(cString: DemoKit_Status()))")
+        for i in 0..<DemoKit_ControlCount() where DemoKit_ControlKind(i) == 6 {
+            print("[test]   \(String(cString: DemoKit_ControlLabel(i))) = \(String(cString: DemoKit_GetText(i)))")
+        }
+        shutdownEngine()
+        exit(0)
     }
 
     // MARK: - 플러그인 UI 항목 → 메뉴 · 리본 · 도구모음

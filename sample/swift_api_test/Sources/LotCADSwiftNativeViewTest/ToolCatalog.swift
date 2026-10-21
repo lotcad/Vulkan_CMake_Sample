@@ -61,6 +61,7 @@ final class ToolCatalog {
     private(set) var displayTools: [CADTool] = []
     private(set) var navigateTools: [CADTool] = []
     private(set) var materialTools: [CADTool] = []
+    private(set) var analysisTools: [CADTool] = []
     private(set) var uiTools: [CADTool] = []
     private(set) var helpTools: [CADTool] = []
 
@@ -211,6 +212,15 @@ final class ToolCatalog {
             api("light",    "광원 배치",     "lightbulb",             "클릭한 자리에 광원") { $0.engine.startLightPlacement() },
         ])
 
+        // ── 해석 ── 엔진 해석 패널(ImGui)은 이 창 안에서 안 그려진다 — 오른쪽 패널(demo_kit 패널 모드)로 연다.
+        // 모델을 불러오거나 그린 뒤 3D 뷰에서 솔리드를 고르고 패널에서 시작/열기. 모듈 libLotCADSim·Cfd 는 sdk/ 에.
+        analysisTools = tinted(.systemTeal, [
+            api("ana_wind",  "바람 터널", "wind",               "고른 솔리드 둘레에 바람(+X) — 속도·압력·연기, 항력 계수") { $0.showAnalysisPanel("wind") },
+            api("ana_water", "물",        "drop",               "닫힌 솔리드(그릇)에 물 — 기울이기·흔들기") { $0.showAnalysisPanel("water") },
+            api("ana_sim",   "구조 해석", "square.stack.3d.up", "면에 고정·하중 → 응력·변위·안전율 / 열 / 진동 / 좌굴") { $0.showAnalysisPanel("sim") },
+            api("ana_close", "해석 패널 닫기", "sidebar.right", "오른쪽 해석 패널을 닫는다(돌던 해석은 계속)") { $0.hideAnalysisPanel() },
+        ])
+
         // ── 창 구성 ──
         uiTools = [
             api("ui_ribbon",     "리본 표시",              "rectangle.topthird.inset.filled",  "리본 켜고 끄기", key: "r", mask: [.command, .option]) { $0.toggleRibbon() },
@@ -258,6 +268,11 @@ final class ToolCatalog {
                 RibbonGroup(title: "표시",   tools: pick("style0", "style2", "style4", "grid", "section")),
                 RibbonGroup(title: "탐색",   tools: navigateTools),
                 RibbonGroup(title: "재질",   tools: materialTools),
+            ]),
+            RibbonTab(title: "해석", groups: [
+                RibbonGroup(title: "유체", tools: pick("ana_wind", "ana_water")),
+                RibbonGroup(title: "구조", tools: pick("ana_sim")),
+                RibbonGroup(title: "패널", tools: pick("ana_close")),
             ]),
         ]
 

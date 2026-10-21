@@ -25,7 +25,7 @@ final class DemoPanel: NSObject, NSTextFieldDelegate {
         stack.edgeInsets = NSEdgeInsets(top: 12, left: 16, bottom: 16, right: 16)
         stack.translatesAutoresizingMaskIntoConstraints = false
 
-        let doc = FlippedView()
+        let doc = PanelFlippedView()
         doc.translatesAutoresizingMaskIntoConstraints = false
         doc.addSubview(stack)
         let scroll = NSScrollView()
@@ -186,6 +186,6 @@ final class DemoPanel: NSObject, NSTextFieldDelegate {
 }
 
 /// 스크롤 내용이 위에서부터 쌓이게
-private final class FlippedView: NSView {
+private final class PanelFlippedView: NSView {
     override var isFlipped: Bool { true }
 }

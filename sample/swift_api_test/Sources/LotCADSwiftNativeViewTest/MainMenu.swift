@@ -87,6 +87,9 @@ enum MainMenuBuilder {
         // ── 재질 ──
         main.addItem(submenu("재질", menu("재질", catalog.materialTools, target: target)))
 
+        // ── 해석 ──
+        main.addItem(submenu("해석", menu("해석", catalog.analysisTools, target: target)))
+
         // ── 창 ── (플러그인 메뉴는 AppDelegate 가 이 앞에 끼워 넣는다)
         let window = NSMenu(title: "창")
         window.addItem(withTitle: "최소화", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")

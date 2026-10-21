@@ -43,6 +43,13 @@ bool        DemoKit_Start(const char* demoId);
 const char* DemoKit_CurrentTitle(void);
 void        DemoKit_Update(double dtSeconds);
 int         DemoKit_Revision(void);          /* 항목 목록이 바뀔 때마다 증가 */
+
+/* 패널 모드 — CAD 앱처럼 장면을 사용자가 만드는 호스트에 조작 패널만 붙인다. 장면을 비우거나 예제 장면을
+ * 만들지 않고, 지금 장면(불러온 모델·고른 솔리드)에 대해 동작한다. 열면 아래 항목·상태 API 가 그 패널을 가리킨다.
+ * id: "wind"(바람 터널) "water"(물) "sim"(구조 해석) — demo_analysis.cpp.
+ * 다른 패널로 바꿔도 앞 패널의 해석은 계속 돈다(정지는 패널의 버튼으로). DemoKit_Update 는 열린 패널만 돌린다. */
+bool        DemoKit_OpenPanel(const char* panelId);
+void        DemoKit_ClosePanel(void);
 const char* DemoKit_Status(void);            /* 화면 위에 띄울 한 줄 상태 */
 
 /* 항목 — 0..count-1. 문자열은 다음 호출 전까지 유효(필요하면 바로 복사). */

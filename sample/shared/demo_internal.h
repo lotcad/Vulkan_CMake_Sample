@@ -92,6 +92,9 @@ Demo* makeSectionDemo();
 Demo* makeFloorplanDemo();
 Demo* makeNavDemo();
 Demo* makeAiDemo();
+Demo* makeWindDemo();    // 해석 — demo_analysis.cpp
+Demo* makeWaterDemo();
+Demo* makeSimDemo();
 
 // ── 공용 도우미 (demo_kit.cpp) ──
 void clearScene();                         // 객체·도면 뷰·단면·내비 대상·Jig 정리

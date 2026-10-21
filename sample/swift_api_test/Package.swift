@@ -42,7 +42,8 @@ let package = Package(
         ),
         .executableTarget(
             name: "LotCADSwiftNativeViewTest",
-            dependencies: ["CLotCAD"],
+            // DemoKit — 해석 패널(바람 터널·물·구조 해석)의 로직·조작 항목. 패널은 LotCADSamples 의 범용 패널(심볼릭 링크)
+            dependencies: ["CLotCAD", "DemoKit"],
             linkerSettings: [
                 .linkedFramework("AppKit"),
                 .unsafeFlags([

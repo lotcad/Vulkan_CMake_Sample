@@ -5,7 +5,7 @@
 | 타깃 | 내용 |
 |------|------|
 | `LotCADSwiftApiTest` | 콘솔. 엔진이 자기 GLFW 창을 만들고, API 몇 개를 호출해 보는 최소 예제 |
-| `LotCADSwiftNativeViewTest` | AppKit 앱. `NSView` 를 `CAD_AttachView()` 로 엔진에 넘기고, **풀다운 메뉴 · 리본 · 도킹 도구모음 · 명령행**을 네이티브로 꾸민 CAD 스타일 창 |
+| `LotCADSwiftNativeViewTest` | AppKit 앱. `NSView` 를 `CAD_AttachView()` 로 엔진에 넘기고, **풀다운 메뉴 · 리본 · 도킹 도구모음 · 명령행**을 네이티브로 꾸민 CAD 스타일 창. 🆕 [해석] 메뉴·리본 탭 — 바람 터널 · 물 · 구조 해석 패널 |
 | `LotCADSamples` | 🆕 **기능 샘플 모음** — 한 창에 메뉴 [샘플](⌘1~⌘7)로 로봇 팔 · 파티클 · Jig · 단면도/도면 뷰 · 3D 평면도 · 내비 · AI 를 바꿔 본다. 로직·조작 항목은 [`../shared/demo_*.cpp`](../shared) (`Sources/DemoKit` 은 심볼릭 링크), 오른쪽 패널은 그 항목을 그대로 그리는 범용 패널(`DemoPanel.swift`) |
 | `RobotArmMac` | 🆕 로봇 팔 샘플. URDF 로봇 + 관절 슬라이더·자동 재생. 로직은 [`../shared/robot_demo`](../shared) (iOS·Android 와 공용, `Sources/RobotDemo` 는 심볼릭 링크) |
 
@@ -44,6 +44,24 @@ swift run RobotArmMac                      # 로봇 팔 (ROBOT_AUTOPLAY=1 이면
 | `AppDelegate.swift` | 창 조립, 도구 실행 입구(`runTool`), 파일 대화상자, 메뉴 활성/체크 상태, 플러그인 UI 붙이기 |
 | `LotCADEngine.swift` | C API 래퍼. 콜백(프롬프트·선택·문서 변경)은 전역 보관소를 거쳐 Swift 클로저로 |
 | `LotCADView.swift` | 마우스·키보드를 엔진 좌표/키코드로 변환해 전달 |
+| `DemoPanel.swift` | 해석 패널 — `LotCADSamples` 의 범용 패널(심볼릭 링크). 항목·로직은 [`../shared/demo_analysis.cpp`](../shared/demo_analysis.cpp) |
+
+### 해석 (바람 터널 · 물 · 구조 해석)
+
+엔진 해석 패널(ImGui)은 호스트 창 안에서 그려지지 않으므로, [해석] 메뉴·리본 탭이 뷰 오른쪽에 네이티브 패널을 엽니다.
+모델을 열거나 그린 뒤 **3D 뷰에서 솔리드를 고르고** 패널에서 시작/열기 — 고른 것이 없으면 패널의 "예제 … 만들기" 로 바로 해 볼 수 있습니다.
+
+| 해석 | 흐름 |
+|------|------|
+| 바람 터널 | 솔리드 선택 → 시작(격자·바람 세기) → 색(속도·압력·소용돌이·연기)·단면·표면 압력. 바람은 +X, 항력 계수 표시 |
+| 물 | 닫힌 솔리드(그릇) 선택 → 물 높이 → 시작 → 기울이기·흔들기(공진) |
+| 구조 해석 | 솔리드 선택 → 열기(면 목록) → 면 골라 고정·힘·압력(열: 온도·열·대류) → 실행 → 응력·변위·안전율 / 온도 / 고유진동수 / 좌굴 배수, 결과 색 |
+
+- 엔진 API: `CAD_WindTunnel` · `CAD_Water` · `CAD_StructuralAnalysis` — `{"op": …}` JSON 을 받아 결과 JSON (헤더의 해석 주석).
+  **2회 호출 규약**(길이를 먼저 물을 때 한 번 실행 → 같은 인자로 버퍼)을 지켜야 run·start 가 두 번 들어가지 않습니다.
+- 해석 모듈 `libLotCADSim.dylib` · `libLotCADCfd.dylib` 가 엔진 라이브러리 옆 `sdk/` 에 있어야 합니다(동봉).
+- 확인 기준: 예제 외팔보 3 × 0.4 × 0.4 m, 왼끝 고정 · 오른끝 −5 kN(패널의 "예제 조건") → 최대 응력 ≈ 1.99 MPa · 변위 ≈ 0.101 mm · 안전율 ≈ 138.
+- 시험용: `LOTCAD_ANALYSIS=sim LOTCAD_PRESS="예제 외팔보 만들기;열기;실행" LOTCAD_SHOT=/tmp/x swift run LotCADSwiftNativeViewTest`
 
 ### 버튼 하나가 엔진까지 가는 길
 

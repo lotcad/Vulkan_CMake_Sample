@@ -6,6 +6,8 @@
 | 파일 | 샘플 | 쓰는 곳 |
 |------|------|---------|
 | `robot_demo.h/.cpp` | 로봇 팔 — `models/demo_arm.urdf` 를 불러와 관절을 조작 항목으로 묶고(회전 관절 = 도, 손가락 = 그리퍼 %), 자동 재생 | Android `android_test/robot` · iOS `swift_ios_test` 의 `RobotArmiOS` · macOS `swift_api_test` 의 `RobotArmMac` |
+| `demo_kit.h/.cpp` + `demo_*.cpp` | 기능 샘플(로봇·파티클·Jig·단면도·평면도·내비·AI) — 조작 항목까지 C++ 에서 정의, 플랫폼은 범용 패널 하나 | macOS `swift_api_test` 의 `LotCADSamples` |
+| `demo_analysis.cpp` | 해석 패널(바람 터널·물·구조 해석) — `DemoKit_OpenPanel` **패널 모드**: 장면을 비우지 않고 지금 장면·고른 솔리드에 붙는다 | macOS `swift_api_test` 의 CAD 앱 `LotCADSwiftNativeViewTest` [해석] 메뉴 |
 
 ## 플랫폼별로 붙는 방식
 
