@@ -102,10 +102,10 @@ bool RobotDemo_Load(void) {
     g_playing = false;
     // 로봇 전용 장면 — 엔진 기본 데모 객체를 치운다(로봇이 그 사이에 묻혀 작게 보인다).
     // CAD_RequestClearAll 은 큐로 가서 다음 틱에 돌므로 방금 불러온 로봇까지 지운다 → 즉시 삭제.
-    std::vector<uint32_t> ids(CAD_GetObjectIds(nullptr, 0));
+    std::vector<uint32_t> ids(static_cast<std::size_t>(std::max(0, CAD_GetObjectIds(nullptr, 0))));
     if (!ids.empty()) {
-        const uint32_t n = CAD_GetObjectIds(ids.data(), static_cast<uint32_t>(ids.size()));
-        ids.resize(std::min<std::size_t>(n, ids.size()));   // 반환은 총 개수 — 버퍼보다 클 수 있다
+        const int32_t n = std::max(0, CAD_GetObjectIds(ids.data(), static_cast<uint32_t>(ids.size())));
+        ids.resize(std::min<std::size_t>(static_cast<std::size_t>(n), ids.size()));   // 반환은 총 개수 — 버퍼보다 클 수 있다
         for (uint32_t id : ids) CAD_DeleteObject(id);
     }
     // 엔진이 작업 폴더를 런타임 에셋 경로로 옮겨 두므로 상대 경로로 충분하다.

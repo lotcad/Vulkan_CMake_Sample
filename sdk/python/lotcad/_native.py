@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import ctypes as _c
+import itertools
 import os
 import sys
+import threading
 
 __all__ = ["native", "SDK_DIR", "LIBRARY_PATH", "buffer"]
 
@@ -119,6 +121,48 @@ def callback(cftype, fn, text_args=()):
 
 
 _alive = {}
+_once = {}            # 한 번 불리는 콜백(CAD_Post) — 번호 → 함수 포인터. 불릴 때까지만
+_once_done = []       # 불린 것 — 다음 맡기기 때 놓는다(불리는 중인 콜백을 그 안에서 지우지 않게 한 박자 늦게)
+_once_lock = threading.Lock()   # 맡기기는 아무 스레드에서나, 불리기는 엔진 스레드에서
+_once_seq = itertools.count(1)
+
+
+def callback_once(cftype, fn, text_args=()):
+    """한 번 불리고 끝나는 콜백 — 불릴 때까지 붙잡고, 불린 뒤엔 놓는다(CAD_Post 를 자주 불러도 쌓이지 않게)."""
+    if fn is None:
+        return cftype()
+    with _once_lock:
+        for k in _once_done:
+            _once.pop(k, None)
+        _once_done.clear()
+        key = next(_once_seq)
+
+    def run(*args):
+        try:
+            return fn(*args)
+        finally:
+            with _once_lock:
+                _once_done.append(key)
+
+    cb = callback(cftype, run, text_args)
+    with _once_lock:
+        _once[key] = cb
+    return cb
+
+
+def release_once(cb):
+    """맡기지 못한 콜백을 바로 놓는다."""
+    with _once_lock:
+        for k, v in list(_once.items()):
+            if v is cb:
+                del _once[k]
+
+
+def forget_once():
+    """엔진을 끌 때 — 엔진이 아직 안 부른 것은 버리므로 전부 놓는다."""
+    with _once_lock:
+        _once.clear()
+        _once_done.clear()
 
 
 def keep(key, cb, replace):

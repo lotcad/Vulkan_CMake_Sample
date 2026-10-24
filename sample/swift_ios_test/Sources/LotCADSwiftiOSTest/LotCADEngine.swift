@@ -57,9 +57,9 @@ final class LotCADEngine {
             center: CADPoint(x: 0.0, y: 0.0, z: 1.0),
             scale: CADPoint(x: 0.5, y: 0.5, z: 0.5))
         if boxId != 0 {
-            CAD_SetPosition(boxId, 1.0, 0.0, 1.5)
-            CAD_SetScale(boxId, 0.8, 0.8, 0.8)
-            CAD_SetRotationAxisAngle(boxId, 0.0, 0.0, 1.0, 0.7853982)
+            CAD_SetPosition(boxId, CAD_GeVec3(x: 1.0, y: 0.0, z: 1.5))
+            CAD_SetScale(boxId, CAD_GeVec3(x: 0.8, y: 0.8, z: 0.8))
+            CAD_SetRotationAxisAngle(boxId, CAD_GeVec3(x: 0.0, y: 0.0, z: 1.0), 0.7853982)
             CAD_SelectObject(boxId, false)
         }
 
@@ -217,8 +217,16 @@ final class LotCADEngine {
     func drawArc()       { executeCommand("a") }
     func drawPolyline()  { executeCommand("pl") }
     func drawPolygon()   { executeCommand("pol") }
-    func selectionLength() -> Float { isCreated ? CAD_GetSelectionLength() : 0 }
-    func selectionArea() -> Float { isCreated ? CAD_GetSelectionArea() : 0 }
+    func selectionLength() -> Float {
+        var v = 0.0
+        if isCreated { _ = CAD_GetSelectionLength(&v) }
+        return Float(v)
+    }
+    func selectionArea() -> Float {
+        var v = 0.0
+        if isCreated { _ = CAD_GetSelectionArea(&v) }
+        return Float(v)
+    }
 
     // ─── 치수 (전부 "점 찍기" 방식 — 대화상자 불필요라 모바일에서 그대로 동작) ───
     func dimAligned()  { executeCommand("dim") }   // 정렬 치수
@@ -239,7 +247,7 @@ final class LotCADEngine {
     func setView(_ viewType: Int32) { guard isCreated else { return }; CAD_RequestSetView(viewType) }
     func undo()             { guard isCreated else { return }; CAD_Undo() }
     func redo()             { guard isCreated else { return }; CAD_Redo() }
-    func objectCount() -> UInt32 { isCreated ? CAD_GetObjectCount() : 0 }
+    func objectCount() -> UInt32 { isCreated ? UInt32(max(0, CAD_GetObjectCount())) : 0 }
 
     // ─── 명령 요청 (SwiftUI 버튼/패널용) ───
     func startLineSketch() { guard isCreated else { return }; CAD_RequestStartLineSketch() }
@@ -338,10 +346,10 @@ final class LotCADEngine {
         var want = spec, nth = 0
         if let at = spec.lastIndex(of: "@") { want = String(spec[..<at]); nth = Int(spec[spec.index(after: at)...]) ?? 0 }
         var ids = [UInt32](repeating: 0, count: 20000)
-        let n = Int(CAD_QueryObjects("{\"kind\":\"text\"}", &ids, UInt32(ids.count)))
+        let n = max(0, Int(CAD_QueryObjects("{\"kind\":\"text\"}", &ids, UInt32(ids.count))))
         var buf = [CChar](repeating: 0, count: 8192)
         for id in ids.prefix(n).sorted() {
-            guard CAD_GetObjectJson(id, &buf, Int32(buf.count)) > 0 else { continue }
+            guard CAD_GetObjectJson(id, &buf, UInt32(buf.count)) > 0 else { continue }
             let json = String(decoding: buf.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
             guard json.contains("\"text\":\"\(want)\"") else { continue }
             if nth > 0 { nth -= 1; continue }

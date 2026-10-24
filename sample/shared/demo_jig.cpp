@@ -70,7 +70,8 @@ private:
     uint32_t pick() const {
         // 확정된 이동·복사로 객체가 바뀌어도(복사본) 원래 상자를 쓴다. 지워졌으면 0.
         const uint32_t id = boxes_[target_];
-        return CAD_ObjectExists(id) ? id : 0;
+        bool exists = false;
+        return CAD_ObjectExists(id, &exists) == CAD_OK && exists ? id : 0;
     }
 
     void begin() {

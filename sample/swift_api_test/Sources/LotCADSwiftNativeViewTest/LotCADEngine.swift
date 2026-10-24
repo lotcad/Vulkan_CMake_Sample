@@ -101,9 +101,9 @@ final class LotCADEngine {
             center: CADPoint(x: 0.0, y: 0.0, z: 1.0),
             scale: CADPoint(x: 0.5, y: 0.5, z: 0.5))
         if boxId != 0 {
-            CAD_SetPosition(boxId, 1.0, 0.0, 1.5)
-            CAD_SetScale(boxId, 0.8, 0.8, 0.8)
-            CAD_SetRotationAxisAngle(boxId, 0.0, 0.0, 1.0, 0.7853982)
+            CAD_SetPosition(boxId, CAD_GeVec3(x: 1.0, y: 0.0, z: 1.5))
+            CAD_SetScale(boxId, CAD_GeVec3(x: 0.8, y: 0.8, z: 0.8))
+            CAD_SetRotationAxisAngle(boxId, CAD_GeVec3(x: 0.0, y: 0.0, z: 1.0), 0.7853982)
             CAD_SelectObject(boxId, false)
         }
 

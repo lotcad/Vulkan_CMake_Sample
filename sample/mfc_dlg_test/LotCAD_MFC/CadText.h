@@ -29,7 +29,7 @@ inline std::string WideToUtf8(const std::wstring& s)
 inline std::wstring CadLastError()
 {
 	char buf[512] = {};
-	CAD_GetLastError(buf, sizeof(buf));
+	CAD_GetLastError(buf, static_cast<uint32_t>(sizeof(buf)));
 	return Utf8ToWide(buf);
 }
 

@@ -60,12 +60,11 @@ namespace LotCadWpf
         [DllImport(DLL)] public static extern void CAD_SetOnPrompt(TextCb cb);
 
         // ── 측정 ── 상태바에 "길이 3,600" / "면적 12.5" 를 띄울 때. 월드 좌표 기준.
-        [DllImport(DLL)] [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetLength(uint id, out float outLength);
-        [DllImport(DLL)] [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetArea(uint id, out float outArea);
-        [DllImport(DLL)] public static extern float CAD_GetSelectionLength();
-        [DllImport(DLL)] public static extern float CAD_GetSelectionArea();
+        // 반환 = 결과 코드(0 = 성공, 음수 = 이유 코드 — 글은 LastError())
+        [DllImport(DLL)] public static extern int CAD_GetLength(uint id, out double outLength);
+        [DllImport(DLL)] public static extern int CAD_GetArea(uint id, out double outArea);
+        [DllImport(DLL)] public static extern int CAD_GetSelectionLength(out double outLength);
+        [DllImport(DLL)] public static extern int CAD_GetSelectionArea(out double outArea);
 
         // ── 내보내기 ── 확장자로 포맷이 정해진다 (.stl .dxf .glb .obj .lot)
         [DllImport(DLL, CharSet = CharSet.Ansi)] [return: MarshalAs(UnmanagedType.I1)]
@@ -101,11 +100,11 @@ namespace LotCadWpf
                                                                  bool rotateItems);
 
         // ── 조회 ──
-        [DllImport(DLL)] public static extern uint CAD_GetObjectCount();
+        [DllImport(DLL)] public static extern int CAD_GetObjectCount();        // 음수 = 이유 코드
         [DllImport(DLL)] public static extern uint CAD_GetSelectedCount();
         [DllImport(DLL)] [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool CAD_GetSelectedObjectId(uint index, out uint id);
-        [DllImport(DLL)] public static extern int CAD_GetLastError(byte[] outUtf8, int cap);   // 직전 실패 이유
+        [DllImport(DLL)] public static extern int CAD_GetLastError(byte[] outUtf8, uint capacity);   // 직전 실패 이유
 
         // ── 해석 — 바람 터널 · 물 · 구조 해석 ── (Analysis.cs 가 쓴다)
         // argsJson = {"op": …} 를 UTF-8 로, 결과 JSON 이 outUtf8 에. 반환 = 길이, 실패 -1.
@@ -132,7 +131,7 @@ namespace LotCadWpf
         public static string LastError()
         {
             var buf = new byte[1024];
-            CAD_GetLastError(buf, buf.Length);
+            CAD_GetLastError(buf, (uint)buf.Length);
             return FromUtf8(buf);
         }
 

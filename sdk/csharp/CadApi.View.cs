@@ -9,6 +9,67 @@ namespace LotCAD
     public static partial class CadApi
     {
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_SetDimensionTextScreenFixed([MarshalAs(UnmanagedType.I1)] bool enabled);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool CAD_GetDimensionTextScreenFixed();
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestZoomExtents();
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestFocusSelected();
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestToggleProjection();
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestToggleDemoLighting();
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestAdjustTextureScale(float delta);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestAdjustLineWidth(float deltaPx);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestSetView(int viewType);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestSetProjection([MarshalAs(UnmanagedType.I1)] bool ortho);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestSetViewDirection(float dirX, float dirY, float dirZ);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestSetViewPivot(float x, float y, float z, int axis);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_RequestClearViewPivot();
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool CAD_GetViewPivot(out float x, out float y, out float z, out int axis);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool CAD_SetSection(int mode, int axis, float pos, [MarshalAs(UnmanagedType.I1)] bool flip, float thickness);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool CAD_SetSectionBox(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern void CAD_SetSectionOptions([MarshalAs(UnmanagedType.I1)] bool showArrows, [MarshalAs(UnmanagedType.I1)] bool selectedOnly);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_GetSectionStateJson(byte[] @out, int cap);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern uint CAD_ExtractSectionTo2D([MarshalAs(UnmanagedType.I1)] bool includeBehind);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void CAD_SetViewportLayout(int layout);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
@@ -59,9 +120,10 @@ namespace LotCAD
         public static extern bool CAD_GetCollisionEnabled();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetStatusMessage(byte[] buf, int bufLen);
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool CAD_CaptureViewport([MarshalAs(UnmanagedType.LPUTF8Str)] string pathUtf8, [MarshalAs(UnmanagedType.I1)] bool clean);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetTransientMessage(byte[] buf, int bufLen);
+        public static extern void CAD_OrbitCamera(float ax, float ay, float az, float angleDeg);
     }
 }

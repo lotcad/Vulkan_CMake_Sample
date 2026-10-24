@@ -19,10 +19,10 @@ void clearScene() {
     CAD_ClearDrawingViews();
     CAD_ClearRobots();
     // CAD_RequestClearAll 은 큐로 가서 다음 틱에 돈다 → 방금 만든 장면까지 지운다. 즉시 삭제.
-    std::vector<uint32_t> ids(CAD_GetObjectIds(nullptr, 0));
+    std::vector<uint32_t> ids(static_cast<std::size_t>(std::max(0, CAD_GetObjectIds(nullptr, 0))));
     if (!ids.empty()) {
-        const uint32_t n = CAD_GetObjectIds(ids.data(), static_cast<uint32_t>(ids.size()));
-        ids.resize(std::min<size_t>(n, ids.size()));
+        const int32_t n = std::max(0, CAD_GetObjectIds(ids.data(), static_cast<uint32_t>(ids.size())));
+        ids.resize(std::min<size_t>(static_cast<size_t>(n), ids.size()));
         for (uint32_t id : ids) CAD_DeleteObject(id);
     }
     CAD_ClearSelection();

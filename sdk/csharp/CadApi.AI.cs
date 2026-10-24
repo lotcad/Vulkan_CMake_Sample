@@ -41,5 +41,8 @@ namespace LotCAD
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_McpCall([MarshalAs(UnmanagedType.LPUTF8Str)] string toolName, [MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] @out, int cap);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_GetMcpToolsJson(byte[] outUtf8, int cap);
     }
 }

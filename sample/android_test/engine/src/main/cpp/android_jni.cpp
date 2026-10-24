@@ -164,8 +164,8 @@ JNI(jboolean, nativeExecuteCommand)(JNIEnv* env, jobject, jstring name) {
 // 선택만 하면 값이 나오는 경로. 점 찍기·스냅이 없어 모바일에서 가장 쓰기 쉽다.
 // 잴 수 없는 종류(메시·문자)는 엔진이 합에서 건너뛰므로 0 이 올 수 있다.
 JNI(jint,   nativeSelectedCount)(JNIEnv*, jobject)   { return static_cast<jint>(CAD_GetSelectedCount()); }
-JNI(jfloat, nativeSelectionLength)(JNIEnv*, jobject) { return CAD_GetSelectionLength(); }
-JNI(jfloat, nativeSelectionArea)(JNIEnv*, jobject)   { return CAD_GetSelectionArea(); }
+JNI(jfloat, nativeSelectionLength)(JNIEnv*, jobject) { double v = 0; CAD_GetSelectionLength(&v); return static_cast<jfloat>(v); }
+JNI(jfloat, nativeSelectionArea)(JNIEnv*, jobject)   { double v = 0; CAD_GetSelectionArea(&v); return static_cast<jfloat>(v); }
 // 진행 중인 치수 도구의 점 개수(비활성 -1). 커서 UI 가 클릭을 세는 대신 엔진에 물어본다.
 JNI(jint, nativeDimensionPointCount)(JNIEnv*, jobject) { return CAD_GetDimensionPointCount(); }
 

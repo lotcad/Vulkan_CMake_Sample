@@ -39,17 +39,16 @@ guard boxId != 0 else {
     exit(1)
 }
 
-CAD_SetPosition(boxId, 1.0, 0.0, 1.5)
-CAD_SetScale(boxId, 0.8, 0.8, 0.8)
-CAD_SetRotationAxisAngle(boxId, 0.0, 0.0, 1.0, 0.7853982)
+// 결과 코드(CAD_Status) — 0 = 성공, 음수 = 이유 코드(이유 글은 CAD_GetLastError)
+CAD_SetPosition(boxId, CAD_GeVec3(x: 1.0, y: 0.0, z: 1.5))
+CAD_SetScale(boxId, CAD_GeVec3(x: 0.8, y: 0.8, z: 0.8))
+CAD_SetRotationAxisAngle(boxId, CAD_GeVec3(x: 0.0, y: 0.0, z: 1.0), 0.7853982)
 CAD_SelectObject(boxId, false)
 CAD_RequestZoomExtents()
 
-var x: Float = 0.0
-var y: Float = 0.0
-var z: Float = 0.0
-if CAD_GetPosition(boxId, &x, &y, &z) {
-    print("[swift_api_test] box position: \(x), \(y), \(z)")
+var p = CAD_GeVec3()
+if CAD_GetPosition(boxId, &p) == 0 {
+    print("[swift_api_test] box position: \(p.x), \(p.y), \(p.z)")
 }
 
 print("[swift_api_test] object count: \(CAD_GetObjectCount())")

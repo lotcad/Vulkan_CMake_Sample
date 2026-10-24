@@ -46,7 +46,7 @@ inline QVariantList readArray(int (*fn)(char*, int)) {
 // 실패 사유 — 0/false 를 돌려준 API 직후에 읽는다.
 inline QString lastError() {
     char buf[1024] = {0};
-    const int n = CAD_GetLastError(buf, int(sizeof(buf)));
+    const int32_t n = CAD_GetLastError(buf, uint32_t(sizeof(buf)));
     return n > 0 ? QString::fromUtf8(buf, n) : QString();
 }
 

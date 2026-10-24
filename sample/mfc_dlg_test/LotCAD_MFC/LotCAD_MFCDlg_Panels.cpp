@@ -316,9 +316,16 @@ void CLotCADMFCDlg::OpenParticlePanel()
 		{
 			std::vector<uint32_t> out;
 			for (uint32_t id : SelectedIds())
-				if (CAD_GetObjectKind(id) == 8) out.push_back(id);   // 8 = ParticleEmitter
+			{
+				int32_t kind = -1;
+				if (CAD_GetObjectKind(id, &kind) == CAD_OK && kind == 8) out.push_back(id);   // 8 = ParticleEmitter
+			}
 			if (out.empty())
-				for (uint32_t id : made) if (CAD_ObjectExists(id)) out.push_back(id);   // 지운 것은 건너뛴다
+				for (uint32_t id : made)
+				{
+					bool exists = false;
+					if (CAD_ObjectExists(id, &exists) == CAD_OK && exists) out.push_back(id);   // 지운 것은 건너뛴다
+				}
 			return out;
 		}
 		void SetAll(const char* json)

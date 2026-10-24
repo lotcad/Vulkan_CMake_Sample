@@ -25,18 +25,17 @@ int main() {
         return 1;
     }
 
-    CAD_SetPosition(boxId, 1.0f, 0.0f, 1.5f);
-    CAD_SetScale(boxId, 0.8f, 0.8f, 0.8f);
-    CAD_SetRotationAxisAngle(boxId, 0.0f, 0.0f, 1.0f, 0.7853982f);
+    // 결과 코드(CAD_Status) — 0 = CAD_OK, 음수 = 이유 코드(이유 글은 CAD_GetLastError)
+    CAD_SetPosition(boxId, CAD_GeVec3{1.0, 0.0, 1.5});
+    CAD_SetScale(boxId, CAD_GeVec3{0.8, 0.8, 0.8});
+    CAD_SetRotationAxisAngle(boxId, CAD_GeVec3{0.0, 0.0, 1.0}, 0.7853982);
     CAD_SelectObject(boxId, false);
     CAD_RequestZoomExtents();
 
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
-    if (CAD_GetPosition(boxId, &x, &y, &z)) {
+    CAD_GeVec3 p{};
+    if (CAD_GetPosition(boxId, &p) == CAD_OK) {
         std::cout << "[cpp_api_test] box position: "
-                  << x << ", " << y << ", " << z << std::endl;
+                  << p.x << ", " << p.y << ", " << p.z << std::endl;
     }
 
     std::cout << "[cpp_api_test] object count: "
@@ -54,7 +53,7 @@ int main() {
     const uint32_t textId = CAD_CreateText(0.0f, -2.0f, 0.0f, "CAD", 300.0f);
     if (textId != 0) {
         CAD_SelectObject(textId, /*additive*/false);
-        const uint32_t before = CAD_GetObjectCount();
+        const int32_t before = CAD_GetObjectCount();
         if (CAD_Explode(/*keepOriginal*/false)) {
             std::cout << "[cpp_api_test] explode: " << before
                       << " -> " << CAD_GetObjectCount() << std::endl;

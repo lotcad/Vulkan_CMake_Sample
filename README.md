@@ -10,6 +10,9 @@ macOS 라이브러리에는 MoltenVK 가 들어 있습니다(아래 [플랫폼�
 (동봉된 데스크톱 바이너리는 공개용 스냅숏(Release — LotCAD 0.1.0 Beta: macOS·Linux·Windows 모두 엔진 c62936a(9858582 + 호스트 창에서 해석 API 크래시 수정) + 해석 모듈(LotCADSim·LotCADCfd). 헤더는 db53815 기준)으로, 평소 개발 중 빌드 결과는 git 이 추적하지 않습니다 — `.gitignore` 참고.
 안드로이드는 엔진 `.so` 를 iOS 처럼 Releases 에서 받습니다.)
 
+> **`capi-v2` 브랜치** — C API 2단계(옛 함수를 새 규칙 `CAD_Status`·`CAD_GeVec3`·글자 길이로 바꾸기)를 따라가는 샘플. 영역마다 쌓고 끝나면 main 에 합친다.
+> 여기 `sdk/` 의 Windows 바이너리·헤더·바인딩은 엔진 e9782b2(2a 객체 기본 46개). macOS·Linux 바이너리는 아직 c62936a 라 그 OS 샘플은 다음 갱신 전까지 맞지 않는다.
+
 ```
 3dEngine_Sample/
 ├── sdk/                    ← 엔진 배포본 (빌드에 필요한 전부)
