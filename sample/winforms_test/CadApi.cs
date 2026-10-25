@@ -31,7 +31,9 @@ namespace LotCadWinForms
         [DllImport(DLL)] public static extern void CAD_OnKeyUpVK(int vkCode);
 
         // ── 툴바 명령 ──
-        [DllImport(DLL)] public static extern uint CAD_CreateBox(float x, float y, float z, float sx, float sy, float sz);
+        [StructLayout(LayoutKind.Sequential)] public struct GeVec3 { public double X, Y, Z; public GeVec3(double x, double y, double z) { X = x; Y = y; Z = z; } }
+        // 반환 = 결과 코드(0 = 성공), 새 id 는 out — opt 는 IntPtr.Zero(지금 도면층·기본 색)
+        [DllImport(DLL)] public static extern int CAD_CreateBox(GeVec3 center, GeVec3 size, IntPtr opt, out uint id);
         [DllImport(DLL)] public static extern void CAD_RequestStartLineSketch();
         [DllImport(DLL)] public static extern void CAD_RequestStartRectangleSketch();
         [DllImport(DLL)] public static extern void CAD_RequestStartCircleSketch();
@@ -89,11 +91,7 @@ namespace LotCadWinForms
         [DllImport(DLL)] public static extern bool CAD_OpenFile(byte[] pathUtf8);
 
         // ── 편집 명령 (전부 현재 선택에 적용, 각각 undo 1스텝) ──
-        [DllImport(DLL)] public static extern bool CAD_Loft();
-        [DllImport(DLL)] public static extern bool CAD_Shell(float thickness);          // <=0 = 자동
         [DllImport(DLL)] public static extern bool CAD_Explode(bool keepOriginal);
-        [DllImport(DLL)] public static extern bool CAD_EdgeFillet(float distance);      // <=0 = 자동
-        [DllImport(DLL)] public static extern bool CAD_EdgeChamfer(float distance);
         [DllImport(DLL)] public static extern bool CAD_ArrayRect(int cols, int rows, float dx, float dy);
         [DllImport(DLL)] public static extern bool CAD_ArrayPolar(int count, float angleDeg,
                                                                  float centerX, float centerY, float centerZ,

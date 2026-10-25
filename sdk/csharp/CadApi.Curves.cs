@@ -7,15 +7,6 @@ using System.Runtime.InteropServices;
 namespace LotCAD
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct CAD_CurveCreateOptions
-    {
-        /// <summary>size 를 sizeof 로 채운 새 값(나머지 0).</summary>
-        public static CAD_CurveCreateOptions Create() { return new CAD_CurveCreateOptions { size = (uint)Marshal.SizeOf(typeof(CAD_CurveCreateOptions)) }; }
-        public uint size;
-        public uint propsFrom;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
     public struct CAD_SketchConstraintInfo
     {
         /// <summary>size 를 sizeof 로 채운 새 값(나머지 0).</summary>
@@ -57,7 +48,7 @@ namespace LotCAD
         public const int CAD_SKETCH_INVALID = 4;
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_CreateLine(CAD_GeVec3 start, CAD_GeVec3 end, CAD_CurveCreateOptions[] opt, out uint outId);
+        public static extern int CAD_CreateLine(CAD_GeVec3 start, CAD_GeVec3 end, CAD_CreateOptions[] opt, out uint outId);
 
         /// <summary>CAD_CreateLine — 선택 없이(전부 기본값).</summary>
         public static int CAD_CreateLine(CAD_GeVec3 start, CAD_GeVec3 end, out uint outId)
@@ -65,14 +56,14 @@ namespace LotCAD
             return CAD_CreateLine(start, end, null, out outId);
         }
         /// <summary>CAD_CreateLine — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
-        public static int CAD_CreateLine(CAD_GeVec3 start, CAD_GeVec3 end, CAD_CurveCreateOptions opt, out uint outId)
+        public static int CAD_CreateLine(CAD_GeVec3 start, CAD_GeVec3 end, CAD_CreateOptions opt, out uint outId)
         {
-            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CurveCreateOptions));
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
             return CAD_CreateLine(start, end, new[] { opt }, out outId);
         }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_CreateCircle(CAD_GeVec3 center, double radius, CAD_GeVec3 normal, CAD_CurveCreateOptions[] opt, out uint outId);
+        public static extern int CAD_CreateCircle(CAD_GeVec3 center, double radius, CAD_GeVec3 normal, CAD_CreateOptions[] opt, out uint outId);
 
         /// <summary>CAD_CreateCircle — 선택 없이(전부 기본값).</summary>
         public static int CAD_CreateCircle(CAD_GeVec3 center, double radius, CAD_GeVec3 normal, out uint outId)
@@ -80,14 +71,14 @@ namespace LotCAD
             return CAD_CreateCircle(center, radius, normal, null, out outId);
         }
         /// <summary>CAD_CreateCircle — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
-        public static int CAD_CreateCircle(CAD_GeVec3 center, double radius, CAD_GeVec3 normal, CAD_CurveCreateOptions opt, out uint outId)
+        public static int CAD_CreateCircle(CAD_GeVec3 center, double radius, CAD_GeVec3 normal, CAD_CreateOptions opt, out uint outId)
         {
-            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CurveCreateOptions));
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
             return CAD_CreateCircle(center, radius, normal, new[] { opt }, out outId);
         }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_CreateArc(CAD_GeVec3 start, CAD_GeVec3 through, CAD_GeVec3 end, CAD_CurveCreateOptions[] opt, out uint outId);
+        public static extern int CAD_CreateArc(CAD_GeVec3 start, CAD_GeVec3 through, CAD_GeVec3 end, CAD_CreateOptions[] opt, out uint outId);
 
         /// <summary>CAD_CreateArc — 선택 없이(전부 기본값).</summary>
         public static int CAD_CreateArc(CAD_GeVec3 start, CAD_GeVec3 through, CAD_GeVec3 end, out uint outId)
@@ -95,14 +86,14 @@ namespace LotCAD
             return CAD_CreateArc(start, through, end, null, out outId);
         }
         /// <summary>CAD_CreateArc — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
-        public static int CAD_CreateArc(CAD_GeVec3 start, CAD_GeVec3 through, CAD_GeVec3 end, CAD_CurveCreateOptions opt, out uint outId)
+        public static int CAD_CreateArc(CAD_GeVec3 start, CAD_GeVec3 through, CAD_GeVec3 end, CAD_CreateOptions opt, out uint outId)
         {
-            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CurveCreateOptions));
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
             return CAD_CreateArc(start, through, end, new[] { opt }, out outId);
         }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_CreatePolygon(CAD_GeVec3 center, double radius, int sides, CAD_GeVec3 normal, CAD_GeVec3 firstVertexDir, CAD_CurveCreateOptions[] opt, out uint outId);
+        public static extern int CAD_CreatePolygon(CAD_GeVec3 center, double radius, int sides, CAD_GeVec3 normal, CAD_GeVec3 firstVertexDir, CAD_CreateOptions[] opt, out uint outId);
 
         /// <summary>CAD_CreatePolygon — 선택 없이(전부 기본값).</summary>
         public static int CAD_CreatePolygon(CAD_GeVec3 center, double radius, int sides, CAD_GeVec3 normal, CAD_GeVec3 firstVertexDir, out uint outId)
@@ -110,14 +101,14 @@ namespace LotCAD
             return CAD_CreatePolygon(center, radius, sides, normal, firstVertexDir, null, out outId);
         }
         /// <summary>CAD_CreatePolygon — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
-        public static int CAD_CreatePolygon(CAD_GeVec3 center, double radius, int sides, CAD_GeVec3 normal, CAD_GeVec3 firstVertexDir, CAD_CurveCreateOptions opt, out uint outId)
+        public static int CAD_CreatePolygon(CAD_GeVec3 center, double radius, int sides, CAD_GeVec3 normal, CAD_GeVec3 firstVertexDir, CAD_CreateOptions opt, out uint outId)
         {
-            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CurveCreateOptions));
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
             return CAD_CreatePolygon(center, radius, sides, normal, firstVertexDir, new[] { opt }, out outId);
         }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_CreateRectangle(CAD_GeVec3 corner0, CAD_GeVec3 corner2, CAD_CurveCreateOptions[] opt, out uint outId);
+        public static extern int CAD_CreateRectangle(CAD_GeVec3 corner0, CAD_GeVec3 corner2, CAD_CreateOptions[] opt, out uint outId);
 
         /// <summary>CAD_CreateRectangle — 선택 없이(전부 기본값).</summary>
         public static int CAD_CreateRectangle(CAD_GeVec3 corner0, CAD_GeVec3 corner2, out uint outId)
@@ -125,14 +116,14 @@ namespace LotCAD
             return CAD_CreateRectangle(corner0, corner2, null, out outId);
         }
         /// <summary>CAD_CreateRectangle — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
-        public static int CAD_CreateRectangle(CAD_GeVec3 corner0, CAD_GeVec3 corner2, CAD_CurveCreateOptions opt, out uint outId)
+        public static int CAD_CreateRectangle(CAD_GeVec3 corner0, CAD_GeVec3 corner2, CAD_CreateOptions opt, out uint outId)
         {
-            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CurveCreateOptions));
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
             return CAD_CreateRectangle(corner0, corner2, new[] { opt }, out outId);
         }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_CreatePolyline(CAD_GeVec3[] points, uint count, [MarshalAs(UnmanagedType.I1)] bool closed, CAD_CurveCreateOptions[] opt, out uint outId);
+        public static extern int CAD_CreatePolyline(CAD_GeVec3[] points, uint count, [MarshalAs(UnmanagedType.I1)] bool closed, CAD_CreateOptions[] opt, out uint outId);
 
         /// <summary>CAD_CreatePolyline — 선택 없이(전부 기본값).</summary>
         public static int CAD_CreatePolyline(CAD_GeVec3[] points, uint count, bool closed, out uint outId)
@@ -140,14 +131,14 @@ namespace LotCAD
             return CAD_CreatePolyline(points, count, closed, null, out outId);
         }
         /// <summary>CAD_CreatePolyline — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
-        public static int CAD_CreatePolyline(CAD_GeVec3[] points, uint count, bool closed, CAD_CurveCreateOptions opt, out uint outId)
+        public static int CAD_CreatePolyline(CAD_GeVec3[] points, uint count, bool closed, CAD_CreateOptions opt, out uint outId)
         {
-            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CurveCreateOptions));
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
             return CAD_CreatePolyline(points, count, closed, new[] { opt }, out outId);
         }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_CreateEllipse(CAD_GeVec3 center, CAD_GeVec3 majorAxis, double ratio, CAD_GeVec3 normal, CAD_CurveCreateOptions[] opt, out uint outId);
+        public static extern int CAD_CreateEllipse(CAD_GeVec3 center, CAD_GeVec3 majorAxis, double ratio, CAD_GeVec3 normal, CAD_CreateOptions[] opt, out uint outId);
 
         /// <summary>CAD_CreateEllipse — 선택 없이(전부 기본값).</summary>
         public static int CAD_CreateEllipse(CAD_GeVec3 center, CAD_GeVec3 majorAxis, double ratio, CAD_GeVec3 normal, out uint outId)
@@ -155,14 +146,14 @@ namespace LotCAD
             return CAD_CreateEllipse(center, majorAxis, ratio, normal, null, out outId);
         }
         /// <summary>CAD_CreateEllipse — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
-        public static int CAD_CreateEllipse(CAD_GeVec3 center, CAD_GeVec3 majorAxis, double ratio, CAD_GeVec3 normal, CAD_CurveCreateOptions opt, out uint outId)
+        public static int CAD_CreateEllipse(CAD_GeVec3 center, CAD_GeVec3 majorAxis, double ratio, CAD_GeVec3 normal, CAD_CreateOptions opt, out uint outId)
         {
-            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CurveCreateOptions));
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
             return CAD_CreateEllipse(center, majorAxis, ratio, normal, new[] { opt }, out outId);
         }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_CreateSpline(CAD_GeVec3[] fitPoints, uint count, [MarshalAs(UnmanagedType.I1)] bool closed, CAD_CurveCreateOptions[] opt, out uint outId);
+        public static extern int CAD_CreateSpline(CAD_GeVec3[] fitPoints, uint count, [MarshalAs(UnmanagedType.I1)] bool closed, CAD_CreateOptions[] opt, out uint outId);
 
         /// <summary>CAD_CreateSpline — 선택 없이(전부 기본값).</summary>
         public static int CAD_CreateSpline(CAD_GeVec3[] fitPoints, uint count, bool closed, out uint outId)
@@ -170,9 +161,9 @@ namespace LotCAD
             return CAD_CreateSpline(fitPoints, count, closed, null, out outId);
         }
         /// <summary>CAD_CreateSpline — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
-        public static int CAD_CreateSpline(CAD_GeVec3[] fitPoints, uint count, bool closed, CAD_CurveCreateOptions opt, out uint outId)
+        public static int CAD_CreateSpline(CAD_GeVec3[] fitPoints, uint count, bool closed, CAD_CreateOptions opt, out uint outId)
         {
-            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CurveCreateOptions));
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
             return CAD_CreateSpline(fitPoints, count, closed, new[] { opt }, out outId);
         }
 
@@ -216,7 +207,7 @@ namespace LotCAD
         public static extern int CAD_CurveSetFromGeCurve(uint id, ulong curve);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_CreateCurveFromGe(ulong curve, CAD_CurveCreateOptions[] opt, out uint outId);
+        public static extern int CAD_CreateCurveFromGe(ulong curve, CAD_CreateOptions[] opt, out uint outId);
 
         /// <summary>CAD_CreateCurveFromGe — 선택 없이(전부 기본값).</summary>
         public static int CAD_CreateCurveFromGe(ulong curve, out uint outId)
@@ -224,9 +215,9 @@ namespace LotCAD
             return CAD_CreateCurveFromGe(curve, null, out outId);
         }
         /// <summary>CAD_CreateCurveFromGe — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
-        public static int CAD_CreateCurveFromGe(ulong curve, CAD_CurveCreateOptions opt, out uint outId)
+        public static int CAD_CreateCurveFromGe(ulong curve, CAD_CreateOptions opt, out uint outId)
         {
-            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CurveCreateOptions));
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
             return CAD_CreateCurveFromGe(curve, new[] { opt }, out outId);
         }
 

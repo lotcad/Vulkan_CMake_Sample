@@ -18,8 +18,8 @@ int main() {
         std::cerr << "[cpp_api_test] CAD_CreateEngine failed" << std::endl;
         return 1;
     }
-    const uint32_t boxId = CAD_CreateBox(0.0f, 0.0f, 1.0f, 0.5f, 0.5f, 0.5f);
-    if (boxId == 0) {
+    uint32_t boxId = 0;   // 만들기 = 결과 코드 + 새 id(실패면 이유는 CAD_GetLastError)
+    if (CAD_CreateBox(CAD_GeVec3{0.0, 0.0, 1.0}, CAD_GeVec3{0.5, 0.5, 0.5}, nullptr, &boxId) != CAD_OK) {
         std::cerr << "[cpp_api_test] CAD_CreateBox failed" << std::endl;
         CAD_DestroyEngine();
         return 1;

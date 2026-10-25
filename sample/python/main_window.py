@@ -6,6 +6,8 @@
 ⚠️ 엔진 명령 중 **자체 패널·대화상자를 여는 것**(array, dp, section, nav, particle …)은 호스트 창 안에서는
    그 창이 그려지지 않는다. 명령행에서 값을 묻는 명령(3a, dim …)이나 C API 를 쓴다.
 """
+import ctypes
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMessageBox, QVBoxLayout, QWidget
@@ -179,9 +181,11 @@ class MainWindow(QMainWindow):
             if not cuts:
                 log("차집합: 취소")
             else:
-                # 목록을 그대로 넘긴다 — 바인딩이 uint32 배열로 바꿔 준다. False, False = 원본 삭제, 기준을 한 덩어리로
-                made = lotcad.CAD_BooleanSubtract(base, len(base), cuts, len(cuts), False, False, None, 0)
-                log(f"차집합: 기준 {len(base)}개에서 {len(cuts)}개를 뺌" if made
+                # 목록을 그대로 넘긴다 — 바인딩이 uint32 배열로 바꿔 준다. False, False = 원본 삭제, 기준을 한 덩어리로.
+                # 결과 id 칸을 꼭 준다(None 이면 개수만 묻는 것이라 해 본 뒤 되돌린다). 반환 음수 = 이유 코드
+                out = lotcad.buffer(ctypes.c_uint32, 1)
+                made = lotcad.CAD_BooleanSubtract(base, len(base), cuts, len(cuts), False, False, out, 1)
+                log(f"차집합: 기준 {len(base)}개에서 {len(cuts)}개를 뺌" if made > 0
                     else f"차집합 실패: {lotcad.CAD_GetLastError()}")
             self._subtract_base = []
         self.ribbon.refresh()

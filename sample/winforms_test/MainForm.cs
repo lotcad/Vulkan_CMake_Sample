@@ -125,7 +125,7 @@ namespace LotCadWinForms
                 Padding = new Padding(8, 7, 8, 0),
             };
             bar.Controls.Add(GroupLabel("그리기"));
-            bar.Controls.Add(ToolButton("큐브", (s, e) => CadApi.CAD_CreateBox(0, 0, 0, 1, 1, 1), accent: true));
+            bar.Controls.Add(ToolButton("큐브", (s, e) => CadApi.CAD_CreateBox(new CadApi.GeVec3(0, 0, 0), new CadApi.GeVec3(1, 1, 1), IntPtr.Zero, out _), accent: true));
             bar.Controls.Add(ToolButton("선", (s, e) => CadApi.CAD_RequestStartLineSketch()));
             bar.Controls.Add(ToolButton("사각형", (s, e) => CadApi.CAD_RequestStartRectangleSketch()));
             bar.Controls.Add(ToolButton("원", (s, e) => CadApi.CAD_RequestStartCircleSketch()));

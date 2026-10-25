@@ -3,6 +3,15 @@
 //           CAD_Get/SetParticleSettingsJson · CAD_GetParticleLiveCount
 #include "demo_internal.h"
 
+// 만들기 줄임 — 새 C API(CAD_GeVec3 + 결과 코드 + outId)를 옛 꼴(숫자들 → id, 실패 0)로
+namespace {
+    uint32_t mkBox(double x, double y, double z, double sx, double sy, double sz) {
+        uint32_t id = 0;
+        CAD_CreateBox(CAD_GeVec3{x, y, z}, CAD_GeVec3{sx, sy, sz}, nullptr, &id);
+        return id;
+    }
+}
+
 namespace demo {
 namespace {
 
@@ -29,7 +38,7 @@ public:
             presetPaths_.push_back(readString([i](char* o, int c) { return CAD_GetParticlePresetPath(i, o, c); }));
         }
         // 바닥 판 — 크기 가늠용
-        CAD_CreateBox(0, 0, -0.05f, 3.0f, 3.0f, 0.1f);
+        mkBox(0, 0, -0.05f, 3.0f, 3.0f, 0.1f);
         preset_ = 0;
         playing_ = true;
         createEmitter();

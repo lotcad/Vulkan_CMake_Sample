@@ -14,33 +14,28 @@ extern "C" {
  * 길이 0·반지름 0 = CAD_E_DEGENERATE, 한 줄 위 세 점(호) = CAD_E_PARALLEL, 점이 모자람·NaN = CAD_E_INVALID_ARG.
  * 법선 (0,0,0) = +Z. 만들기 한 번 = 되돌리기 1단계. 엔진 스레드에서만(아니면 CAD_E_WRONG_THREAD). */
 
-/* 만들기 선택 — NULL = 전부 기본. 맨 앞 size = sizeof(CAD_CurveCreateOptions), 새 칸은 끝에만 붙는다.
- * 곡선 만들기(CAD_CreateLine …)와 CAD_CreateCurveFromGe 가 같이 쓴다 */
-typedef struct CAD_CurveCreateOptions {
-    uint32_t size;
-    uint32_t propsFrom;   /* 이 객체의 도면층·색·선종류·불투명도를 이어받음(0 = 지금 도면층·기본 색, 없는 id = CAD_E_BAD_HANDLE) */
-} CAD_CurveCreateOptions;
+/* 만들기 선택 CAD_CreateOptions(도면층·색 이어받기)는 lotcad_types.h — 모든 만들기 함수가 같이 쓴다 */
 
-CAD_API CAD_Status CAD_CreateLine(CAD_GeVec3 start, CAD_GeVec3 end, const CAD_CurveCreateOptions* opt, uint32_t* outId);
+CAD_API CAD_Status CAD_CreateLine(CAD_GeVec3 start, CAD_GeVec3 end, const CAD_CreateOptions* opt, uint32_t* outId);
 /* 원 — normal = 원이 놓인 평면의 법선 */
-CAD_API CAD_Status CAD_CreateCircle(CAD_GeVec3 center, double radius, CAD_GeVec3 normal, const CAD_CurveCreateOptions* opt,
+CAD_API CAD_Status CAD_CreateCircle(CAD_GeVec3 center, double radius, CAD_GeVec3 normal, const CAD_CreateOptions* opt,
                                     uint32_t* outId);
 /* 세 점 호 — 시작 → 지나는 점 → 끝 */
-CAD_API CAD_Status CAD_CreateArc(CAD_GeVec3 start, CAD_GeVec3 through, CAD_GeVec3 end, const CAD_CurveCreateOptions* opt,
+CAD_API CAD_Status CAD_CreateArc(CAD_GeVec3 start, CAD_GeVec3 through, CAD_GeVec3 end, const CAD_CreateOptions* opt,
                                  uint32_t* outId);
 /* 정다각형(닫힌 폴리선) — 꼭짓점이 중심에서 radius(외접원), sides = 3..1024, firstVertexDir = 첫 꼭짓점 방향(평면 안, (0,0,0) = 평면의 첫 축) */
 CAD_API CAD_Status CAD_CreatePolygon(CAD_GeVec3 center, double radius, int32_t sides, CAD_GeVec3 normal, CAD_GeVec3 firstVertexDir,
-                                     const CAD_CurveCreateOptions* opt, uint32_t* outId);
+                                     const CAD_CreateOptions* opt, uint32_t* outId);
 /* 사각형(닫힌 폴리선) — 맞모서리 두 점. 두 점이 이루는 축 평면(XY·YZ·XZ)에 놓인다 */
-CAD_API CAD_Status CAD_CreateRectangle(CAD_GeVec3 corner0, CAD_GeVec3 corner2, const CAD_CurveCreateOptions* opt, uint32_t* outId);
+CAD_API CAD_Status CAD_CreateRectangle(CAD_GeVec3 corner0, CAD_GeVec3 corner2, const CAD_CreateOptions* opt, uint32_t* outId);
 /* 폴리선 — 점 count 개(2 이상), closed = 마지막 → 첫 점까지 */
-CAD_API CAD_Status CAD_CreatePolyline(const CAD_GeVec3* points, uint32_t count, bool closed, const CAD_CurveCreateOptions* opt,
+CAD_API CAD_Status CAD_CreatePolyline(const CAD_GeVec3* points, uint32_t count, bool closed, const CAD_CreateOptions* opt,
                                       uint32_t* outId);
 /* 타원 — 중심, 장축 반벡터(중심 → 장축 끝, 길이 = 장반경, 평면 안), 단축비(0 < ratio ≤ 1), 평면 법선 */
 CAD_API CAD_Status CAD_CreateEllipse(CAD_GeVec3 center, CAD_GeVec3 majorAxis, double ratio, CAD_GeVec3 normal,
-                                     const CAD_CurveCreateOptions* opt, uint32_t* outId);
+                                     const CAD_CreateOptions* opt, uint32_t* outId);
 /* 맞춤점을 지나는 스플라인 — 열린 것은 2점, 닫힌(주기) 것은 3점 이상(최대 100000) */
-CAD_API CAD_Status CAD_CreateSpline(const CAD_GeVec3* fitPoints, uint32_t count, bool closed, const CAD_CurveCreateOptions* opt,
+CAD_API CAD_Status CAD_CreateSpline(const CAD_GeVec3* fitPoints, uint32_t count, bool closed, const CAD_CreateOptions* opt,
                                     uint32_t* outId);
 
 /* ── 폴리선 정점 목록 (PEDIT · AcDbPolyline getPointAt/setPointAt) ──
@@ -134,10 +129,9 @@ CAD_API CAD_Status CAD_CurveGetGeCurve(uint32_t id, uint64_t* outCurve);
  * 스플라인 ← NURBS, 폴리선 ← 직선 조각 폴리선. 아니면 CAD_E_WRONG_TYPE. id·도면층·색은 그대로, 되돌리기 1. 잠긴 도면층 = CAD_E_LOCKED */
 CAD_API CAD_Status CAD_CurveSetFromGeCurve(uint32_t id, uint64_t curve);
 
-/* 선택 구조체 CAD_CurveCreateOptions 는 위 「곡선 만들기」 */
 /* 기하 곡선으로 새 객체 — 직선 = 선, 원호 = 원·호, 타원호 = 타원, NURBS = 스플라인, 합성 곡선 = 폴리선
  * (엔진 폴리선은 직선 조각만이라 합성 곡선 안 호·타원·NURBS 조각은 원 분할 규칙으로 꺾은선이 된다). 되돌리기 1 */
-CAD_API CAD_Status CAD_CreateCurveFromGe(uint64_t curve, const CAD_CurveCreateOptions* opt, uint32_t* outId);
+CAD_API CAD_Status CAD_CreateCurveFromGe(uint64_t curve, const CAD_CreateOptions* opt, uint32_t* outId);
 
 /* 매개변수 구간 — getStartParam·getEndParam */
 CAD_API CAD_Status CAD_CurveGetInterval(uint32_t id, double* outStartParam, double* outEndParam);

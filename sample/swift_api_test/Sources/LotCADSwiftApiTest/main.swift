@@ -32,8 +32,8 @@ guard CAD_CreateEngine() else {
     exit(1)
 }
 
-let boxId = CAD_CreateBox(0.0, 0.0, 1.0, 0.5, 0.5, 0.5)
-guard boxId != 0 else {
+var boxId: UInt32 = 0   // 만들기 = 결과 코드(0 = 성공) + 새 id
+guard CAD_CreateBox(CAD_GeVec3(x: 0.0, y: 0.0, z: 1.0), CAD_GeVec3(x: 0.5, y: 0.5, z: 0.5), nil, &boxId) == 0 else {
     fputs("[swift_api_test] CAD_CreateBox failed\n", stderr)
     CAD_DestroyEngine()
     exit(1)

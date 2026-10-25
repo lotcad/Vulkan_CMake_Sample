@@ -35,14 +35,14 @@ CAD_SKETCH_REDUNDANT = 2
 CAD_SKETCH_CONFLICT = 3
 CAD_SKETCH_INVALID = 4
 
-_n.bind("CAD_CreateLine", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
-_n.bind("CAD_CreateCircle", _c.c_int32, [CAD_GeVec3, _c.c_double, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
-_n.bind("CAD_CreateArc", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
-_n.bind("CAD_CreatePolygon", _c.c_int32, [CAD_GeVec3, _c.c_double, _c.c_int32, CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
-_n.bind("CAD_CreateRectangle", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
-_n.bind("CAD_CreatePolyline", _c.c_int32, [_c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_bool, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
-_n.bind("CAD_CreateEllipse", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, _c.c_double, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
-_n.bind("CAD_CreateSpline", _c.c_int32, [_c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_bool, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateLine", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateCircle", _c.c_int32, [CAD_GeVec3, _c.c_double, CAD_GeVec3, _c.POINTER(CAD_CreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateArc", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreatePolygon", _c.c_int32, [CAD_GeVec3, _c.c_double, _c.c_int32, CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateRectangle", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreatePolyline", _c.c_int32, [_c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_bool, _c.POINTER(CAD_CreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateEllipse", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, _c.c_double, CAD_GeVec3, _c.POINTER(CAD_CreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateSpline", _c.c_int32, [_c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_bool, _c.POINTER(CAD_CreateOptions), _c.POINTER(_c.c_uint32)])
 _n.bind("CAD_GetPolylinePoints", _c.c_int32, [_c.c_uint32, _c.POINTER(CAD_GeVec3), _c.c_uint32, _c.POINTER(_c.c_bool)])
 _n.bind("CAD_SetPolylinePoints", _c.c_int32, [_c.c_uint32, _c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_bool])
 _n.bind("CAD_AddSketchConstraint", _c.c_int32, [_c.c_int32, _c.c_uint32, _c.c_int32, _c.c_uint32, _c.c_int32, _c.c_double, _c.POINTER(_c.c_uint32)])
@@ -56,7 +56,7 @@ _n.bind("CAD_GetSketchDiagnosis", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_int3
 _n.bind("CAD_GetLastSketchConflict", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32])
 _n.bind("CAD_CurveGetGeCurve", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_uint64)])
 _n.bind("CAD_CurveSetFromGeCurve", _c.c_int32, [_c.c_uint32, _c.c_uint64])
-_n.bind("CAD_CreateCurveFromGe", _c.c_int32, [_c.c_uint64, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateCurveFromGe", _c.c_int32, [_c.c_uint64, _c.POINTER(CAD_CreateOptions), _c.POINTER(_c.c_uint32)])
 _n.bind("CAD_CurveGetInterval", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_double), _c.POINTER(_c.c_double)])
 _n.bind("CAD_CurveIsClosed", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_bool)])
 _n.bind("CAD_CurveEvaluate", _c.c_int32, [_c.c_uint32, _c.c_double, _c.POINTER(CAD_GeVec3), _c.POINTER(CAD_GeVec3), _c.POINTER(CAD_GeVec3)])
@@ -72,120 +72,122 @@ _n.bind("CAD_CurveReverse", _c.c_int32, [_c.c_uint32])
 _n.bind("CAD_CurveExtendToPoint", _c.c_int32, [_c.c_uint32, _c.c_bool, CAD_GeVec3])
 
 
-def CAD_CreateLine(start: CAD_GeVec3, end: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
-    """C: CAD_Status CAD_CreateLine(CAD_GeVec3 start, CAD_GeVec3 end, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+def CAD_CreateLine(start: CAD_GeVec3, end: CAD_GeVec3, opt: CAD_CreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateLine(CAD_GeVec3 start, CAD_GeVec3 end, const CAD_CreateOptions* opt, uint32_t* outId)
+
+    만들기 선택 CAD_CreateOptions(도면층·색 이어받기)는 lotcad_types.h — 모든 만들기 함수가 같이 쓴다
     """
     if opt is None and fields:
-        opt = CAD_CurveCreateOptions(**fields)
+        opt = CAD_CreateOptions(**fields)
     if opt is not None and not opt.size:
-        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+        opt.size = _c.sizeof(CAD_CreateOptions)
     _p_opt = _c.byref(opt) if opt is not None else None
     outId = _c.c_uint32()
     _r = _f.CAD_CreateLine(start, end, _p_opt, _c.byref(outId))
     return (_r, outId.value)
 
 
-def CAD_CreateCircle(center: CAD_GeVec3, radius: float, normal: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
-    """C: CAD_Status CAD_CreateCircle(CAD_GeVec3 center, double radius, CAD_GeVec3 normal, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+def CAD_CreateCircle(center: CAD_GeVec3, radius: float, normal: CAD_GeVec3, opt: CAD_CreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateCircle(CAD_GeVec3 center, double radius, CAD_GeVec3 normal, const CAD_CreateOptions* opt, uint32_t* outId)
 
     원 — normal = 원이 놓인 평면의 법선
     """
     if opt is None and fields:
-        opt = CAD_CurveCreateOptions(**fields)
+        opt = CAD_CreateOptions(**fields)
     if opt is not None and not opt.size:
-        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+        opt.size = _c.sizeof(CAD_CreateOptions)
     _p_opt = _c.byref(opt) if opt is not None else None
     outId = _c.c_uint32()
     _r = _f.CAD_CreateCircle(center, radius, normal, _p_opt, _c.byref(outId))
     return (_r, outId.value)
 
 
-def CAD_CreateArc(start: CAD_GeVec3, through: CAD_GeVec3, end: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
-    """C: CAD_Status CAD_CreateArc(CAD_GeVec3 start, CAD_GeVec3 through, CAD_GeVec3 end, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+def CAD_CreateArc(start: CAD_GeVec3, through: CAD_GeVec3, end: CAD_GeVec3, opt: CAD_CreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateArc(CAD_GeVec3 start, CAD_GeVec3 through, CAD_GeVec3 end, const CAD_CreateOptions* opt, uint32_t* outId)
 
     세 점 호 — 시작 → 지나는 점 → 끝
     """
     if opt is None and fields:
-        opt = CAD_CurveCreateOptions(**fields)
+        opt = CAD_CreateOptions(**fields)
     if opt is not None and not opt.size:
-        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+        opt.size = _c.sizeof(CAD_CreateOptions)
     _p_opt = _c.byref(opt) if opt is not None else None
     outId = _c.c_uint32()
     _r = _f.CAD_CreateArc(start, through, end, _p_opt, _c.byref(outId))
     return (_r, outId.value)
 
 
-def CAD_CreatePolygon(center: CAD_GeVec3, radius: float, sides: int, normal: CAD_GeVec3, firstVertexDir: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
-    """C: CAD_Status CAD_CreatePolygon(CAD_GeVec3 center, double radius, int32_t sides, CAD_GeVec3 normal, CAD_GeVec3 firstVertexDir, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+def CAD_CreatePolygon(center: CAD_GeVec3, radius: float, sides: int, normal: CAD_GeVec3, firstVertexDir: CAD_GeVec3, opt: CAD_CreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreatePolygon(CAD_GeVec3 center, double radius, int32_t sides, CAD_GeVec3 normal, CAD_GeVec3 firstVertexDir, const CAD_CreateOptions* opt, uint32_t* outId)
 
     정다각형(닫힌 폴리선) — 꼭짓점이 중심에서 radius(외접원), sides = 3..1024, firstVertexDir = 첫 꼭짓점 방향(평면 안, (0,0,0) = 평면의 첫 축)
     """
     if opt is None and fields:
-        opt = CAD_CurveCreateOptions(**fields)
+        opt = CAD_CreateOptions(**fields)
     if opt is not None and not opt.size:
-        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+        opt.size = _c.sizeof(CAD_CreateOptions)
     _p_opt = _c.byref(opt) if opt is not None else None
     outId = _c.c_uint32()
     _r = _f.CAD_CreatePolygon(center, radius, sides, normal, firstVertexDir, _p_opt, _c.byref(outId))
     return (_r, outId.value)
 
 
-def CAD_CreateRectangle(corner0: CAD_GeVec3, corner2: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
-    """C: CAD_Status CAD_CreateRectangle(CAD_GeVec3 corner0, CAD_GeVec3 corner2, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+def CAD_CreateRectangle(corner0: CAD_GeVec3, corner2: CAD_GeVec3, opt: CAD_CreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateRectangle(CAD_GeVec3 corner0, CAD_GeVec3 corner2, const CAD_CreateOptions* opt, uint32_t* outId)
 
     사각형(닫힌 폴리선) — 맞모서리 두 점. 두 점이 이루는 축 평면(XY·YZ·XZ)에 놓인다
     """
     if opt is None and fields:
-        opt = CAD_CurveCreateOptions(**fields)
+        opt = CAD_CreateOptions(**fields)
     if opt is not None and not opt.size:
-        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+        opt.size = _c.sizeof(CAD_CreateOptions)
     _p_opt = _c.byref(opt) if opt is not None else None
     outId = _c.c_uint32()
     _r = _f.CAD_CreateRectangle(corner0, corner2, _p_opt, _c.byref(outId))
     return (_r, outId.value)
 
 
-def CAD_CreatePolyline(points: Sequence | None, count: int, closed: bool, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
-    """C: CAD_Status CAD_CreatePolyline(const CAD_GeVec3* points, uint32_t count, bool closed, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+def CAD_CreatePolyline(points: Sequence | None, count: int, closed: bool, opt: CAD_CreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreatePolyline(const CAD_GeVec3* points, uint32_t count, bool closed, const CAD_CreateOptions* opt, uint32_t* outId)
 
     폴리선 — 점 count 개(2 이상), closed = 마지막 → 첫 점까지
     """
     _a_points = _n.array(CAD_GeVec3, points)
     if opt is None and fields:
-        opt = CAD_CurveCreateOptions(**fields)
+        opt = CAD_CreateOptions(**fields)
     if opt is not None and not opt.size:
-        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+        opt.size = _c.sizeof(CAD_CreateOptions)
     _p_opt = _c.byref(opt) if opt is not None else None
     outId = _c.c_uint32()
     _r = _f.CAD_CreatePolyline(_a_points, count, closed, _p_opt, _c.byref(outId))
     return (_r, outId.value)
 
 
-def CAD_CreateEllipse(center: CAD_GeVec3, majorAxis: CAD_GeVec3, ratio: float, normal: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
-    """C: CAD_Status CAD_CreateEllipse(CAD_GeVec3 center, CAD_GeVec3 majorAxis, double ratio, CAD_GeVec3 normal, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+def CAD_CreateEllipse(center: CAD_GeVec3, majorAxis: CAD_GeVec3, ratio: float, normal: CAD_GeVec3, opt: CAD_CreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateEllipse(CAD_GeVec3 center, CAD_GeVec3 majorAxis, double ratio, CAD_GeVec3 normal, const CAD_CreateOptions* opt, uint32_t* outId)
 
     타원 — 중심, 장축 반벡터(중심 → 장축 끝, 길이 = 장반경, 평면 안), 단축비(0 < ratio ≤ 1), 평면 법선
     """
     if opt is None and fields:
-        opt = CAD_CurveCreateOptions(**fields)
+        opt = CAD_CreateOptions(**fields)
     if opt is not None and not opt.size:
-        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+        opt.size = _c.sizeof(CAD_CreateOptions)
     _p_opt = _c.byref(opt) if opt is not None else None
     outId = _c.c_uint32()
     _r = _f.CAD_CreateEllipse(center, majorAxis, ratio, normal, _p_opt, _c.byref(outId))
     return (_r, outId.value)
 
 
-def CAD_CreateSpline(fitPoints: Sequence | None, count: int, closed: bool, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
-    """C: CAD_Status CAD_CreateSpline(const CAD_GeVec3* fitPoints, uint32_t count, bool closed, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+def CAD_CreateSpline(fitPoints: Sequence | None, count: int, closed: bool, opt: CAD_CreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateSpline(const CAD_GeVec3* fitPoints, uint32_t count, bool closed, const CAD_CreateOptions* opt, uint32_t* outId)
 
     맞춤점을 지나는 스플라인 — 열린 것은 2점, 닫힌(주기) 것은 3점 이상(최대 100000)
     """
     _a_fitPoints = _n.array(CAD_GeVec3, fitPoints)
     if opt is None and fields:
-        opt = CAD_CurveCreateOptions(**fields)
+        opt = CAD_CreateOptions(**fields)
     if opt is not None and not opt.size:
-        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+        opt.size = _c.sizeof(CAD_CreateOptions)
     _p_opt = _c.byref(opt) if opt is not None else None
     outId = _c.c_uint32()
     _r = _f.CAD_CreateSpline(_a_fitPoints, count, closed, _p_opt, _c.byref(outId))
@@ -334,16 +336,16 @@ def CAD_CurveSetFromGeCurve(id: int, curve: int) -> int:
     return _f.CAD_CurveSetFromGeCurve(id, curve)
 
 
-def CAD_CreateCurveFromGe(curve: int, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
-    """C: CAD_Status CAD_CreateCurveFromGe(uint64_t curve, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+def CAD_CreateCurveFromGe(curve: int, opt: CAD_CreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateCurveFromGe(uint64_t curve, const CAD_CreateOptions* opt, uint32_t* outId)
 
     기하 곡선으로 새 객체 — 직선 = 선, 원호 = 원·호, 타원호 = 타원, NURBS = 스플라인, 합성 곡선 = 폴리선
     (엔진 폴리선은 직선 조각만이라 합성 곡선 안 호·타원·NURBS 조각은 원 분할 규칙으로 꺾은선이 된다). 되돌리기 1
     """
     if opt is None and fields:
-        opt = CAD_CurveCreateOptions(**fields)
+        opt = CAD_CreateOptions(**fields)
     if opt is not None and not opt.size:
-        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+        opt.size = _c.sizeof(CAD_CreateOptions)
     _p_opt = _c.byref(opt) if opt is not None else None
     outId = _c.c_uint32()
     _r = _f.CAD_CreateCurveFromGe(curve, _p_opt, _c.byref(outId))

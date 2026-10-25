@@ -47,6 +47,13 @@ enum {
     CAD_E_CONFLICT          = -21    /* 조건끼리 부딪쳐 풀 수 없음(스케치 제약 …) — 아무것도 안 바뀜, 부딪친 것은 함수 설명의 읽기 함수로 */
 };
 
+/* 만들기 선택 — 객체를 만드는 함수(CAD_CreateLine·CAD_CreateBox·CAD_CreateMesh·CAD_Loft …)가 다 같이 쓴다. NULL = 전부 기본.
+ * 맨 앞 size = sizeof(CAD_CreateOptions), 새 칸은 끝에만 붙는다 */
+typedef struct CAD_CreateOptions {
+    uint32_t size;
+    uint32_t propsFrom;   /* 이 객체의 도면층·색·선종류·불투명도를 이어받음(0 = 지금 도면층·기본 색, 없는 id = CAD_E_BAD_HANDLE) */
+} CAD_CreateOptions;
+
 /* 색 — r, g, b 는 0..1(1 = 가장 밝음) */
 typedef struct CAD_Color { double r, g, b; } CAD_Color;
 

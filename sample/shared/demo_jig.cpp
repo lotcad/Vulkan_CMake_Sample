@@ -3,6 +3,25 @@
 //           CAD_JigBeginVariants · CAD_JigNextVariant (Tab 처럼 형상 바꾸기)
 #include "demo_internal.h"
 
+// 만들기 줄임 — 새 C API(CAD_GeVec3 + 결과 코드 + outId)를 옛 꼴(숫자들 → id, 실패 0)로
+namespace {
+    uint32_t mkBox(double x, double y, double z, double sx, double sy, double sz) {
+        uint32_t id = 0;
+        CAD_CreateBox(CAD_GeVec3{x, y, z}, CAD_GeVec3{sx, sy, sz}, nullptr, &id);
+        return id;
+    }
+    uint32_t mkCylinder(double x, double y, double z, double r, double h) {
+        uint32_t id = 0;
+        CAD_CreateCylinder(CAD_GeVec3{x, y, z}, r, h, nullptr, &id);
+        return id;
+    }
+    uint32_t mkSphere(double x, double y, double z, double r) {
+        uint32_t id = 0;
+        CAD_CreateSphere(CAD_GeVec3{x, y, z}, r, nullptr, &id);
+        return id;
+    }
+}
+
 namespace demo {
 namespace {
 
@@ -13,9 +32,9 @@ public:
     const char* summary() const override { return "상자를 끌어 옮기기·돌리기·키우기·복사, 끄는 중에 형상 바꾸기(변형 Jig)"; }
 
     void setup() override {
-        CAD_CreateBox(0, 0, -0.05f, 8.0f, 8.0f, 0.1f);   // 바닥
+        mkBox(0, 0, -0.05f, 8.0f, 8.0f, 0.1f);   // 바닥
         const float xs[3] = {-2.0f, 0.0f, 2.0f};
-        for (int i = 0; i < 3; ++i) boxes_[i] = CAD_CreateBox(xs[i], 0, 0.5f, 1.0f, 1.0f, 1.0f);
+        for (int i = 0; i < 3; ++i) boxes_[i] = mkBox(xs[i], 0, 0.5f, 1.0f, 1.0f, 1.0f);
         target_ = 0;
         mode_ = 0;
         x_ = 0; y_ = 0;
@@ -88,9 +107,9 @@ private:
 
     void beginVariants() {
         const uint32_t ids[3] = {
-            CAD_CreateBox(0, -2.5f, 0.5f, 1.0f, 1.0f, 1.0f),
-            CAD_CreateCylinder(0, -2.5f, 0, 0.5f, 1.0f),
-            CAD_CreateSphere(0, -2.5f, 0, 0.5f),
+            mkBox(0, -2.5f, 0.5f, 1.0f, 1.0f, 1.0f),
+            mkCylinder(0, -2.5f, 0, 0.5f, 1.0f),
+            mkSphere(0, -2.5f, 0, 0.5f),
         };
         CAD_ClearSelection();
         if (!CAD_JigBeginVariants(0, ids, 3, 0, -2.5f, 0)) { lastState_ = "시작 실패: " + lastError(); return; }

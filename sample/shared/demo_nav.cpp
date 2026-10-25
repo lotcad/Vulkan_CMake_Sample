@@ -3,6 +3,20 @@
 //           CAD_NavStart · CAD_NavStop · CAD_NavReset · CAD_NavGetStateJson
 #include "demo_internal.h"
 
+// 만들기 줄임 — 새 C API(CAD_GeVec3 + 결과 코드 + outId)를 옛 꼴(숫자들 → id, 실패 0)로
+namespace {
+    uint32_t mkBox(double x, double y, double z, double sx, double sy, double sz) {
+        uint32_t id = 0;
+        CAD_CreateBox(CAD_GeVec3{x, y, z}, CAD_GeVec3{sx, sy, sz}, nullptr, &id);
+        return id;
+    }
+    uint32_t mkCylinder(double x, double y, double z, double r, double h) {
+        uint32_t id = 0;
+        CAD_CreateCylinder(CAD_GeVec3{x, y, z}, r, h, nullptr, &id);
+        return id;
+    }
+}
+
 namespace demo {
 namespace {
 
@@ -15,12 +29,12 @@ public:
     void setup() override {
         uint32_t walls[4];
         CAD_CreateRoom(0, 0, 0, 12, 9, 1.2f, 0.2f, walls);
-        CAD_CreateBox(0, 0, -0.05f, 12.4f, 9.4f, 0.1f);           // 바닥
+        mkBox(0, 0, -0.05f, 12.4f, 9.4f, 0.1f);           // 바닥
         // 장애물 — 가운데를 막아 돌아가게
-        CAD_CreateBox(-1.0f, 0.5f, 0.5f, 0.8f, 5.5f, 1.0f);
-        CAD_CreateBox(2.5f, -1.5f, 0.5f, 3.0f, 0.8f, 1.0f);
-        CAD_CreateCylinder(3.0f, 2.2f, 0, 0.7f, 1.0f);
-        body_ = CAD_CreateCylinder(-4.5f, -3.0f, 0, 0.3f, 0.8f);  // 달리는 대상
+        mkBox(-1.0f, 0.5f, 0.5f, 0.8f, 5.5f, 1.0f);
+        mkBox(2.5f, -1.5f, 0.5f, 3.0f, 0.8f, 1.0f);
+        mkCylinder(3.0f, 2.2f, 0, 0.7f, 1.0f);
+        body_ = mkCylinder(-4.5f, -3.0f, 0, 0.3f, 0.8f);  // 달리는 대상
         CAD_ClearSelection();
         gx_ = 4.5f; gy_ = 3.0f;
         speed_ = 2.0f; rays_ = true; grid_ = false;

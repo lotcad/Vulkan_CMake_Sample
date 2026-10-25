@@ -31,8 +31,8 @@ void CLotCADMFCDlg::BuildStatusBar()
 	CCadStatusBar& s = m_statusBar;
 
 	s.AddToggle(L"치수",
-		[] { return CAD_GetFeatureDimensionsVisible(); },
-		[] { CAD_SetFeatureDimensionsVisible(!CAD_GetFeatureDimensionsVisible()); },
+		[] { bool v = false; CAD_GetFeatureDimensionsVisible(&v); return v; },
+		[] { bool v = false; CAD_GetFeatureDimensionsVisible(&v); CAD_SetFeatureDimensionsVisible(!v); },
 		L"선택한 솔리드의 피처 치수 표시 (fdim)\n치수를 더블클릭하면 명령행이 새 값을 기다린다");
 
 	s.AddToggle(L"그리드",

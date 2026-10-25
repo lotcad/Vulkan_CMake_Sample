@@ -34,7 +34,8 @@ public:
         uint32_t sketch = 0;
         CAD_CreateRectangle(CAD_GeVec3{0, 0, 0}, CAD_GeVec3{kPlateW, kPlateD, 0}, nullptr, &sketch);
         if (!sketch) return fail("판 스케치(사각형)를 만들지 못했습니다");
-        const uint32_t plate = CAD_CreateExtrude(sketch, kPlateH);
+        uint32_t plate = 0;
+        CAD_CreateExtrude(sketch, kPlateH, nullptr, &plate);
         if (!plate) return fail("판 돌출에 실패했습니다");
 
         // ── 모서리 구멍 Ø10 ×4 (관통) ──

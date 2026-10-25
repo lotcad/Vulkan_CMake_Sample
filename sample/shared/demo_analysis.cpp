@@ -11,6 +11,25 @@
 //   - 상태는 0.25초마다 {"op":"status"} 로 읽는다(켜짐·단계·풀이 끝은 엔진이 프레임마다 바꾼다).
 #include "demo_internal.h"
 
+// 만들기 줄임 — 새 C API(CAD_GeVec3 + 결과 코드 + outId)를 옛 꼴(숫자들 → id, 실패 0)로
+namespace {
+    uint32_t mkBox(double x, double y, double z, double sx, double sy, double sz) {
+        uint32_t id = 0;
+        CAD_CreateBox(CAD_GeVec3{x, y, z}, CAD_GeVec3{sx, sy, sz}, nullptr, &id);
+        return id;
+    }
+    uint32_t mkCylinder(double x, double y, double z, double r, double h) {
+        uint32_t id = 0;
+        CAD_CreateCylinder(CAD_GeVec3{x, y, z}, r, h, nullptr, &id);
+        return id;
+    }
+    uint32_t mkSphere(double x, double y, double z, double r) {
+        uint32_t id = 0;
+        CAD_CreateSphere(CAD_GeVec3{x, y, z}, r, nullptr, &id);
+        return id;
+    }
+}
+
 namespace demo {
 namespace {
 
@@ -163,9 +182,9 @@ protected:
 
 private:
     void makeBody() {
-        replaceExample(shape_ == 0 ? CAD_CreateCylinder(0, 0, 0, 0.3f, 1.0f)
-                     : shape_ == 1 ? CAD_CreateBox(0, 0, 0.3f, 0.6f, 0.6f, 0.6f)
-                                   : CAD_CreateSphere(0, 0, 0.35f, 0.35f));
+        replaceExample(shape_ == 0 ? mkCylinder(0, 0, 0, 0.3f, 1.0f)
+                     : shape_ == 1 ? mkBox(0, 0, 0.3f, 0.6f, 0.6f, 0.6f)
+                                   : mkSphere(0, 0, 0.35f, 0.35f));
     }
     void viewPlane() {
         static const char* p[] = {"x", "y", "z"};
@@ -232,7 +251,7 @@ protected:
     }
 
 private:
-    void makeContainer() { replaceExample(CAD_CreateBox(0, 0, 0.4f, 1.2f, 0.6f, 0.8f)); }
+    void makeContainer() { replaceExample(mkBox(0, 0, 0.4f, 1.2f, 0.6f, 0.8f)); }
     void tilt() {
         if (active()) call(fmt("{\"op\":\"tilt\",\"x\":%.2f,\"y\":%.2f}", tiltX_, tiltY_));
     }
@@ -394,7 +413,7 @@ private:
         return out.empty() ? "없음" : out;
     }
 
-    void makeBeam() { replaceExample(CAD_CreateBox(1.5f, 0, 0.2f, 3.0f, 0.4f, 0.4f)); }
+    void makeBeam() { replaceExample(mkBox(1.5f, 0, 0.2f, 3.0f, 0.4f, 0.4f)); }
 
     // 예제 — 법선이 -X 인 면 고정, +X 인 면에 아래로 5 kN. (리눅스 기준값: 최대 응력 ≈ 1.99 MPa · 변위 ≈ 0.101 mm · 안전율 ≈ 138)
     void cantileverExample() {

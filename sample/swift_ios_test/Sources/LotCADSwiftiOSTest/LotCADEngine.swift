@@ -100,7 +100,8 @@ final class LotCADEngine {
     @discardableResult
     func createBox(center: CADPoint, scale: CADPoint) -> UInt32 {
         guard isCreated else { return 0 }
-        let id = CAD_CreateBox(center.x, center.y, center.z, scale.x, scale.y, scale.z)
+        var id: UInt32 = 0
+        _ = CAD_CreateBox(center.ge, scale.ge, nil, &id)
         trackDemoObject(id)
         return id
     }
@@ -171,7 +172,8 @@ final class LotCADEngine {
     @discardableResult
     func createExtrude(sourceId: UInt32, height: Float) -> UInt32 {
         guard isCreated else { return 0 }
-        let id = CAD_CreateExtrude(sourceId, height)
+        var id: UInt32 = 0
+        _ = CAD_CreateExtrude(sourceId, Double(height), nil, &id)
         trackDemoObject(id)
         return id
     }

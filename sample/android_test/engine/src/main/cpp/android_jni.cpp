@@ -140,7 +140,7 @@ JNI(void, nativeScroll)(JNIEnv*, jobject, jfloat x, jfloat y, jfloat dy) {
 
 // ── 툴바 명령 ──
 JNI(void, nativeAddCube)(JNIEnv*, jobject)      { CAD_RequestAddCube(); }
-JNI(void, nativeCreateBox)(JNIEnv*, jobject)    { CAD_CreateBox(0, 0, 0, 1, 1, 1); }
+JNI(void, nativeCreateBox)(JNIEnv*, jobject)    { uint32_t id = 0; CAD_CreateBox(CAD_GeVec3{0, 0, 0}, CAD_GeVec3{1, 1, 1}, nullptr, &id); }
 JNI(void, nativeSelectAll)(JNIEnv*, jobject)    { CAD_RequestSelectAll(); }
 JNI(void, nativeDeleteSelected)(JNIEnv*, jobject){ CAD_RequestDeleteSelected(); }
 JNI(void, nativeClearAll)(JNIEnv*, jobject)     { CAD_RequestClearAll(); }

@@ -144,7 +144,8 @@ final class LotCADEngine {
     @discardableResult
     func createBox(center: CADPoint, scale: CADPoint) -> UInt32 {
         guard isCreated else { return 0 }
-        let id = CAD_CreateBox(center.x, center.y, center.z, scale.x, scale.y, scale.z)
+        var id: UInt32 = 0
+        _ = CAD_CreateBox(center.ge, scale.ge, nil, &id)
         trackDemoObject(id)
         return id
     }
@@ -215,7 +216,8 @@ final class LotCADEngine {
     @discardableResult
     func createExtrude(sourceId: UInt32, height: Float) -> UInt32 {
         guard isCreated else { return 0 }
-        let id = CAD_CreateExtrude(sourceId, height)
+        var id: UInt32 = 0
+        _ = CAD_CreateExtrude(sourceId, Double(height), nil, &id)
         trackDemoObject(id)
         return id
     }
@@ -273,12 +275,43 @@ final class LotCADEngine {
     var selectedCount: Int { isCreated ? Int(CAD_GetSelectedCount()) : 0 }
 
     // ── 솔리드 편집 (인자만으로 결정되는 것들 — 클릭이 필요한 도구는 execute 로) ──
-    func booleanUnion()        { guard isCreated else { return }; CAD_BooleanUnion(false) }
-    func booleanIntersection() { guard isCreated else { return }; CAD_BooleanIntersection(false) }
-    func loft()                { guard isCreated else { return }; _ = CAD_Loft() }
-    func shell(thickness: Float = 0) { guard isCreated else { return }; _ = CAD_Shell(thickness) }
-    func edgeFillet(distance: Float = 0)  { guard isCreated else { return }; _ = CAD_EdgeFillet(distance) }
-    func edgeChamfer(distance: Float = 0) { guard isCreated else { return }; _ = CAD_EdgeChamfer(distance) }
+    // C API 는 대상 id 를 받는다 — 화면에서 고른 것을 모아 넘긴다(로프트는 고른 차례가 아니라 id 순)
+    private var selectedIds: [UInt32] {
+        (0..<CAD_GetSelectedCount()).compactMap { i -> UInt32? in
+            var id: UInt32 = 0
+            return CAD_GetSelectedObjectId(i, &id) && id != 0 ? id : nil
+        }
+    }
+    func booleanUnion() {
+        guard isCreated else { return }
+        let ids = selectedIds; var made: UInt32 = 0
+        _ = CAD_BooleanUnion(ids, UInt32(ids.count), false, &made)
+    }
+    func booleanIntersection() {
+        guard isCreated else { return }
+        let ids = selectedIds; var made: UInt32 = 0
+        _ = CAD_BooleanIntersection(ids, UInt32(ids.count), false, &made)
+    }
+    func loft() {
+        guard isCreated else { return }
+        let ids = selectedIds; var made: UInt32 = 0
+        _ = CAD_Loft(ids, UInt32(ids.count), nil, &made)
+    }
+    func shell(thickness: Float = 0) {
+        guard isCreated else { return }
+        let ids = selectedIds; var made = [UInt32](repeating: 0, count: max(ids.count, 1))
+        _ = CAD_Shell(ids, UInt32(ids.count), Double(thickness), &made, UInt32(made.count))
+    }
+    func edgeFillet(distance: Float = 0) {
+        guard isCreated else { return }
+        let ids = selectedIds; var made = [UInt32](repeating: 0, count: max(ids.count, 1))
+        _ = CAD_EdgeFillet(ids, UInt32(ids.count), Double(distance), &made, UInt32(made.count))
+    }
+    func edgeChamfer(distance: Float = 0) {
+        guard isCreated else { return }
+        let ids = selectedIds; var made = [UInt32](repeating: 0, count: max(ids.count, 1))
+        _ = CAD_EdgeChamfer(ids, UInt32(ids.count), Double(distance), &made, UInt32(made.count))
+    }
     func explode(keepOriginal: Bool = false) { guard isCreated else { return }; _ = CAD_Explode(keepOriginal) }
 
     // ── 뷰 ──

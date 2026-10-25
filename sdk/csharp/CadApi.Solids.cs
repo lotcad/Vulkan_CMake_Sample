@@ -81,18 +81,190 @@ namespace LotCAD
         public const int CAD_MAX_BREP_PROFILE_POINTS = 2048;
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CreateBox(float x, float y, float z, float sx, float sy, float sz);
+        public static extern int CAD_CreateBox(CAD_GeVec3 center, CAD_GeVec3 size, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_CreateBox — 선택 없이(전부 기본값).</summary>
+        public static int CAD_CreateBox(CAD_GeVec3 center, CAD_GeVec3 size, out uint outId)
+        {
+            return CAD_CreateBox(center, size, null, out outId);
+        }
+        /// <summary>CAD_CreateBox — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_CreateBox(CAD_GeVec3 center, CAD_GeVec3 size, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_CreateBox(center, size, new[] { opt }, out outId);
+        }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_PushPullSelectedFace(float distance);
+        public static extern int CAD_CreateWedge(CAD_GeVec3 @base, CAD_GeVec3 size, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_CreateWedge — 선택 없이(전부 기본값).</summary>
+        public static int CAD_CreateWedge(CAD_GeVec3 @base, CAD_GeVec3 size, out uint outId)
+        {
+            return CAD_CreateWedge(@base, size, null, out outId);
+        }
+        /// <summary>CAD_CreateWedge — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_CreateWedge(CAD_GeVec3 @base, CAD_GeVec3 size, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_CreateWedge(@base, size, new[] { opt }, out outId);
+        }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_InsetSelectedFace(float distance);
+        public static extern int CAD_CreatePyramid(CAD_GeVec3 @base, double radius, double height, int sides, double topRadius, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_CreatePyramid — 선택 없이(전부 기본값).</summary>
+        public static int CAD_CreatePyramid(CAD_GeVec3 @base, double radius, double height, int sides, double topRadius, out uint outId)
+        {
+            return CAD_CreatePyramid(@base, radius, height, sides, topRadius, null, out outId);
+        }
+        /// <summary>CAD_CreatePyramid — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_CreatePyramid(CAD_GeVec3 @base, double radius, double height, int sides, double topRadius, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_CreatePyramid(@base, radius, height, sides, topRadius, new[] { opt }, out outId);
+        }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CreateExtrude(uint sourceId, float height);
+        public static extern int CAD_CreateSphere(CAD_GeVec3 @base, double radius, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_CreateSphere — 선택 없이(전부 기본값).</summary>
+        public static int CAD_CreateSphere(CAD_GeVec3 @base, double radius, out uint outId)
+        {
+            return CAD_CreateSphere(@base, radius, null, out outId);
+        }
+        /// <summary>CAD_CreateSphere — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_CreateSphere(CAD_GeVec3 @base, double radius, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_CreateSphere(@base, radius, new[] { opt }, out outId);
+        }
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_CreateCylinder(CAD_GeVec3 @base, double radius, double height, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_CreateCylinder — 선택 없이(전부 기본값).</summary>
+        public static int CAD_CreateCylinder(CAD_GeVec3 @base, double radius, double height, out uint outId)
+        {
+            return CAD_CreateCylinder(@base, radius, height, null, out outId);
+        }
+        /// <summary>CAD_CreateCylinder — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_CreateCylinder(CAD_GeVec3 @base, double radius, double height, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_CreateCylinder(@base, radius, height, new[] { opt }, out outId);
+        }
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_CreateCone(CAD_GeVec3 @base, double radius, double height, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_CreateCone — 선택 없이(전부 기본값).</summary>
+        public static int CAD_CreateCone(CAD_GeVec3 @base, double radius, double height, out uint outId)
+        {
+            return CAD_CreateCone(@base, radius, height, null, out outId);
+        }
+        /// <summary>CAD_CreateCone — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_CreateCone(CAD_GeVec3 @base, double radius, double height, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_CreateCone(@base, radius, height, new[] { opt }, out outId);
+        }
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_CreateTorus(CAD_GeVec3 @base, double majorRadius, double minorRadius, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_CreateTorus — 선택 없이(전부 기본값).</summary>
+        public static int CAD_CreateTorus(CAD_GeVec3 @base, double majorRadius, double minorRadius, out uint outId)
+        {
+            return CAD_CreateTorus(@base, majorRadius, minorRadius, null, out outId);
+        }
+        /// <summary>CAD_CreateTorus — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_CreateTorus(CAD_GeVec3 @base, double majorRadius, double minorRadius, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_CreateTorus(@base, majorRadius, minorRadius, new[] { opt }, out outId);
+        }
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_CreateTube(CAD_GeVec3 @base, double outerRadius, double innerRadius, double height, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_CreateTube — 선택 없이(전부 기본값).</summary>
+        public static int CAD_CreateTube(CAD_GeVec3 @base, double outerRadius, double innerRadius, double height, out uint outId)
+        {
+            return CAD_CreateTube(@base, outerRadius, innerRadius, height, null, out outId);
+        }
+        /// <summary>CAD_CreateTube — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_CreateTube(CAD_GeVec3 @base, double outerRadius, double innerRadius, double height, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_CreateTube(@base, outerRadius, innerRadius, height, new[] { opt }, out outId);
+        }
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_CreateExtrude(uint profileId, double height, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_CreateExtrude — 선택 없이(전부 기본값).</summary>
+        public static int CAD_CreateExtrude(uint profileId, double height, out uint outId)
+        {
+            return CAD_CreateExtrude(profileId, height, null, out outId);
+        }
+        /// <summary>CAD_CreateExtrude — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_CreateExtrude(uint profileId, double height, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_CreateExtrude(profileId, height, new[] { opt }, out outId);
+        }
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_Sweep(uint profileId, uint pathId, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_Sweep — 선택 없이(전부 기본값).</summary>
+        public static int CAD_Sweep(uint profileId, uint pathId, out uint outId)
+        {
+            return CAD_Sweep(profileId, pathId, null, out outId);
+        }
+        /// <summary>CAD_Sweep — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_Sweep(uint profileId, uint pathId, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_Sweep(profileId, pathId, new[] { opt }, out outId);
+        }
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_Revolve(uint profileId, CAD_GeVec3 axisStart, CAD_GeVec3 axisEnd, int segments, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_Revolve — 선택 없이(전부 기본값).</summary>
+        public static int CAD_Revolve(uint profileId, CAD_GeVec3 axisStart, CAD_GeVec3 axisEnd, int segments, out uint outId)
+        {
+            return CAD_Revolve(profileId, axisStart, axisEnd, segments, null, out outId);
+        }
+        /// <summary>CAD_Revolve — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_Revolve(uint profileId, CAD_GeVec3 axisStart, CAD_GeVec3 axisEnd, int segments, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_Revolve(profileId, axisStart, axisEnd, segments, new[] { opt }, out outId);
+        }
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_Loft(uint[] sectionIds, uint count, CAD_CreateOptions[] opt, out uint outId);
+
+        /// <summary>CAD_Loft — 선택 없이(전부 기본값).</summary>
+        public static int CAD_Loft(uint[] sectionIds, uint count, out uint outId)
+        {
+            return CAD_Loft(sectionIds, count, null, out outId);
+        }
+        /// <summary>CAD_Loft — 선택 구조체 하나로(size 가 0 이면 sizeof 로 채움).</summary>
+        public static int CAD_Loft(uint[] sectionIds, uint count, CAD_CreateOptions opt, out uint outId)
+        {
+            if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions));
+            return CAD_Loft(sectionIds, count, new[] { opt }, out outId);
+        }
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_PushPullSelectedFace(double distance);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_InsetSelectedFace(double distance);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.I1)]
@@ -195,95 +367,48 @@ namespace LotCAD
         public static extern bool CAD_RebuildBRepMesh(uint id, uint curvedSegments);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_Loft();
+        public static extern int CAD_Shell(uint[] ids, uint count, double thickness, uint[] outIds, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_Shell(float thickness);
+        public static extern int CAD_EdgeFillet(uint[] ids, uint count, double distance, uint[] outIds, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_EdgeFillet(float distance);
+        public static extern int CAD_EdgeChamfer(uint[] ids, uint count, double distance, uint[] outIds, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_EdgeChamfer(float distance);
+        public static extern int CAD_AddEdgeBevel(uint id, [MarshalAs(UnmanagedType.I1)] bool fillet, double distance, [MarshalAs(UnmanagedType.I1)] bool allEdges, uint brepEdge);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_BooleanUnion([MarshalAs(UnmanagedType.I1)] bool keepOriginals);
+        public static extern int CAD_GetEdgeBevelCount(uint id);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_BooleanIntersection([MarshalAs(UnmanagedType.I1)] bool keepOriginals);
+        public static extern int CAD_BooleanUnion(uint[] ids, uint count, [MarshalAs(UnmanagedType.I1)] bool keepOriginals, out uint outId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_BooleanDifference(uint[] baseIds, uint baseCount, uint[] subtractIds, uint subtractCount, [MarshalAs(UnmanagedType.I1)] bool keepOriginals);
+        public static extern int CAD_BooleanIntersection(uint[] ids, uint count, [MarshalAs(UnmanagedType.I1)] bool keepOriginals, out uint outId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_BooleanUnionIds(uint[] ids, uint count, [MarshalAs(UnmanagedType.I1)] bool keepOriginals);
+        public static extern int CAD_BooleanSubtract(uint[] baseIds, uint baseCount, uint[] cutIds, uint cutCount, [MarshalAs(UnmanagedType.I1)] bool keepOriginals, [MarshalAs(UnmanagedType.I1)] bool perBase, uint[] outIds, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_BooleanIntersectionIds(uint[] ids, uint count, [MarshalAs(UnmanagedType.I1)] bool keepOriginals);
+        public static extern int CAD_CheckInterference(uint[] ids, uint count, [MarshalAs(UnmanagedType.I1)] bool createObjects, [Out] CAD_InterferenceInfo[] @out, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_BooleanSubtract(uint[] baseIds, uint baseCount, uint[] cutIds, uint cutCount, [MarshalAs(UnmanagedType.I1)] bool keepOriginals, [MarshalAs(UnmanagedType.I1)] bool perBase, uint[] outIds, uint cap);
+        public static extern int CAD_ExplodeView([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CheckInterference(uint[] ids, uint count, [MarshalAs(UnmanagedType.I1)] bool createObjects, [Out] CAD_InterferenceInfo[] @out, uint cap);
+        public static extern int CAD_SetFeatureDimensionsVisible([MarshalAs(UnmanagedType.I1)] bool visible);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_AddEdgeBevel(uint id, [MarshalAs(UnmanagedType.I1)] bool fillet, float distance, [MarshalAs(UnmanagedType.I1)] bool allEdges, uint brepEdge);
+        public static extern int CAD_GetFeatureDimensionsVisible([MarshalAs(UnmanagedType.I1)] out bool outVisible);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetEdgeBevelCount(uint id);
+        public static extern int CAD_GetFeatureDimensionCount(uint id);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CreateWedge(float x, float y, float z, float sx, float sy, float sz);
+        public static extern int CAD_GetFeatureDimension(uint id, uint index, out int outKind, out double outValue, out uint outSketchId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CreatePyramid(float x, float y, float z, float radius, float height, int sides, float topRadius);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CreateSphere(float x, float y, float z, float radius);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CreateCylinder(float x, float y, float z, float radius, float height);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CreateCone(float x, float y, float z, float radius, float height);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CreateTorus(float x, float y, float z, float majorRadius, float minorRadius);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_ExplodeView([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] outUtf8, int cap);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CreateTube(float x, float y, float z, float outerRadius, float innerRadius, float height);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetFeatureDimensionsVisible([MarshalAs(UnmanagedType.I1)] bool visible);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetFeatureDimensionsVisible();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetFeatureDimensionCount(uint id);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetFeatureDimension(uint id, uint index, out int outKind, out float outValue, out uint outSketchId);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetFeatureDimension(uint id, uint index, float value);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_Sweep(uint profileId, uint pathId);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_Revolve(uint profileId, float x1, float y1, float z1, float x2, float y2, float z2, int segments);
+        public static extern int CAD_SetFeatureDimension(uint id, uint index, double value);
     }
 }

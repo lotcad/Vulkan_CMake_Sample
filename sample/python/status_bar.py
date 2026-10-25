@@ -34,8 +34,8 @@ class CadStatusBar(QStatusBar):
         self.visual_style = 0
         self._toggles = []    # (버튼, is_on)
 
-        self._toggle("치수", lotcad.CAD_GetFeatureDimensionsVisible,
-                     lambda: lotcad.CAD_SetFeatureDimensionsVisible(not lotcad.CAD_GetFeatureDimensionsVisible()),
+        self._toggle("치수", lambda: lotcad.CAD_GetFeatureDimensionsVisible()[1],   # (결과 코드, 켜짐)
+                     lambda: lotcad.CAD_SetFeatureDimensionsVisible(not lotcad.CAD_GetFeatureDimensionsVisible()[1]),
                      "선택한 솔리드의 피처 치수 표시 (fdim) — 치수를 더블클릭하면 명령행이 새 값을 기다린다")
         self._toggle("그리드", lambda: self.grid_on, self._toggle_grid, "바닥 그리드 표시")
         self._style_button()

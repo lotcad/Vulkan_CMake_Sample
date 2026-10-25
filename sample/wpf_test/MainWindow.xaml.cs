@@ -47,7 +47,7 @@ namespace LotCadWpf
         void OnExit(object s, RoutedEventArgs e) => Close();
 
         // ── 툴바 핸들러 ──
-        void OnAddCube(object s, RoutedEventArgs e)   => CadApi.CAD_CreateBox(0, 0, 0, 1, 1, 1);
+        void OnAddCube(object s, RoutedEventArgs e)   => CadApi.CAD_CreateBox(new CadApi.GeVec3(0, 0, 0), new CadApi.GeVec3(1, 1, 1), IntPtr.Zero, out _);
         void OnLine(object s, RoutedEventArgs e)       => CadApi.CAD_RequestStartLineSketch();
         void OnRect(object s, RoutedEventArgs e)       => CadApi.CAD_RequestStartRectangleSketch();
         void OnCircle(object s, RoutedEventArgs e)     => CadApi.CAD_RequestStartCircleSketch();

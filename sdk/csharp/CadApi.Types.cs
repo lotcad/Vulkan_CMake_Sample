@@ -7,6 +7,15 @@ using System.Runtime.InteropServices;
 namespace LotCAD
 {
     [StructLayout(LayoutKind.Sequential)]
+    public struct CAD_CreateOptions
+    {
+        /// <summary>size 를 sizeof 로 채운 새 값(나머지 0).</summary>
+        public static CAD_CreateOptions Create() { return new CAD_CreateOptions { size = (uint)Marshal.SizeOf(typeof(CAD_CreateOptions)) }; }
+        public uint size;
+        public uint propsFrom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct CAD_Color
     {
         public double r;

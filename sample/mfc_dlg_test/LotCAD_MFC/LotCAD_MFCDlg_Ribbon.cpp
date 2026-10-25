@@ -140,7 +140,7 @@ void CLotCADMFCDlg::BuildRibbon()
 // 엔진의 선택 목록은 id 순(std::set)이라 "먼저 고른 것" 도 알 수 없다.
 // 그래서 오토캐드 SUBTRACT 처럼 두 단계로 받는다.
 //   1) 기준 솔리드 선택 → 차집합   : 기준을 기억
-//   2) 뺄 솔리드 선택   → 차집합   : CAD_BooleanDifference 실행
+//   2) 뺄 솔리드 선택   → 차집합   : CAD_BooleanSubtract 실행
 void CLotCADMFCDlg::SubtractStep()
 {
 	std::vector<uint32_t> selected(CAD_GetSelectedCount());
@@ -167,11 +167,12 @@ void CLotCADMFCDlg::SubtractStep()
 	if (tools.empty()) {
 		m_commandLine.AppendLog(L"차집합: 취소");
 	} else {
-		// 바로 실행형 — 그 자리에서 계산해 결과 개수를 돌려준다. 실패면 아무것도 안 바꾸고 0 + 이유.
-		// keepOriginals=false(원본 삭제), perBase=false(기준들을 한 덩어리로 — 오토캐드 SUBTRACT 와 같음)
-		const uint32_t made = CAD_BooleanSubtract(m_subtractBase.data(), (uint32_t)m_subtractBase.size(),
-		                                          tools.data(), (uint32_t)tools.size(),
-		                                          false, false, nullptr, 0);
+		// 그 자리에서 계산해 결과 개수를 돌려준다(음수 = 이유 코드 — 실패면 아무것도 안 바꾼다). 결과 id 를 받을 칸을 꼭 준다:
+		// 칸 없이(NULL) 부르면 개수만 묻는 것이라 해 본 뒤 되돌린다. keepOriginals=false(원본 삭제), perBase=false(한 덩어리 — 오토캐드 SUBTRACT)
+		uint32_t result = 0;
+		const int32_t made = CAD_BooleanSubtract(m_subtractBase.data(), (uint32_t)m_subtractBase.size(),
+		                                         tools.data(), (uint32_t)tools.size(),
+		                                         false, false, &result, 1);
 		if (made > 0)
 			m_commandLine.AppendLog(L"차집합: 기준 " + std::to_wstring(m_subtractBase.size()) +
 			                        L"개에서 " + std::to_wstring(tools.size()) + L"개를 뺌");
