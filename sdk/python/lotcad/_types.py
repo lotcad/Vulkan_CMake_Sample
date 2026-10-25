@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import ctypes as _c
-__all__ = ['CAD_CreateOptions', 'CAD_Color', 'CAD_GeVec3', 'CAD_GePlane', 'CAD_GeMatrix', 'CAD_GeArc', 'CAD_GeEllipse', 'CAD_GeIntersection', 'CAD_PostFn', 'CAD_OverlayFrameInfo', 'CAD_OverlayRenderFn', 'CAD_OverlayPointerInfo', 'CAD_OverlayInputFn', 'CAD_OsnapPoint', 'CAD_OsnapOptions', 'CAD_CommandFn', 'CAD_JigDelta', 'CAD_SubobjectSelection', 'CAD_EdInputResult', 'CAD_EdInputFn', 'CAD_EdInputOptions', 'CAD_EdSelectOptions', 'CAD_EdCommandState', 'CAD_EventFn', 'CAD_SketchConstraintInfo', 'CAD_BRepInfo', 'CAD_BRepFaceInfo', 'CAD_BRepCutInfo', 'CAD_BooleanCylinderCutInfo', 'CAD_InterferenceInfo', 'CAD_MeshCheckInfo', 'CAD_MeshRepairOptions', 'CAD_SimOptions', 'CAD_SimCondition', 'CAD_SimFace', 'CAD_SimState', 'CAD_SimSummary', 'CAD_SimConvergence', 'CAD_SimRunOptions', 'CAD_WindOptions', 'CAD_WindState', 'CAD_WindViewOptions', 'CAD_WindPointValue', 'CAD_WindSurfacePoint', 'CAD_WaterOptions', 'CAD_WaterState', 'CAD_WaterFloater', 'CAD_WaterPointValue', 'CAD_ClothOptions', 'CAD_ClothState', 'CAD_FloorplanOpeningDesc']
+__all__ = ['CAD_CreateOptions', 'CAD_Color', 'CAD_GeVec3', 'CAD_GePlane', 'CAD_GeMatrix', 'CAD_GeArc', 'CAD_GeEllipse', 'CAD_GeIntersection', 'CAD_PostFn', 'CAD_OverlayFrameInfo', 'CAD_OverlayRenderFn', 'CAD_OverlayPointerInfo', 'CAD_OverlayInputFn', 'CAD_OsnapPoint', 'CAD_OsnapOptions', 'CAD_CommandFn', 'CAD_JigDelta', 'CAD_SubobjectSelection', 'CAD_EdInputResult', 'CAD_EdInputFn', 'CAD_EdInputOptions', 'CAD_EdSelectOptions', 'CAD_EdCommandState', 'CAD_EventFn', 'CAD_SketchConstraintInfo', 'CAD_BRepInfo', 'CAD_BRepFaceInfo', 'CAD_BRepCutInfo', 'CAD_BooleanCylinderCutInfo', 'CAD_InterferenceInfo', 'CAD_MeshCheckInfo', 'CAD_MeshRepairOptions', 'CAD_SimOptions', 'CAD_SimCondition', 'CAD_SimFace', 'CAD_SimState', 'CAD_SimSummary', 'CAD_SimConvergence', 'CAD_SimRunOptions', 'CAD_WindOptions', 'CAD_WindState', 'CAD_WindViewOptions', 'CAD_WindPointValue', 'CAD_WindSurfacePoint', 'CAD_WaterOptions', 'CAD_WaterState', 'CAD_WaterFloater', 'CAD_WaterPointValue', 'CAD_ClothOptions', 'CAD_ClothState', 'CAD_JointInfo', 'CAD_FloorplanOpeningDesc']
 
 
 class CAD_CreateOptions(_c.Structure):
@@ -592,15 +592,27 @@ class CAD_ClothState(_c.Structure):
         ("unitToMeter", _c.c_double),
     ]
 
+class CAD_JointInfo(_c.Structure):
+    _fields_ = [
+        ("size", _c.c_uint32),
+        ("type", _c.c_int32),
+        ("hasLimit", _c.c_bool),
+        ("lower", _c.c_double),
+        ("upper", _c.c_double),
+        ("value", _c.c_double),
+        ("origin", CAD_GeVec3),
+        ("axis", CAD_GeVec3),
+    ]
+
 class CAD_FloorplanOpeningDesc(_c.Structure):
     _fields_ = [
-        ("type", _c.c_int),
+        ("type", _c.c_int32),
         ("roomAIndex", _c.c_uint32),
         ("roomBIndex", _c.c_int32),
-        ("side", _c.c_int),
-        ("width", _c.c_float),
-        ("height", _c.c_float),
-        ("sillHeight", _c.c_float),
-        ("alignment", _c.c_int),
-        ("offset", _c.c_float),
+        ("side", _c.c_int32),
+        ("width", _c.c_double),
+        ("height", _c.c_double),
+        ("sillHeight", _c.c_double),
+        ("alignment", _c.c_int32),
+        ("offset", _c.c_double),
     ]

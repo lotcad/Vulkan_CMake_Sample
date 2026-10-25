@@ -9,67 +9,54 @@ namespace LotCAD
     public static partial class CadApi
     {
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_LinkStart(int port, [MarshalAs(UnmanagedType.I1)] bool clamp);
+        public static extern int CAD_LinkStart(int port, [MarshalAs(UnmanagedType.I1)] bool clamp);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_LinkStop();
+        public static extern int CAD_LinkStop();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_LinkPort();
+        public static extern int CAD_LinkGetPort(out int outPort);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_LinkSend([MarshalAs(UnmanagedType.LPUTF8Str)] string jsonLine);
+        public static extern int CAD_LinkSend([MarshalAs(UnmanagedType.LPUTF8Str)] string jsonLine);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_ApplyExternalPose(uint id, float x, float y, float yawDeg, [MarshalAs(UnmanagedType.I1)] bool clamp, [MarshalAs(UnmanagedType.I1)] out bool outBlocked);
+        public static extern int CAD_ApplyExternalPose(uint id, double x, double y, double yaw, [MarshalAs(UnmanagedType.I1)] bool clamp, [MarshalAs(UnmanagedType.I1)] out bool outBlocked);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_NavBuildMap([MarshalAs(UnmanagedType.LPUTF8Str)] string paramsJson);
+        public static extern int CAD_NavBuildMap([MarshalAs(UnmanagedType.LPUTF8Str)] string paramsJson);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_NavShowGrid([MarshalAs(UnmanagedType.I1)] bool on);
+        public static extern int CAD_NavShowGrid([MarshalAs(UnmanagedType.I1)] bool on);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_NavAddAgent(uint objectId, [MarshalAs(UnmanagedType.I1)] bool isVehicle);
+        public static extern int CAD_NavAddAgent(uint objectId, [MarshalAs(UnmanagedType.I1)] bool isVehicle, out uint outAgentId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_NavAddSelected();
+        public static extern int CAD_NavRemoveAgent(uint agentId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_NavRemoveAgent(uint agentId);
+        public static extern int CAD_NavClearAgents();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_NavClearAgents();
+        public static extern int CAD_NavSetAgentParams(uint agentId, [MarshalAs(UnmanagedType.LPUTF8Str)] string json);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_NavSetAgentParams(uint agentId, [MarshalAs(UnmanagedType.LPUTF8Str)] string json);
+        public static extern int CAD_NavSetGoal(uint agentId, CAD_GeVec3 goal);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_NavSetGoal(uint agentId, float x, float y, float z);
+        public static extern int CAD_NavStart(uint agentId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_NavStart(uint agentId);
+        public static extern int CAD_NavStop(uint agentId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_NavStop(uint agentId);
+        public static extern int CAD_NavReset(uint agentId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_NavReset(uint agentId);
+        public static extern int CAD_NavGetStateJson(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_NavGetStateJson(byte[] @out, int cap);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_NavGetPath(uint agentId, float[] outXY, uint cap);
+        public static extern int CAD_NavGetPath(uint agentId, double[] outXY, uint capacity);
     }
 }
