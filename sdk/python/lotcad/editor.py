@@ -9,13 +9,24 @@ from typing import Any, Callable, Sequence  # noqa: F401  (형식 힌트)
 from . import _native as _n
 from ._types import *  # noqa: F401,F403
 
-__all__ = ['CAD_SELECT_REPLACE', 'CAD_SELECT_ADD', 'CAD_SELECT_REMOVE', 'CAD_ED_KIND_POINT', 'CAD_ED_KIND_CORNER', 'CAD_ED_KIND_DISTANCE', 'CAD_ED_KIND_ANGLE', 'CAD_ED_KIND_INTEGER', 'CAD_ED_KIND_REAL', 'CAD_ED_KIND_STRING', 'CAD_ED_KIND_KEYWORD', 'CAD_ED_KIND_ENTITY', 'CAD_ED_KIND_SELECTION', 'CAD_ED_RESULT_PENDING', 'CAD_ED_RESULT_NORMAL', 'CAD_ED_RESULT_NONE', 'CAD_ED_RESULT_KEYWORD', 'CAD_ED_RESULT_CANCEL', 'CAD_ED_NO_NULL', 'CAD_ED_NO_ZERO', 'CAD_ED_NO_NEGATIVE', 'CAD_ED_ARBITRARY', 'CAD_ED_ALLOW_SPACES', 'CAD_ED_PICKFIRST', 'CAD_ED_SINGLE', 'CAD_GetDimensionPointCount', 'CAD_GetPrompt', 'CAD_GetTransientMessage', 'CAD_ExecuteCommand', 'CAD_RegisterCommand', 'CAD_UnregisterCommand', 'CAD_UnregisterCommandsByOwner', 'CAD_GetRegisteredCommandCount', 'CAD_GetRegisteredCommandName', 'CAD_GetRegisteredCommandTitle', 'CAD_OpenFileDialog', 'CAD_ClearAll', 'CAD_CycleMaterial', 'CAD_RemoveMaterial', 'CAD_JigBegin', 'CAD_JigBeginOne', 'CAD_JigState', 'CAD_JigCancel', 'CAD_JigMoveTo', 'CAD_JigCommit', 'CAD_JigSetBasePoint', 'CAD_JigGetDelta', 'CAD_JigBeginVariants', 'CAD_JigNextVariant', 'CAD_JigVariantIndex', 'CAD_JigVariantId', 'CAD_BeginTextEdit', 'CAD_IsTextEditing', 'CAD_TextEditInsert', 'CAD_TextEditBackspace', 'CAD_TextEditDelete', 'CAD_TextEditMoveCaret', 'CAD_TextEditCommit', 'CAD_TextEditCancel', 'CAD_GetSelectionContext', 'CAD_GetSelection', 'CAD_SetSelection', 'CAD_SetOSnapEnabled', 'CAD_GetOSnapEnabled', 'CAD_SetOSnapModes', 'CAD_GetOSnapModes', 'CAD_SetOrthoEnabled', 'CAD_GetOrthoEnabled', 'CAD_SetPolarTracking', 'CAD_GetPolarTracking', 'CAD_SnapNearPoint', 'CAD_SetSubobjectSelectionMode', 'CAD_GetSubobjectSelectionMode', 'CAD_PickSubobject', 'CAD_GetSubobjectSelectionId', 'CAD_GetSelectedFaceTriangles', 'CAD_GetSelectedBRepFaceId', 'CAD_GetSelectedEdge', 'CAD_EdGetPoint', 'CAD_EdGetCorner', 'CAD_EdGetDistance', 'CAD_EdGetAngle', 'CAD_EdGetInteger', 'CAD_EdGetReal', 'CAD_EdGetString', 'CAD_EdGetKeyword', 'CAD_EdEntSel', 'CAD_EdSSGet', 'CAD_EdGetInputResult', 'CAD_EdGetInputText', 'CAD_EdGetInputIds', 'CAD_EdCancelInput', 'CAD_EdSelectWindow', 'CAD_EdWorldToPixel', 'CAD_EdPixelToWorld', 'CAD_EdGetCommandState', 'CAD_EdGetCommandName']
+__all__ = ['CAD_JIG_MOVE', 'CAD_JIG_ROTATE', 'CAD_JIG_SCALE', 'CAD_JIG_COPY', 'CAD_JIG_IDLE', 'CAD_JIG_DRAGGING', 'CAD_JIG_COMMITTED', 'CAD_JIG_CANCELLED', 'CAD_SELECT_REPLACE', 'CAD_SELECT_ADD', 'CAD_SELECT_REMOVE', 'CAD_SUBOBJECT_OBJECT', 'CAD_SUBOBJECT_FACE', 'CAD_SUBOBJECT_EDGE', 'CAD_ED_KIND_POINT', 'CAD_ED_KIND_CORNER', 'CAD_ED_KIND_DISTANCE', 'CAD_ED_KIND_ANGLE', 'CAD_ED_KIND_INTEGER', 'CAD_ED_KIND_REAL', 'CAD_ED_KIND_STRING', 'CAD_ED_KIND_KEYWORD', 'CAD_ED_KIND_ENTITY', 'CAD_ED_KIND_SELECTION', 'CAD_ED_RESULT_PENDING', 'CAD_ED_RESULT_NORMAL', 'CAD_ED_RESULT_NONE', 'CAD_ED_RESULT_KEYWORD', 'CAD_ED_RESULT_CANCEL', 'CAD_ED_NO_NULL', 'CAD_ED_NO_ZERO', 'CAD_ED_NO_NEGATIVE', 'CAD_ED_ARBITRARY', 'CAD_ED_ALLOW_SPACES', 'CAD_ED_PICKFIRST', 'CAD_ED_SINGLE', 'CAD_GetDimensionPointCount', 'CAD_GetPrompt', 'CAD_GetTransientMessage', 'CAD_ExecuteCommand', 'CAD_RegisterCommand', 'CAD_UnregisterCommand', 'CAD_UnregisterCommandsByOwner', 'CAD_GetRegisteredCommandCount', 'CAD_GetRegisteredCommandName', 'CAD_GetRegisteredCommandTitle', 'CAD_OpenFileDialog', 'CAD_ClearAll', 'CAD_CycleMaterial', 'CAD_RemoveMaterial', 'CAD_JigBegin', 'CAD_JigBeginOne', 'CAD_JigGetState', 'CAD_JigCancel', 'CAD_JigMoveTo', 'CAD_JigCommit', 'CAD_JigSetBasePoint', 'CAD_JigGetDelta', 'CAD_JigBeginVariants', 'CAD_JigNextVariant', 'CAD_JigGetVariant', 'CAD_BeginTextEdit', 'CAD_GetTextEditId', 'CAD_TextEditInsert', 'CAD_TextEditBackspace', 'CAD_TextEditDelete', 'CAD_TextEditMoveCaret', 'CAD_TextEditCommit', 'CAD_TextEditCancel', 'CAD_GetSelectionContext', 'CAD_GetSelection', 'CAD_SetSelection', 'CAD_SetOSnapEnabled', 'CAD_GetOSnapEnabled', 'CAD_SetOSnapModes', 'CAD_GetOSnapModes', 'CAD_SetOrthoEnabled', 'CAD_GetOrthoEnabled', 'CAD_SetPolarTracking', 'CAD_GetPolarTracking', 'CAD_SnapNearPoint', 'CAD_SetSubobjectSelectionMode', 'CAD_GetSubobjectSelectionMode', 'CAD_PickSubobject', 'CAD_GetSubobjectSelection', 'CAD_GetSelectedFaceTriangles', 'CAD_EdGetPoint', 'CAD_EdGetCorner', 'CAD_EdGetDistance', 'CAD_EdGetAngle', 'CAD_EdGetInteger', 'CAD_EdGetReal', 'CAD_EdGetString', 'CAD_EdGetKeyword', 'CAD_EdEntSel', 'CAD_EdSSGet', 'CAD_EdGetInputResult', 'CAD_EdGetInputText', 'CAD_EdGetInputIds', 'CAD_EdCancelInput', 'CAD_EdSelectWindow', 'CAD_EdWorldToPixel', 'CAD_EdPixelToWorld', 'CAD_EdGetCommandState', 'CAD_EdGetCommandName']
 
 _f = _n.native
 
+CAD_JIG_MOVE = 0
+CAD_JIG_ROTATE = 1
+CAD_JIG_SCALE = 2
+CAD_JIG_COPY = 3
+CAD_JIG_IDLE = 0
+CAD_JIG_DRAGGING = 1
+CAD_JIG_COMMITTED = 2
+CAD_JIG_CANCELLED = 3
 CAD_SELECT_REPLACE = 0
 CAD_SELECT_ADD = 1
 CAD_SELECT_REMOVE = 2
+CAD_SUBOBJECT_OBJECT = 0
+CAD_SUBOBJECT_FACE = 1
+CAD_SUBOBJECT_EDGE = 2
 CAD_ED_KIND_POINT = 1
 CAD_ED_KIND_CORNER = 2
 CAD_ED_KIND_DISTANCE = 3
@@ -53,26 +64,25 @@ _n.bind("CAD_OpenFileDialog", _c.c_int32, [])
 _n.bind("CAD_ClearAll", _c.c_int32, [])
 _n.bind("CAD_CycleMaterial", _c.c_int32, [])
 _n.bind("CAD_RemoveMaterial", _c.c_int32, [])
-_n.bind("CAD_JigBegin", _c.c_bool, [_c.c_int, _c.POINTER(_c.c_uint32), _c.c_int, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_JigBeginOne", _c.c_bool, [_c.c_int, _c.c_uint32, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_JigState", _c.c_int, [])
-_n.bind("CAD_JigCancel", None, [])
-_n.bind("CAD_JigMoveTo", _c.c_bool, [_c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_JigCommit", _c.c_bool, [])
-_n.bind("CAD_JigSetBasePoint", _c.c_bool, [_c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_JigGetDelta", _c.c_bool, [_c.POINTER(_c.c_float), _c.POINTER(_c.c_float), _c.POINTER(_c.c_float), _c.POINTER(_c.c_float), _c.POINTER(_c.c_float)])
-_n.bind("CAD_JigBeginVariants", _c.c_bool, [_c.c_int, _c.POINTER(_c.c_uint32), _c.c_int, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_JigNextVariant", _c.c_bool, [])
-_n.bind("CAD_JigVariantIndex", _c.c_int, [])
-_n.bind("CAD_JigVariantId", _c.c_uint32, [])
-_n.bind("CAD_BeginTextEdit", _c.c_bool, [_c.c_uint32])
-_n.bind("CAD_IsTextEditing", _c.c_bool, [])
-_n.bind("CAD_TextEditInsert", None, [_c.c_char_p])
-_n.bind("CAD_TextEditBackspace", None, [])
-_n.bind("CAD_TextEditDelete", None, [])
-_n.bind("CAD_TextEditMoveCaret", None, [_c.c_int])
-_n.bind("CAD_TextEditCommit", None, [])
-_n.bind("CAD_TextEditCancel", None, [])
+_n.bind("CAD_JigBegin", _c.c_int32, [_c.c_int32, _c.POINTER(_c.c_uint32), _c.c_uint32, CAD_GeVec3])
+_n.bind("CAD_JigBeginOne", _c.c_int32, [_c.c_int32, _c.c_uint32, CAD_GeVec3])
+_n.bind("CAD_JigGetState", _c.c_int32, [_c.POINTER(_c.c_int32)])
+_n.bind("CAD_JigCancel", _c.c_int32, [])
+_n.bind("CAD_JigMoveTo", _c.c_int32, [CAD_GeVec3])
+_n.bind("CAD_JigCommit", _c.c_int32, [])
+_n.bind("CAD_JigSetBasePoint", _c.c_int32, [CAD_GeVec3])
+_n.bind("CAD_JigGetDelta", _c.c_int32, [_c.POINTER(CAD_JigDelta)])
+_n.bind("CAD_JigBeginVariants", _c.c_int32, [_c.c_int32, _c.POINTER(_c.c_uint32), _c.c_uint32, CAD_GeVec3])
+_n.bind("CAD_JigNextVariant", _c.c_int32, [])
+_n.bind("CAD_JigGetVariant", _c.c_int32, [_c.POINTER(_c.c_int32), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_BeginTextEdit", _c.c_int32, [_c.c_uint32])
+_n.bind("CAD_GetTextEditId", _c.c_int32, [_c.POINTER(_c.c_uint32)])
+_n.bind("CAD_TextEditInsert", _c.c_int32, [_c.c_char_p])
+_n.bind("CAD_TextEditBackspace", _c.c_int32, [])
+_n.bind("CAD_TextEditDelete", _c.c_int32, [])
+_n.bind("CAD_TextEditMoveCaret", _c.c_int32, [_c.c_int32])
+_n.bind("CAD_TextEditCommit", _c.c_int32, [])
+_n.bind("CAD_TextEditCancel", _c.c_int32, [])
 _n.bind("CAD_GetSelectionContext", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32])
 _n.bind("CAD_GetSelection", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32])
 _n.bind("CAD_SetSelection", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32, _c.c_int32])
@@ -85,13 +95,11 @@ _n.bind("CAD_GetOrthoEnabled", _c.c_int32, [_c.POINTER(_c.c_bool)])
 _n.bind("CAD_SetPolarTracking", _c.c_int32, [_c.c_bool, _c.c_double])
 _n.bind("CAD_GetPolarTracking", _c.c_int32, [_c.POINTER(_c.c_bool), _c.POINTER(_c.c_double)])
 _n.bind("CAD_SnapNearPoint", _c.c_int32, [CAD_GeVec3, _c.c_double, _c.c_uint32, _c.POINTER(CAD_OsnapOptions), _c.POINTER(CAD_OsnapPoint)])
-_n.bind("CAD_SetSubobjectSelectionMode", _c.c_bool, [_c.c_int])
-_n.bind("CAD_GetSubobjectSelectionMode", _c.c_int, [])
-_n.bind("CAD_PickSubobject", _c.c_bool, [_c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_GetSubobjectSelectionId", _c.c_uint32, [])
-_n.bind("CAD_GetSelectedFaceTriangles", _c.c_uint32, [_c.POINTER(_c.c_uint32), _c.c_uint32])
-_n.bind("CAD_GetSelectedBRepFaceId", _c.c_int32, [])
-_n.bind("CAD_GetSelectedEdge", _c.c_bool, [_c.POINTER(_c.c_float)])
+_n.bind("CAD_SetSubobjectSelectionMode", _c.c_int32, [_c.c_int32])
+_n.bind("CAD_GetSubobjectSelectionMode", _c.c_int32, [_c.POINTER(_c.c_int32)])
+_n.bind("CAD_PickSubobject", _c.c_int32, [CAD_GeVec3, CAD_GeVec3])
+_n.bind("CAD_GetSubobjectSelection", _c.c_int32, [_c.POINTER(CAD_SubobjectSelection)])
+_n.bind("CAD_GetSelectedFaceTriangles", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32])
 _n.bind("CAD_EdGetPoint", _c.c_int32, [_c.c_char_p, _c.POINTER(CAD_EdInputOptions)])
 _n.bind("CAD_EdGetCorner", _c.c_int32, [_c.c_char_p, CAD_GeVec3, _c.POINTER(CAD_EdInputOptions)])
 _n.bind("CAD_EdGetDistance", _c.c_int32, [_c.c_char_p, _c.POINTER(CAD_EdInputOptions)])
@@ -316,251 +324,181 @@ def CAD_RemoveMaterial() -> int:
     return _f.CAD_RemoveMaterial()
 
 
-def CAD_JigBegin(mode: int, ids: Sequence | None, count: int, px: float, py: float, pz: float) -> bool:
-    """C: bool CAD_JigBegin(int mode, const uint32_t* ids, int count, float px, float py, float pz)
-
-    객체 id 를 물려 시작하면 그 객체가 **커서를 따라다니고**, 좌클릭에 그 자리로 확정된다
-    (undo 1스텝). ESC 로 원복. OSnap·직교 트랙킹(F8)·콘솔 값 입력이 그대로 적용된다.
-    mode: 0=이동 1=회전 2=축척 3=복사
-    회전/축척은 (px,py,pz) 가 피벗. 이동/복사는 무시하고 선택 전체의 시각 중심을 기준점으로 잡는다.
-    반환 false = 유효한 객체가 없어 시작 못 함.
+def CAD_JigBegin(mode: int, ids: Sequence | None, count: int, pivot: CAD_GeVec3) -> int:
+    """C: CAD_Status CAD_JigBegin(int32_t mode, const uint32_t* ids, uint32_t count, CAD_GeVec3 pivot)
     """
     _a_ids = _n.array(_c.c_uint32, ids)
-    return _f.CAD_JigBegin(mode, _a_ids, count, px, py, pz)
+    return _f.CAD_JigBegin(mode, _a_ids, count, pivot)
 
 
-def CAD_JigBeginOne(mode: int, id: int, px: float, py: float, pz: float) -> bool:
-    """C: bool CAD_JigBeginOne(int mode, uint32_t id, float px, float py, float pz)
-
-    객체 id 를 물려 시작하면 그 객체가 **커서를 따라다니고**, 좌클릭에 그 자리로 확정된다
-    (undo 1스텝). ESC 로 원복. OSnap·직교 트랙킹(F8)·콘솔 값 입력이 그대로 적용된다.
-    mode: 0=이동 1=회전 2=축척 3=복사
-    회전/축척은 (px,py,pz) 가 피벗. 이동/복사는 무시하고 선택 전체의 시각 중심을 기준점으로 잡는다.
-    반환 false = 유효한 객체가 없어 시작 못 함.
+def CAD_JigBeginOne(mode: int, id: int, pivot: CAD_GeVec3) -> int:
+    """C: CAD_Status CAD_JigBeginOne(int32_t mode, uint32_t id, CAD_GeVec3 pivot)
     """
-    return _f.CAD_JigBeginOne(mode, id, px, py, pz)
+    return _f.CAD_JigBeginOne(mode, id, pivot)
 
 
-def CAD_JigState() -> int:
-    """C: int CAD_JigState(void)
-
-    상태 폴링 — 0=비활성 1=끌는 중 2=직전 확정됨 3=직전 취소됨 (2/3 은 1회만 반환).
+def CAD_JigGetState() -> tuple[int, int]:
+    """C: CAD_Status CAD_JigGetState(int32_t* outState)
     """
-    return _f.CAD_JigState()
+    outState = _c.c_int32()
+    _r = _f.CAD_JigGetState(_c.byref(outState))
+    return (_r, outState.value)
 
 
-def CAD_JigCancel() -> None:
-    """C: void CAD_JigCancel(void)
+def CAD_JigCancel() -> int:
+    """C: CAD_Status CAD_JigCancel(void)
 
-    상태 폴링 — 0=비활성 1=끌는 중 2=직전 확정됨 3=직전 취소됨 (2/3 은 1회만 반환).
+    Jig 중이면 취소(ESC 와 같다 — 상태는 다음에 CANCELLED). Jig 중이 아니면 아무 일 없이 CAD_OK
     """
-    _f.CAD_JigCancel()
+    return _f.CAD_JigCancel()
 
 
-def CAD_JigMoveTo(x: float, y: float, z: float) -> bool:
-    """C: bool CAD_JigMoveTo(float x, float y, float z)
+def CAD_JigMoveTo(point: CAD_GeVec3) -> int:
+    """C: CAD_Status CAD_JigMoveTo(CAD_GeVec3 point)
 
-    후보 객체들을 미리 만들어 id 배열로 넘기면, 첫 후보가 커서를 따라오고 **Tab** 마다 다음 후보로
-    갈아끼워진다(문 좌/우열림, 볼트 규격 등). 비활성 후보는 씬에서 잠시 빠져 보이지 않는다.
-    확정 → 선택된 후보만 남고 나머지는 삭제 (AcEdJig 의 "성공 시에만 남긴다" 규약)
-    취소 → 후보 전부 삭제 (임시 형상이라 씬에 남기지 않음)
-    콜백이 필요 없어 C#/Qt 어디서든 그대로 쓸 수 있다.
-    코드로 끌기 — 모바일(가상 커서 없이 버튼으로)·자동 시연. Jig 중이 아니면 false.
-    MoveTo: 지그를 월드 점으로(OSnap 미적용). 이후 실제 마우스가 움직이면 다시 마우스를 따른다.
-    Commit: 좌클릭과 같은 확정(undo 1). CAD_JigState 는 다음 폴링에 2.
-    SetBasePoint: 이동·복사의 기준점(기본 = 선택 경계 상자 중심), 회전·축척은 피벗.
-    GetDelta: 지금 미리보기 — 이동량(이동·복사, 직교 반영), 회전각(도), 배율. 인자는 NULL 가능.
+    코드로 끌기 — 모바일(버튼으로)·자동 시연. Jig 중이 아니면 CAD_E_NOT_READY.
+      MoveTo: 커서를 월드 점으로(스냅 없음). 그 뒤 실제 마우스가 움직이면 다시 마우스를 따른다.
+      Commit: 좌클릭과 같은 확정(되돌리기 1) — 상태는 다음에 COMMITTED.
+      SetBasePoint: 이동·복사의 기준점, 회전·축척은 기준(pivot)을 바꾼다.
     """
-    return _f.CAD_JigMoveTo(x, y, z)
+    return _f.CAD_JigMoveTo(point)
 
 
-def CAD_JigCommit() -> bool:
-    """C: bool CAD_JigCommit(void)
+def CAD_JigCommit() -> int:
+    """C: CAD_Status CAD_JigCommit(void)
 
-    후보 객체들을 미리 만들어 id 배열로 넘기면, 첫 후보가 커서를 따라오고 **Tab** 마다 다음 후보로
-    갈아끼워진다(문 좌/우열림, 볼트 규격 등). 비활성 후보는 씬에서 잠시 빠져 보이지 않는다.
-    확정 → 선택된 후보만 남고 나머지는 삭제 (AcEdJig 의 "성공 시에만 남긴다" 규약)
-    취소 → 후보 전부 삭제 (임시 형상이라 씬에 남기지 않음)
-    콜백이 필요 없어 C#/Qt 어디서든 그대로 쓸 수 있다.
-    코드로 끌기 — 모바일(가상 커서 없이 버튼으로)·자동 시연. Jig 중이 아니면 false.
-    MoveTo: 지그를 월드 점으로(OSnap 미적용). 이후 실제 마우스가 움직이면 다시 마우스를 따른다.
-    Commit: 좌클릭과 같은 확정(undo 1). CAD_JigState 는 다음 폴링에 2.
-    SetBasePoint: 이동·복사의 기준점(기본 = 선택 경계 상자 중심), 회전·축척은 피벗.
-    GetDelta: 지금 미리보기 — 이동량(이동·복사, 직교 반영), 회전각(도), 배율. 인자는 NULL 가능.
+    코드로 끌기 — 모바일(버튼으로)·자동 시연. Jig 중이 아니면 CAD_E_NOT_READY.
+      MoveTo: 커서를 월드 점으로(스냅 없음). 그 뒤 실제 마우스가 움직이면 다시 마우스를 따른다.
+      Commit: 좌클릭과 같은 확정(되돌리기 1) — 상태는 다음에 COMMITTED.
+      SetBasePoint: 이동·복사의 기준점, 회전·축척은 기준(pivot)을 바꾼다.
     """
     return _f.CAD_JigCommit()
 
 
-def CAD_JigSetBasePoint(x: float, y: float, z: float) -> bool:
-    """C: bool CAD_JigSetBasePoint(float x, float y, float z)
+def CAD_JigSetBasePoint(point: CAD_GeVec3) -> int:
+    """C: CAD_Status CAD_JigSetBasePoint(CAD_GeVec3 point)
 
-    후보 객체들을 미리 만들어 id 배열로 넘기면, 첫 후보가 커서를 따라오고 **Tab** 마다 다음 후보로
-    갈아끼워진다(문 좌/우열림, 볼트 규격 등). 비활성 후보는 씬에서 잠시 빠져 보이지 않는다.
-    확정 → 선택된 후보만 남고 나머지는 삭제 (AcEdJig 의 "성공 시에만 남긴다" 규약)
-    취소 → 후보 전부 삭제 (임시 형상이라 씬에 남기지 않음)
-    콜백이 필요 없어 C#/Qt 어디서든 그대로 쓸 수 있다.
-    코드로 끌기 — 모바일(가상 커서 없이 버튼으로)·자동 시연. Jig 중이 아니면 false.
-    MoveTo: 지그를 월드 점으로(OSnap 미적용). 이후 실제 마우스가 움직이면 다시 마우스를 따른다.
-    Commit: 좌클릭과 같은 확정(undo 1). CAD_JigState 는 다음 폴링에 2.
-    SetBasePoint: 이동·복사의 기준점(기본 = 선택 경계 상자 중심), 회전·축척은 피벗.
-    GetDelta: 지금 미리보기 — 이동량(이동·복사, 직교 반영), 회전각(도), 배율. 인자는 NULL 가능.
+    코드로 끌기 — 모바일(버튼으로)·자동 시연. Jig 중이 아니면 CAD_E_NOT_READY.
+      MoveTo: 커서를 월드 점으로(스냅 없음). 그 뒤 실제 마우스가 움직이면 다시 마우스를 따른다.
+      Commit: 좌클릭과 같은 확정(되돌리기 1) — 상태는 다음에 COMMITTED.
+      SetBasePoint: 이동·복사의 기준점, 회전·축척은 기준(pivot)을 바꾼다.
     """
-    return _f.CAD_JigSetBasePoint(x, y, z)
+    return _f.CAD_JigSetBasePoint(point)
 
 
-def CAD_JigGetDelta() -> tuple[float, float, float, float, float] | None:
-    """C: bool CAD_JigGetDelta(float* dx, float* dy, float* dz, float* angleDeg, float* scale)
-
-    후보 객체들을 미리 만들어 id 배열로 넘기면, 첫 후보가 커서를 따라오고 **Tab** 마다 다음 후보로
-    갈아끼워진다(문 좌/우열림, 볼트 규격 등). 비활성 후보는 씬에서 잠시 빠져 보이지 않는다.
-    확정 → 선택된 후보만 남고 나머지는 삭제 (AcEdJig 의 "성공 시에만 남긴다" 규약)
-    취소 → 후보 전부 삭제 (임시 형상이라 씬에 남기지 않음)
-    콜백이 필요 없어 C#/Qt 어디서든 그대로 쓸 수 있다.
-    코드로 끌기 — 모바일(가상 커서 없이 버튼으로)·자동 시연. Jig 중이 아니면 false.
-    MoveTo: 지그를 월드 점으로(OSnap 미적용). 이후 실제 마우스가 움직이면 다시 마우스를 따른다.
-    Commit: 좌클릭과 같은 확정(undo 1). CAD_JigState 는 다음 폴링에 2.
-    SetBasePoint: 이동·복사의 기준점(기본 = 선택 경계 상자 중심), 회전·축척은 피벗.
-    GetDelta: 지금 미리보기 — 이동량(이동·복사, 직교 반영), 회전각(도), 배율. 인자는 NULL 가능.
+def CAD_JigGetDelta() -> tuple[int, CAD_JigDelta]:
+    """C: CAD_Status CAD_JigGetDelta(CAD_JigDelta* out)
     """
-    dx = _c.c_float()
-    dy = _c.c_float()
-    dz = _c.c_float()
-    angleDeg = _c.c_float()
-    scale = _c.c_float()
-    if not _f.CAD_JigGetDelta(_c.byref(dx), _c.byref(dy), _c.byref(dz), _c.byref(angleDeg), _c.byref(scale)):
-        return None
-    return (dx.value, dy.value, dz.value, angleDeg.value, scale.value)
+    out = CAD_JigDelta()
+    out.size = _c.sizeof(CAD_JigDelta)   # 출력 구조체 — 엔진은 이 크기까지만 쓴다
+    _r = _f.CAD_JigGetDelta(_c.byref(out))
+    return (_r, out)
 
 
-def CAD_JigBeginVariants(mode: int, ids: Sequence | None, count: int, px: float, py: float, pz: float) -> bool:
-    """C: bool CAD_JigBeginVariants(int mode, const uint32_t* ids, int count, float px, float py, float pz)
+def CAD_JigBeginVariants(mode: int, ids: Sequence | None, count: int, pivot: CAD_GeVec3) -> int:
+    """C: CAD_Status CAD_JigBeginVariants(int32_t mode, const uint32_t* ids, uint32_t count, CAD_GeVec3 pivot)
 
-    후보 객체들을 미리 만들어 id 배열로 넘기면, 첫 후보가 커서를 따라오고 **Tab** 마다 다음 후보로
-    갈아끼워진다(문 좌/우열림, 볼트 규격 등). 비활성 후보는 씬에서 잠시 빠져 보이지 않는다.
-    확정 → 선택된 후보만 남고 나머지는 삭제 (AcEdJig 의 "성공 시에만 남긴다" 규약)
-    취소 → 후보 전부 삭제 (임시 형상이라 씬에 남기지 않음)
-    콜백이 필요 없어 C#/Qt 어디서든 그대로 쓸 수 있다.
-    코드로 끌기 — 모바일(가상 커서 없이 버튼으로)·자동 시연. Jig 중이 아니면 false.
-    MoveTo: 지그를 월드 점으로(OSnap 미적용). 이후 실제 마우스가 움직이면 다시 마우스를 따른다.
-    Commit: 좌클릭과 같은 확정(undo 1). CAD_JigState 는 다음 폴링에 2.
-    SetBasePoint: 이동·복사의 기준점(기본 = 선택 경계 상자 중심), 회전·축척은 피벗.
-    GetDelta: 지금 미리보기 — 이동량(이동·복사, 직교 반영), 회전각(도), 배율. 인자는 NULL 가능.
+    변형(variant) Jig — 끌면서 Tab 으로 **형상 자체를 바꾼다** (문 좌/우 열림·볼트 규격 등)
+    후보 객체들을 미리 만들어 넘기면 첫 후보가 커서를 따라오고 Tab(또는 CAD_JigNextVariant)마다 다음 후보로 갈아 끼운다.
+    쉬는 후보는 장면에서 잠시 빠져 안 보인다. 확정 = 그때 후보만 남고 나머지는 지움(AcEdJig 의 "성공할 때만 남긴다"),
+    취소 = 후보 전부 지움(임시 형상). 실패는 CAD_JigBegin 과 같다
     """
     _a_ids = _n.array(_c.c_uint32, ids)
-    return _f.CAD_JigBeginVariants(mode, _a_ids, count, px, py, pz)
+    return _f.CAD_JigBeginVariants(mode, _a_ids, count, pivot)
 
 
-def CAD_JigNextVariant() -> bool:
-    """C: bool CAD_JigNextVariant(void)
+def CAD_JigNextVariant() -> int:
+    """C: CAD_Status CAD_JigNextVariant(void)
 
-    Tab 과 동일 (호스트 버튼으로 전환할 때)
-
-    묶음 주석: 후보 객체들을 미리 만들어 id 배열로 넘기면, 첫 후보가 커서를 따라오고 **Tab** 마다 다음 후보로
-    갈아끼워진다(문 좌/우열림, 볼트 규격 등). 비활성 후보는 씬에서 잠시 빠져 보이지 않는다.
-    확정 → 선택된 후보만 남고 나머지는 삭제 (AcEdJig 의 "성공 시에만 남긴다" 규약)
-    취소 → 후보 전부 삭제 (임시 형상이라 씬에 남기지 않음)
-    콜백이 필요 없어 C#/Qt 어디서든 그대로 쓸 수 있다.
-    코드로 끌기 — 모바일(가상 커서 없이 버튼으로)·자동 시연. Jig 중이 아니면 false.
-    MoveTo: 지그를 월드 점으로(OSnap 미적용). 이후 실제 마우스가 움직이면 다시 마우스를 따른다.
-    Commit: 좌클릭과 같은 확정(undo 1). CAD_JigState 는 다음 폴링에 2.
-    SetBasePoint: 이동·복사의 기준점(기본 = 선택 경계 상자 중심), 회전·축척은 피벗.
-    GetDelta: 지금 미리보기 — 이동량(이동·복사, 직교 반영), 회전각(도), 배율. 인자는 NULL 가능.
+    다음 후보로(Tab 과 같다) — 변형 Jig 가 아니거나 후보가 하나뿐이면 CAD_E_NOT_READY
     """
     return _f.CAD_JigNextVariant()
 
 
-def CAD_JigVariantIndex() -> int:
-    """C: int CAD_JigVariantIndex(void)
+def CAD_JigGetVariant() -> tuple[int, int, int]:
+    """C: CAD_Status CAD_JigGetVariant(int32_t* outIndex, uint32_t* outId)
 
-    현재 후보 번호, -1 = 변형 Jig 아님
-
-    묶음 주석: 후보 객체들을 미리 만들어 id 배열로 넘기면, 첫 후보가 커서를 따라오고 **Tab** 마다 다음 후보로
-    갈아끼워진다(문 좌/우열림, 볼트 규격 등). 비활성 후보는 씬에서 잠시 빠져 보이지 않는다.
-    확정 → 선택된 후보만 남고 나머지는 삭제 (AcEdJig 의 "성공 시에만 남긴다" 규약)
-    취소 → 후보 전부 삭제 (임시 형상이라 씬에 남기지 않음)
-    콜백이 필요 없어 C#/Qt 어디서든 그대로 쓸 수 있다.
-    코드로 끌기 — 모바일(가상 커서 없이 버튼으로)·자동 시연. Jig 중이 아니면 false.
-    MoveTo: 지그를 월드 점으로(OSnap 미적용). 이후 실제 마우스가 움직이면 다시 마우스를 따른다.
-    Commit: 좌클릭과 같은 확정(undo 1). CAD_JigState 는 다음 폴링에 2.
-    SetBasePoint: 이동·복사의 기준점(기본 = 선택 경계 상자 중심), 회전·축척은 피벗.
-    GetDelta: 지금 미리보기 — 이동량(이동·복사, 직교 반영), 회전각(도), 배율. 인자는 NULL 가능.
+    지금 후보 — 번호(0부터)·id, 출력은 NULL 가능. 변형 Jig 가 아니면 CAD_E_NOT_READY
     """
-    return _f.CAD_JigVariantIndex()
+    outIndex = _c.c_int32()
+    outId = _c.c_uint32()
+    _r = _f.CAD_JigGetVariant(_c.byref(outIndex), _c.byref(outId))
+    return (_r, outIndex.value, outId.value)
 
 
-def CAD_JigVariantId() -> int:
-    """C: uint32_t CAD_JigVariantId(void)
+def CAD_BeginTextEdit(id: int) -> int:
+    """C: CAD_Status CAD_BeginTextEdit(uint32_t id)
 
-    지금 끌고 있는 후보 id (없으면 0)
-
-    묶음 주석: 후보 객체들을 미리 만들어 id 배열로 넘기면, 첫 후보가 커서를 따라오고 **Tab** 마다 다음 후보로
-    갈아끼워진다(문 좌/우열림, 볼트 규격 등). 비활성 후보는 씬에서 잠시 빠져 보이지 않는다.
-    확정 → 선택된 후보만 남고 나머지는 삭제 (AcEdJig 의 "성공 시에만 남긴다" 규약)
-    취소 → 후보 전부 삭제 (임시 형상이라 씬에 남기지 않음)
-    콜백이 필요 없어 C#/Qt 어디서든 그대로 쓸 수 있다.
-    코드로 끌기 — 모바일(가상 커서 없이 버튼으로)·자동 시연. Jig 중이 아니면 false.
-    MoveTo: 지그를 월드 점으로(OSnap 미적용). 이후 실제 마우스가 움직이면 다시 마우스를 따른다.
-    Commit: 좌클릭과 같은 확정(undo 1). CAD_JigState 는 다음 폴링에 2.
-    SetBasePoint: 이동·복사의 기준점(기본 = 선택 경계 상자 중심), 회전·축척은 피벗.
-    GetDelta: 지금 미리보기 — 이동량(이동·복사, 직교 반영), 회전각(도), 배율. 인자는 NULL 가능.
-    """
-    return _f.CAD_JigVariantId()
-
-
-def CAD_BeginTextEdit(id: int) -> bool:
-    """C: bool CAD_BeginTextEdit(uint32_t id)
+    시작 — 커서는 글 끝. 없는 id CAD_E_BAD_HANDLE · 문자가 아닌 객체 CAD_E_NOT_SUPPORTED · 잠긴 도면층 CAD_E_LOCKED.
+    다른 문자를 고치는 중이었으면 그것을 먼저 확정한다
     """
     return _f.CAD_BeginTextEdit(id)
 
 
-def CAD_IsTextEditing() -> bool:
-    """C: bool CAD_IsTextEditing(void)
+def CAD_GetTextEditId() -> tuple[int, int]:
+    """C: CAD_Status CAD_GetTextEditId(uint32_t* outId)
+
+    고치는 중인 문자 id — 아니면 0(그래도 CAD_OK)
     """
-    return _f.CAD_IsTextEditing()
+    outId = _c.c_uint32()
+    _r = _f.CAD_GetTextEditId(_c.byref(outId))
+    return (_r, outId.value)
 
 
-def CAD_TextEditInsert(utf8: str | None) -> None:
-    """C: void CAD_TextEditInsert(const char* utf8)
+def CAD_TextEditInsert(utf8: str | None) -> int:
+    """C: CAD_Status CAD_TextEditInsert(const char* utf8)
 
-    커서 위치에 삽입(여러 글자 가능)
+    커서 자리에 넣기(여러 글자 가능, 범위가 잡혀 있으면 덮어씀)
+
+    묶음 주석: 고치는 중인 문자 id — 아니면 0(그래도 CAD_OK)
     """
-    _f.CAD_TextEditInsert(_n.text(utf8))
+    return _f.CAD_TextEditInsert(_n.text(utf8))
 
 
-def CAD_TextEditBackspace() -> None:
-    """C: void CAD_TextEditBackspace(void)
+def CAD_TextEditBackspace() -> int:
+    """C: CAD_Status CAD_TextEditBackspace(void)
+
+    고치는 중인 문자 id — 아니면 0(그래도 CAD_OK)
     """
-    _f.CAD_TextEditBackspace()
+    return _f.CAD_TextEditBackspace()
 
 
-def CAD_TextEditDelete() -> None:
-    """C: void CAD_TextEditDelete(void)
+def CAD_TextEditDelete() -> int:
+    """C: CAD_Status CAD_TextEditDelete(void)
+
+    고치는 중인 문자 id — 아니면 0(그래도 CAD_OK)
     """
-    _f.CAD_TextEditDelete()
+    return _f.CAD_TextEditDelete()
 
 
-def CAD_TextEditMoveCaret(delta: int) -> None:
-    """C: void CAD_TextEditMoveCaret(int delta)
+def CAD_TextEditMoveCaret(delta: int) -> int:
+    """C: CAD_Status CAD_TextEditMoveCaret(int32_t delta)
 
-    -1/+1 등
+    글자 수만큼(−1 왼쪽 · +1 오른쪽), 끝에서 멈춤
+
+    묶음 주석: 고치는 중인 문자 id — 아니면 0(그래도 CAD_OK)
     """
-    _f.CAD_TextEditMoveCaret(delta)
+    return _f.CAD_TextEditMoveCaret(delta)
 
 
-def CAD_TextEditCommit() -> None:
-    """C: void CAD_TextEditCommit(void)
+def CAD_TextEditCommit() -> int:
+    """C: CAD_Status CAD_TextEditCommit(void)
 
-    undo 적재 + 종료
+    확정(바뀐 게 있으면 되돌리기 1) + 끝
+
+    묶음 주석: 고치는 중인 문자 id — 아니면 0(그래도 CAD_OK)
     """
-    _f.CAD_TextEditCommit()
+    return _f.CAD_TextEditCommit()
 
 
-def CAD_TextEditCancel() -> None:
-    """C: void CAD_TextEditCancel(void)
+def CAD_TextEditCancel() -> int:
+    """C: CAD_Status CAD_TextEditCancel(void)
 
-    원복 + 종료
+    원래 글로 + 끝
+
+    묶음 주석: 고치는 중인 문자 id — 아니면 0(그래도 CAD_OK)
     """
-    _f.CAD_TextEditCancel()
+    return _f.CAD_TextEditCancel()
 
 
 def CAD_GetSelectionContext() -> str | None:
@@ -701,70 +639,52 @@ def CAD_SnapNearPoint(point: CAD_GeVec3, radius: float, modes: int, opt: CAD_Osn
     return (_r, outPoint)
 
 
-def CAD_SetSubobjectSelectionMode(mode: int) -> bool:
-    """C: bool CAD_SetSubobjectSelectionMode(int mode)
+def CAD_SetSubobjectSelectionMode(mode: int) -> int:
+    """C: CAD_Status CAD_SetSubobjectSelectionMode(int32_t mode)
 
-    Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
-    Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
-    GetSelectedFaceTriangles returns required count; writes up to capacity if out != NULL.
+    모드 바꾸기(고른 면·모서리는 비움, 면·모서리 모드면 객체 선택도 비움). 범위 밖 CAD_E_OUT_OF_RANGE ·
+    도구·Jig·그립 끌기 진행 중에 면·모서리 모드로 CAD_E_BUSY
     """
     return _f.CAD_SetSubobjectSelectionMode(mode)
 
 
-def CAD_GetSubobjectSelectionMode() -> int:
-    """C: int CAD_GetSubobjectSelectionMode(void)
+def CAD_GetSubobjectSelectionMode() -> tuple[int, int]:
+    """C: CAD_Status CAD_GetSubobjectSelectionMode(int32_t* outMode)
 
-    Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
-    Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
-    GetSelectedFaceTriangles returns required count; writes up to capacity if out != NULL.
+    모드 바꾸기(고른 면·모서리는 비움, 면·모서리 모드면 객체 선택도 비움). 범위 밖 CAD_E_OUT_OF_RANGE ·
+    도구·Jig·그립 끌기 진행 중에 면·모서리 모드로 CAD_E_BUSY
     """
-    return _f.CAD_GetSubobjectSelectionMode()
+    outMode = _c.c_int32()
+    _r = _f.CAD_GetSubobjectSelectionMode(_c.byref(outMode))
+    return (_r, outMode.value)
 
 
-def CAD_PickSubobject(ox: float, oy: float, oz: float, dx: float, dy: float, dz: float) -> bool:
-    """C: bool CAD_PickSubobject(float ox, float oy, float oz, float dx, float dy, float dz)
+def CAD_PickSubobject(origin: CAD_GeVec3, direction: CAD_GeVec3) -> int:
+    """C: CAD_Status CAD_PickSubobject(CAD_GeVec3 origin, CAD_GeVec3 direction)
 
-    Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
-    Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
-    GetSelectedFaceTriangles returns required count; writes up to capacity if out != NULL.
+    광선(월드)으로 면·모서리 하나 고르기 — 화면 클릭과 같은 판정(모서리는 맞은 면의 테두리 중 화면에서 가까운 것, 10px 안).
+    객체 모드면 CAD_E_NOT_READY · 방향 0 CAD_E_DEGENERATE · 맞은 것이 없으면 CAD_E_NOT_FOUND(고른 것도 비움). 숨긴 객체는 안 맞는다
     """
-    return _f.CAD_PickSubobject(ox, oy, oz, dx, dy, dz)
+    return _f.CAD_PickSubobject(origin, direction)
 
 
-def CAD_GetSubobjectSelectionId() -> int:
-    """C: uint32_t CAD_GetSubobjectSelectionId(void)
+def CAD_GetSubobjectSelection() -> tuple[int, CAD_SubobjectSelection]:
+    """C: CAD_Status CAD_GetSubobjectSelection(CAD_SubobjectSelection* out)
 
-    Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
-    Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
-    GetSelectedFaceTriangles returns required count; writes up to capacity if out != NULL.
+    지금 고른 면·모서리 — 없으면 CAD_E_NOT_FOUND(객체 모드 포함)
     """
-    return _f.CAD_GetSubobjectSelectionId()
+    out = CAD_SubobjectSelection()
+    out.size = _c.sizeof(CAD_SubobjectSelection)   # 출력 구조체 — 엔진은 이 크기까지만 쓴다
+    _r = _f.CAD_GetSubobjectSelection(_c.byref(out))
+    return (_r, out)
 
 
-def CAD_GetSelectedFaceTriangles(out: Any, capacity: int) -> int:
-    """C: uint32_t CAD_GetSelectedFaceTriangles(uint32_t* out, uint32_t capacity)
+def CAD_GetSelectedFaceTriangles(outTriangles: Any, capacity: int) -> int:
+    """C: int32_t CAD_GetSelectedFaceTriangles(uint32_t* outTriangles, uint32_t capacity)
 
-    Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
-    Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
-    GetSelectedFaceTriangles returns required count; writes up to capacity if out != NULL.
+    고른 면의 삼각형 번호(모델 인덱스 ÷ 3) — 칸만큼 채우고 전체 개수. 고른 면이 없으면 CAD_E_NOT_FOUND
     """
-    return _f.CAD_GetSelectedFaceTriangles(out, capacity)
-
-
-def CAD_GetSelectedBRepFaceId() -> int:
-    """C: int32_t CAD_GetSelectedBRepFaceId(void)
-
-    현재 선택 면이 B-Rep 면이면 안정적인 face id, 아니면 -1.
-    """
-    return _f.CAD_GetSelectedBRepFaceId()
-
-
-def CAD_GetSelectedEdge(endpoints6: Any) -> bool:
-    """C: bool CAD_GetSelectedEdge(float* endpoints6)
-
-    endpoints6 = {ax,ay,az,bx,by,bz}, world coordinates. False if no selected edge.
-    """
-    return _f.CAD_GetSelectedEdge(endpoints6)
+    return _f.CAD_GetSelectedFaceTriangles(outTriangles, capacity)
 
 
 def CAD_EdGetPoint(prompt: str | None, opt: CAD_EdInputOptions | None = None, **fields) -> int:

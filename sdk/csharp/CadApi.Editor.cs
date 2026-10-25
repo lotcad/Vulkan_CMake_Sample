@@ -10,6 +10,35 @@ namespace LotCAD
     public delegate void CAD_CommandFn(IntPtr user);
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct CAD_JigDelta
+    {
+        /// <summary>size 를 sizeof 로 채운 새 값(나머지 0).</summary>
+        public static CAD_JigDelta Create() { return new CAD_JigDelta { size = (uint)Marshal.SizeOf(typeof(CAD_JigDelta)) }; }
+        public uint size;
+        public int mode;
+        public CAD_GeVec3 move;
+        public double angle;
+        public double scale;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CAD_SubobjectSelection
+    {
+        /// <summary>size 를 sizeof 로 채운 새 값(나머지 0).</summary>
+        public static CAD_SubobjectSelection Create() { return new CAD_SubobjectSelection { size = (uint)Marshal.SizeOf(typeof(CAD_SubobjectSelection)) }; }
+        public uint size;
+        public int mode;
+        public uint id;
+        public int brepFaceId;
+        public uint triangleCount;
+        public CAD_GeVec3 normal;
+        public CAD_GeVec3 center;
+        public double area;
+        public CAD_GeVec3 edgeStart;
+        public CAD_GeVec3 edgeEnd;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct CAD_EdInputResult
     {
         /// <summary>size 를 sizeof 로 채운 새 값(나머지 0).</summary>
@@ -67,9 +96,20 @@ namespace LotCAD
 
     public static partial class CadApi
     {
+        public const int CAD_JIG_MOVE = 0;
+        public const int CAD_JIG_ROTATE = 1;
+        public const int CAD_JIG_SCALE = 2;
+        public const int CAD_JIG_COPY = 3;
+        public const int CAD_JIG_IDLE = 0;
+        public const int CAD_JIG_DRAGGING = 1;
+        public const int CAD_JIG_COMMITTED = 2;
+        public const int CAD_JIG_CANCELLED = 3;
         public const int CAD_SELECT_REPLACE = 0;
         public const int CAD_SELECT_ADD = 1;
         public const int CAD_SELECT_REMOVE = 2;
+        public const int CAD_SUBOBJECT_OBJECT = 0;
+        public const int CAD_SUBOBJECT_FACE = 1;
+        public const int CAD_SUBOBJECT_EDGE = 2;
         public const int CAD_ED_KIND_POINT = 1;
         public const int CAD_ED_KIND_CORNER = 2;
         public const int CAD_ED_KIND_DISTANCE = 3;
@@ -136,74 +176,61 @@ namespace LotCAD
         public static extern int CAD_RemoveMaterial();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_JigBegin(int mode, uint[] ids, int count, float px, float py, float pz);
+        public static extern int CAD_JigBegin(int mode, uint[] ids, uint count, CAD_GeVec3 pivot);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_JigBeginOne(int mode, uint id, float px, float py, float pz);
+        public static extern int CAD_JigBeginOne(int mode, uint id, CAD_GeVec3 pivot);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_JigState();
+        public static extern int CAD_JigGetState(out int outState);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_JigCancel();
+        public static extern int CAD_JigCancel();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_JigMoveTo(float x, float y, float z);
+        public static extern int CAD_JigMoveTo(CAD_GeVec3 point);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_JigCommit();
+        public static extern int CAD_JigCommit();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_JigSetBasePoint(float x, float y, float z);
+        public static extern int CAD_JigSetBasePoint(CAD_GeVec3 point);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_JigGetDelta(out float dx, out float dy, out float dz, out float angleDeg, out float scale);
+        public static extern int CAD_JigGetDelta(ref CAD_JigDelta @out);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_JigBeginVariants(int mode, uint[] ids, int count, float px, float py, float pz);
+        public static extern int CAD_JigBeginVariants(int mode, uint[] ids, uint count, CAD_GeVec3 pivot);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_JigNextVariant();
+        public static extern int CAD_JigNextVariant();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_JigVariantIndex();
+        public static extern int CAD_JigGetVariant(out int outIndex, out uint outId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_JigVariantId();
+        public static extern int CAD_BeginTextEdit(uint id);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_BeginTextEdit(uint id);
+        public static extern int CAD_GetTextEditId(out uint outId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_IsTextEditing();
+        public static extern int CAD_TextEditInsert([MarshalAs(UnmanagedType.LPUTF8Str)] string utf8);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_TextEditInsert([MarshalAs(UnmanagedType.LPUTF8Str)] string utf8);
+        public static extern int CAD_TextEditBackspace();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_TextEditBackspace();
+        public static extern int CAD_TextEditDelete();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_TextEditDelete();
+        public static extern int CAD_TextEditMoveCaret(int delta);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_TextEditMoveCaret(int delta);
+        public static extern int CAD_TextEditCommit();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_TextEditCommit();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_TextEditCancel();
+        public static extern int CAD_TextEditCancel();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_GetSelectionContext(byte[] buf, uint capacity);
@@ -254,28 +281,19 @@ namespace LotCAD
         }
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetSubobjectSelectionMode(int mode);
+        public static extern int CAD_SetSubobjectSelectionMode(int mode);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetSubobjectSelectionMode();
+        public static extern int CAD_GetSubobjectSelectionMode(out int outMode);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_PickSubobject(float ox, float oy, float oz, float dx, float dy, float dz);
+        public static extern int CAD_PickSubobject(CAD_GeVec3 origin, CAD_GeVec3 direction);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetSubobjectSelectionId();
+        public static extern int CAD_GetSubobjectSelection(ref CAD_SubobjectSelection @out);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetSelectedFaceTriangles(uint[] @out, uint capacity);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetSelectedBRepFaceId();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetSelectedEdge(float[] endpoints6);
+        public static extern int CAD_GetSelectedFaceTriangles(uint[] outTriangles, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_EdGetPoint([MarshalAs(UnmanagedType.LPUTF8Str)] string prompt, CAD_EdInputOptions[] opt);

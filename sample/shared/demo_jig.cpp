@@ -1,6 +1,6 @@
 // Jig — 객체를 "끌고 다니다가" 확정(AutoCAD AcEdJig). 마우스 없이 버튼·슬라이더로도 끈다.
-// 쓰는 API: CAD_JigBeginOne · CAD_JigMoveTo · CAD_JigGetDelta · CAD_JigCommit · CAD_JigCancel · CAD_JigState
-//           CAD_JigBeginVariants · CAD_JigNextVariant (Tab 처럼 형상 바꾸기)
+// 쓰는 API: CAD_JigBeginOne · CAD_JigMoveTo · CAD_JigGetDelta · CAD_JigCommit · CAD_JigCancel · CAD_JigGetState
+//           CAD_JigBeginVariants · CAD_JigNextVariant · CAD_JigGetVariant (Tab 처럼 형상 바꾸기)
 #include "demo_internal.h"
 
 // 만들기 줄임 — 새 C API(CAD_GeVec3 + 결과 코드 + outId)를 옛 꼴(숫자들 → id, 실패 0)로
@@ -45,21 +45,24 @@ public:
     }
 
     void update(double) override {
-        const int st = CAD_JigState();          // 2·3 은 한 번만 온다 — 놓치지 않게 매 프레임 본다
-        if (st == 2) lastState_ = "확정됨";
-        else if (st == 3) lastState_ = "취소됨";
-        dragging_ = st == 1;
+        int32_t st = CAD_JIG_IDLE;
+        CAD_JigGetState(&st);                    // 확정·취소는 한 번만 온다 — 놓치지 않게 매 프레임 본다
+        if (st == CAD_JIG_COMMITTED) lastState_ = "확정됨";
+        else if (st == CAD_JIG_CANCELLED) lastState_ = "취소됨";
+        dragging_ = st == CAD_JIG_DRAGGING;
         if (dragging_) {
-            float dx = 0, dy = 0, dz = 0, ang = 0, sc = 1;
-            CAD_JigGetDelta(&dx, &dy, &dz, &ang, &sc);
-            delta_ = fmt("이동 (%.2f, %.2f, %.2f) · 회전 %.1f° · 배율 %.2f", dx, dy, dz, ang, sc);
+            CAD_JigDelta d{};
+            d.size = sizeof(d);
+            CAD_JigGetDelta(&d);
+            delta_ = fmt("이동 (%.2f, %.2f, %.2f) · 회전 %.1f° · 배율 %.2f", d.move.x, d.move.y, d.move.z,
+                         d.angle * 180.0 / 3.14159265358979323846, d.scale);
             status = "끄는 중 — 슬라이더로 옮기고 [확정]";
         } else {
             status = "Jig: " + lastState_;
         }
     }
 
-    void teardown() override { if (CAD_JigState() == 1) CAD_JigCancel(); }
+    void teardown() override { CAD_JigCancel(); }   // Jig 중이 아니면 아무 일 없음
 
 protected:
     void buildControls() override {
@@ -78,10 +81,11 @@ protected:
         header("변형 Jig — 끄는 중에 형상 바꾸기");
         button("상자 · 원기둥 · 구 로 시작", [this] { beginVariants(); }, [this] { return !dragging_; });
         button("다음 형상 (Tab)", [] { CAD_JigNextVariant(); },
-               [this] { return dragging_ && CAD_JigVariantIndex() >= 0; });
+               [this] { return dragging_ && CAD_JigGetVariant(nullptr, nullptr) == CAD_OK; });
         label("후보", [] {
-            const int i = CAD_JigVariantIndex();
-            return i < 0 ? std::string("—") : fmt("%d번 (id %u)", i + 1, CAD_JigVariantId());
+            int32_t i = -1;
+            uint32_t vid = 0;
+            return CAD_JigGetVariant(&i, &vid) != CAD_OK ? std::string("—") : fmt("%d번 (id %u)", i + 1, vid);
         });
     }
 
@@ -98,7 +102,7 @@ private:
         if (!id) { lastState_ = "상자가 없습니다"; return; }
         // 회전·축척의 피벗 = 상자 바닥 중심. 이동·복사는 엔진이 경계 상자 중심을 기준점으로 잡는다.
         const float px = -2.0f + 2.0f * target_;
-        if (!CAD_JigBeginOne(mode_, id, px, 0, 0)) { lastState_ = "시작 실패: " + lastError(); return; }
+        if (CAD_JigBeginOne(mode_, id, CAD_GeVec3{px, 0, 0}) != CAD_OK) { lastState_ = "시작 실패: " + lastError(); return; }
         // 이동·복사는 슬라이더가 기준점의 새 자리. 회전·축척은 피벗에서 끄는 점.
         x_ = mode_ == 1 || mode_ == 2 ? px + 1.0f : px;
         y_ = 0;
@@ -112,13 +116,14 @@ private:
             mkSphere(0, -2.5f, 0, 0.5f),
         };
         CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
-        if (!CAD_JigBeginVariants(0, ids, 3, 0, -2.5f, 0)) { lastState_ = "시작 실패: " + lastError(); return; }
+        if (CAD_JigBeginVariants(CAD_JIG_MOVE, ids, 3, CAD_GeVec3{0, -2.5, 0}) != CAD_OK) { lastState_ = "시작 실패: " + lastError(); return; }
         x_ = 0; y_ = -2.5f;
         moveTo();
     }
 
-    // 높이 = 기준점 높이(상자 중심 0.5) — 0 을 주면 바닥에 반쯤 묻힌다
-    void moveTo() { if (CAD_JigState() == 1) CAD_JigMoveTo(x_, y_, 0.5f); }
+    // 높이 = 기준점 높이(상자 중심 0.5) — 0 을 주면 바닥에 반쯤 묻힌다. Jig 중이 아니면 CAD_E_NOT_READY 로 그냥 돌아온다
+    // (상태를 묻지 않는다 — 물으면 확정·취소 알림을 여기서 먹어 버린다)
+    void moveTo() { CAD_JigMoveTo(CAD_GeVec3{x_, y_, 0.5}); }
 
     uint32_t boxes_[3] = {};
     int target_ = 0, mode_ = 0;

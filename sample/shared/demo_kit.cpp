@@ -11,7 +11,7 @@ namespace demo {
 // ── 공용 도우미 ──────────────────────────────────────────────────────
 
 void clearScene() {
-    if (CAD_JigState() == 1) CAD_JigCancel();
+    CAD_JigCancel();   // Jig 중이 아니면 아무 일 없음
     CAD_NavStop(0);
     CAD_NavClearAgents();
     CAD_NavShowGrid(false);

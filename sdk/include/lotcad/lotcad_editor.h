@@ -70,48 +70,65 @@ CAD_API CAD_Status CAD_ClearAll(void);
 CAD_API CAD_Status CAD_CycleMaterial(void);
 CAD_API CAD_Status CAD_RemoveMaterial(void);
 
-// ── Jig (오토캐드 AcEdJig 스타일) ────────────────────────────────────
-// 객체 id 를 물려 시작하면 그 객체가 **커서를 따라다니고**, 좌클릭에 그 자리로 확정된다
-// (undo 1스텝). ESC 로 원복. OSnap·직교 트랙킹(F8)·콘솔 값 입력이 그대로 적용된다.
-//   mode: 0=이동 1=회전 2=축척 3=복사
-//   회전/축척은 (px,py,pz) 가 피벗. 이동/복사는 무시하고 선택 전체의 시각 중심을 기준점으로 잡는다.
-// 반환 false = 유효한 객체가 없어 시작 못 함.
-CAD_API bool CAD_JigBegin(int mode, const uint32_t* ids, int count,
-                          float px, float py, float pz);
-CAD_API bool CAD_JigBeginOne(int mode, uint32_t id, float px, float py, float pz);
-// 상태 폴링 — 0=비활성 1=끌는 중 2=직전 확정됨 3=직전 취소됨 (2/3 은 1회만 반환).
-CAD_API int  CAD_JigState(void);
-CAD_API void CAD_JigCancel(void);
+/* ── Jig (ObjectARX AcEdJig 자리) ──────────────────────────────────────
+ *
+ * 객체 id 를 물려 시작하면 그 객체가 **커서를 따라다니고**, 좌클릭에 그 자리로 확정된다(되돌리기 1). ESC 로 원복.
+ * 객체 스냅·직교(F8)·명령행 값 입력이 그대로 적용된다. 엔진 스레드에서만.
+ *   mode = CAD_JIG_*. 회전·축척은 pivot(월드)이 기준, 이동·복사는 pivot 을 안 쓰고 고른 것 전체의 경계 상자 가운데를 기준점으로.
+ * 시작 실패(선택과 같은 규칙): ids NULL·count 0·같은 id 두 번 = CAD_E_INVALID_ARG · 없는 id CAD_E_BAD_HANDLE · 잠긴 도면층 CAD_E_LOCKED ·
+ *   숨김·모양 없음 CAD_E_NOT_SUPPORTED · 이미 Jig 중 CAD_E_BUSY · mode 범위 밖 CAD_E_OUT_OF_RANGE — 하나라도 그러면 시작하지 않는다.
+ * 시작하면 다른 그리기 도구·치수 도구는 끝나고, 선택은 Jig 대상으로 바뀐다. */
+enum { CAD_JIG_MOVE = 0, CAD_JIG_ROTATE = 1, CAD_JIG_SCALE = 2, CAD_JIG_COPY = 3 };
+CAD_API CAD_Status CAD_JigBegin(int32_t mode, const uint32_t* ids, uint32_t count, CAD_GeVec3 pivot);
+CAD_API CAD_Status CAD_JigBeginOne(int32_t mode, uint32_t id, CAD_GeVec3 pivot);
 
-// ── 변형(variant) Jig — 끌면서 Tab 으로 **형상 자체를 교체** ──────────
-// 후보 객체들을 미리 만들어 id 배열로 넘기면, 첫 후보가 커서를 따라오고 **Tab** 마다 다음 후보로
-// 갈아끼워진다(문 좌/우열림, 볼트 규격 등). 비활성 후보는 씬에서 잠시 빠져 보이지 않는다.
-//   확정 → 선택된 후보만 남고 나머지는 삭제 (AcEdJig 의 "성공 시에만 남긴다" 규약)
-//   취소 → 후보 전부 삭제 (임시 형상이라 씬에 남기지 않음)
-// 콜백이 필요 없어 C#/Qt 어디서든 그대로 쓸 수 있다.
-// 코드로 끌기 — 모바일(가상 커서 없이 버튼으로)·자동 시연. Jig 중이 아니면 false.
-//   MoveTo: 지그를 월드 점으로(OSnap 미적용). 이후 실제 마우스가 움직이면 다시 마우스를 따른다.
-//   Commit: 좌클릭과 같은 확정(undo 1). CAD_JigState 는 다음 폴링에 2.
-//   SetBasePoint: 이동·복사의 기준점(기본 = 선택 경계 상자 중심), 회전·축척은 피벗.
-//   GetDelta: 지금 미리보기 — 이동량(이동·복사, 직교 반영), 회전각(도), 배율. 인자는 NULL 가능.
-CAD_API bool CAD_JigMoveTo(float x, float y, float z);
-CAD_API bool CAD_JigCommit(void);
-CAD_API bool CAD_JigSetBasePoint(float x, float y, float z);
-CAD_API bool CAD_JigGetDelta(float* dx, float* dy, float* dz, float* angleDeg, float* scale);
-CAD_API bool CAD_JigBeginVariants(int mode, const uint32_t* ids, int count,
-                                  float px, float py, float pz);
-CAD_API bool CAD_JigNextVariant(void);   // Tab 과 동일 (호스트 버튼으로 전환할 때)
-CAD_API int  CAD_JigVariantIndex(void);  // 현재 후보 번호, -1 = 변형 Jig 아님
-CAD_API uint32_t CAD_JigVariantId(void); // 지금 끌고 있는 후보 id (없으면 0)
+/* 상태 — CAD_JIG_DRAGGING 끄는 중 · COMMITTED·CANCELLED = 방금 끝남(한 번만 알리고 다음부터 IDLE) */
+enum { CAD_JIG_IDLE = 0, CAD_JIG_DRAGGING = 1, CAD_JIG_COMMITTED = 2, CAD_JIG_CANCELLED = 3 };
+CAD_API CAD_Status CAD_JigGetState(int32_t* outState);
+/* Jig 중이면 취소(ESC 와 같다 — 상태는 다음에 CANCELLED). Jig 중이 아니면 아무 일 없이 CAD_OK */
+CAD_API CAD_Status CAD_JigCancel(void);
 
-CAD_API bool     CAD_BeginTextEdit(uint32_t id);
-CAD_API bool     CAD_IsTextEditing(void);
-CAD_API void     CAD_TextEditInsert(const char* utf8);   // 커서 위치에 삽입(여러 글자 가능)
-CAD_API void     CAD_TextEditBackspace(void);
-CAD_API void     CAD_TextEditDelete(void);
-CAD_API void     CAD_TextEditMoveCaret(int delta);       // -1/+1 등
-CAD_API void     CAD_TextEditCommit(void);               // undo 적재 + 종료
-CAD_API void     CAD_TextEditCancel(void);               // 원복 + 종료
+/* 코드로 끌기 — 모바일(버튼으로)·자동 시연. Jig 중이 아니면 CAD_E_NOT_READY.
+ *   MoveTo: 커서를 월드 점으로(스냅 없음). 그 뒤 실제 마우스가 움직이면 다시 마우스를 따른다.
+ *   Commit: 좌클릭과 같은 확정(되돌리기 1) — 상태는 다음에 COMMITTED.
+ *   SetBasePoint: 이동·복사의 기준점, 회전·축척은 기준(pivot)을 바꾼다. */
+CAD_API CAD_Status CAD_JigMoveTo(CAD_GeVec3 point);
+CAD_API CAD_Status CAD_JigCommit(void);
+CAD_API CAD_Status CAD_JigSetBasePoint(CAD_GeVec3 point);
+
+/* 지금 미리보기 — 확정하면 그만큼 바뀐다 */
+typedef struct CAD_JigDelta {
+    uint32_t   size;    /* 부르는 쪽이 sizeof 로 채움 */
+    int32_t    mode;    /* CAD_JIG_* */
+    CAD_GeVec3 move;    /* 이동·복사: 옮긴 만큼(직교 반영). 회전·축척은 0 */
+    double     angle;   /* 회전: 각(rad, 반시계 +) — 다른 mode 는 0 */
+    double     scale;   /* 축척: 배율 — 다른 mode 는 1 */
+} CAD_JigDelta;
+CAD_API CAD_Status CAD_JigGetDelta(CAD_JigDelta* out);
+
+/* ── 변형(variant) Jig — 끌면서 Tab 으로 **형상 자체를 바꾼다** (문 좌/우 열림·볼트 규격 등) ──
+ * 후보 객체들을 미리 만들어 넘기면 첫 후보가 커서를 따라오고 Tab(또는 CAD_JigNextVariant)마다 다음 후보로 갈아 끼운다.
+ * 쉬는 후보는 장면에서 잠시 빠져 안 보인다. 확정 = 그때 후보만 남고 나머지는 지움(AcEdJig 의 "성공할 때만 남긴다"),
+ * 취소 = 후보 전부 지움(임시 형상). 실패는 CAD_JigBegin 과 같다 */
+CAD_API CAD_Status CAD_JigBeginVariants(int32_t mode, const uint32_t* ids, uint32_t count, CAD_GeVec3 pivot);
+/* 다음 후보로(Tab 과 같다) — 변형 Jig 가 아니거나 후보가 하나뿐이면 CAD_E_NOT_READY */
+CAD_API CAD_Status CAD_JigNextVariant(void);
+/* 지금 후보 — 번호(0부터)·id, 출력은 NULL 가능. 변형 Jig 가 아니면 CAD_E_NOT_READY */
+CAD_API CAD_Status CAD_JigGetVariant(int32_t* outIndex, uint32_t* outId);
+
+/* ── 문자 고쳐 쓰기 (문자 객체 더블클릭과 같은 길 — 화면에서 바로 반영, 확정할 때 되돌리기 1) ──
+ * 편집 중이 아닌데 부르면 CAD_E_NOT_READY. 엔진 스레드에서만 */
+/* 시작 — 커서는 글 끝. 없는 id CAD_E_BAD_HANDLE · 문자가 아닌 객체 CAD_E_NOT_SUPPORTED · 잠긴 도면층 CAD_E_LOCKED.
+ * 다른 문자를 고치는 중이었으면 그것을 먼저 확정한다 */
+CAD_API CAD_Status CAD_BeginTextEdit(uint32_t id);
+/* 고치는 중인 문자 id — 아니면 0(그래도 CAD_OK) */
+CAD_API CAD_Status CAD_GetTextEditId(uint32_t* outId);
+CAD_API CAD_Status CAD_TextEditInsert(const char* utf8);    /* 커서 자리에 넣기(여러 글자 가능, 범위가 잡혀 있으면 덮어씀) */
+CAD_API CAD_Status CAD_TextEditBackspace(void);
+CAD_API CAD_Status CAD_TextEditDelete(void);
+CAD_API CAD_Status CAD_TextEditMoveCaret(int32_t delta);    /* 글자 수만큼(−1 왼쪽 · +1 오른쪽), 끝에서 멈춤 */
+CAD_API CAD_Status CAD_TextEditCommit(void);                /* 확정(바뀐 게 있으면 되돌리기 1) + 끝 */
+CAD_API CAD_Status CAD_TextEditCancel(void);                /* 원래 글로 + 끝 */
 
 /* 선택 문맥 JSON — 사람이 화면에서 고른 것. AI 요청마다 자동으로 붙는 것과 같은 문자열.
  * {"mode":"object|face|edge","view":"top|…","count":N,"objects":[CAD_GetObjectJson 과 같은 객체…],"more":n,
@@ -145,18 +162,33 @@ CAD_API CAD_Status CAD_SnapNearPoint(CAD_GeVec3 point, double radius, uint32_t m
                                      CAD_OsnapPoint* outPoint);
 
 
-// Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
-// Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
-// GetSelectedFaceTriangles returns required count; writes up to capacity if out != NULL.
-CAD_API bool CAD_SetSubobjectSelectionMode(int mode);
-CAD_API int CAD_GetSubobjectSelectionMode(void);
-CAD_API bool CAD_PickSubobject(float ox, float oy, float oz, float dx, float dy, float dz);
-CAD_API uint32_t CAD_GetSubobjectSelectionId(void);
-CAD_API uint32_t CAD_GetSelectedFaceTriangles(uint32_t* out, uint32_t capacity);
-// 현재 선택 면이 B-Rep 면이면 안정적인 face id, 아니면 -1.
-CAD_API int32_t CAD_GetSelectedBRepFaceId(void);
-// endpoints6 = {ax,ay,az,bx,by,bz}, world coordinates. False if no selected edge.
-CAD_API bool CAD_GetSelectedEdge(float* endpoints6);
+/* ── 하위 객체 선택 — 메시의 면 하나·모서리 하나 (명령 faceselect·edgeselect 와 같은 모드, 면을 고른 뒤 PushPull·Inset·모서리 가공) ──
+ * 엔진 스레드에서만. 면 = 같은 평면으로 이어진 삼각형 묶음, B-Rep 솔리드면 그 면 번호도 */
+enum { CAD_SUBOBJECT_OBJECT = 0, CAD_SUBOBJECT_FACE = 1, CAD_SUBOBJECT_EDGE = 2 };
+/* 모드 바꾸기(고른 면·모서리는 비움, 면·모서리 모드면 객체 선택도 비움). 범위 밖 CAD_E_OUT_OF_RANGE ·
+ * 도구·Jig·그립 끌기 진행 중에 면·모서리 모드로 CAD_E_BUSY */
+CAD_API CAD_Status CAD_SetSubobjectSelectionMode(int32_t mode);
+CAD_API CAD_Status CAD_GetSubobjectSelectionMode(int32_t* outMode);
+/* 광선(월드)으로 면·모서리 하나 고르기 — 화면 클릭과 같은 판정(모서리는 맞은 면의 테두리 중 화면에서 가까운 것, 10px 안).
+ * 객체 모드면 CAD_E_NOT_READY · 방향 0 CAD_E_DEGENERATE · 맞은 것이 없으면 CAD_E_NOT_FOUND(고른 것도 비움). 숨긴 객체는 안 맞는다 */
+CAD_API CAD_Status CAD_PickSubobject(CAD_GeVec3 origin, CAD_GeVec3 direction);
+
+typedef struct CAD_SubobjectSelection {
+    uint32_t   size;           /* 부르는 쪽이 sizeof 로 채움 */
+    int32_t    mode;           /* CAD_SUBOBJECT_FACE · EDGE */
+    uint32_t   id;             /* 그 면·모서리를 가진 객체 */
+    int32_t    brepFaceId;     /* 면: B-Rep 솔리드의 면 번호(모양을 바꿔도 같은 면은 같은 번호), 아니면 −1 */
+    uint32_t   triangleCount;  /* 면: 삼각형 수 → CAD_GetSelectedFaceTriangles */
+    CAD_GeVec3 normal;         /* 면: 바깥 법선(월드, 길이 1) */
+    CAD_GeVec3 center;         /* 면: 넓이 가중 가운데(월드) */
+    double     area;           /* 면: 넓이(월드) */
+    CAD_GeVec3 edgeStart;      /* 모서리: 두 끝(월드) */
+    CAD_GeVec3 edgeEnd;
+} CAD_SubobjectSelection;
+/* 지금 고른 면·모서리 — 없으면 CAD_E_NOT_FOUND(객체 모드 포함) */
+CAD_API CAD_Status CAD_GetSubobjectSelection(CAD_SubobjectSelection* out);
+/* 고른 면의 삼각형 번호(모델 인덱스 ÷ 3) — 칸만큼 채우고 전체 개수. 고른 면이 없으면 CAD_E_NOT_FOUND */
+CAD_API int32_t    CAD_GetSelectedFaceTriangles(uint32_t* outTriangles, uint32_t capacity);
 
 
 /* ── 명령행 입력 받기 (CAD_Ed*) — ObjectARX acedGetPoint·GetCorner·GetDist·GetAngle·GetInt·GetReal·GetString·GetKword·
