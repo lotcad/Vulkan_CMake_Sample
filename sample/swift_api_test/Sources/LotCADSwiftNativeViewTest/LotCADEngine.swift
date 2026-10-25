@@ -469,15 +469,20 @@ final class LotCADEngine {
     }
     func uiItems() -> [UiItem] {
         guard isCreated else { return [] }
-        return (0..<CAD_GetUiItemCount()).compactMap { i in
-            guard let kind = UiItem.Kind(rawValue: CAD_GetUiItemKind(i)) else { return nil }
+        let count = max(0, CAD_GetUiItemCount())   // 음수 = 이유 코드
+        return (0..<UInt32(count)).compactMap { i in
+            var rawKind: Int32 = -1
+            var id: UInt32 = 0
+            guard CAD_GetUiItemKind(i, &rawKind) == 0,             // 0 = CAD_OK
+                  CAD_GetUiItemId(i, &id) == 0,
+                  let kind = UiItem.Kind(rawValue: rawKind) else { return nil }
             return UiItem(
-                id: CAD_GetUiItemId(i),
+                id: id,
                 kind: kind,
-                path: readString { CAD_GetUiItemPath(i, $0, $1) },
-                title: readString { CAD_GetUiItemTitle(i, $0, $1) },
-                command: readString { CAD_GetUiItemCommand(i, $0, $1) },
-                icon: readString { CAD_GetUiItemIcon(i, $0, $1) })
+                path: readString { CAD_GetUiItemPath(i, $0, UInt32($1)) },   // 칸 = uint32
+                title: readString { CAD_GetUiItemTitle(i, $0, UInt32($1)) },
+                command: readString { CAD_GetUiItemCommand(i, $0, UInt32($1)) },
+                icon: readString { CAD_GetUiItemIcon(i, $0, UInt32($1)) })
         }
     }
     /// 플러그인이 등록한 콘솔 명령 (이름, 표시 이름).
@@ -489,8 +494,8 @@ final class LotCADEngine {
              readString { CAD_GetRegisteredCommandTitle(i, $0, UInt32($1)) })
         }
     }
-    /// 폴더의 플러그인을 올린다. 반환 = 성공한 개수.
-    func loadPlugins(directory: String) -> UInt32 {
+    /// 폴더의 플러그인을 올린다. 반환 = 새로 붙인 개수(음수 = 이유 코드 — lastError).
+    func loadPlugins(directory: String) -> Int32 {
         guard isCreated else { return 0 }
         return CAD_LoadPlugins(directory)
     }

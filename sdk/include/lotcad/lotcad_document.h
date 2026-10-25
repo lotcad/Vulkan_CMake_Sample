@@ -53,25 +53,26 @@ CAD_API int32_t    CAD_GetLayersJson(char* buf, uint32_t capacity);
 // 블록(블록 참조 — docs/BLOCKS_2026-10-12.md). 정의 표 한 번에: {"blocks":[{"name","objects","references"(장면에 넣은 수),
 //   "base":[x,y,z],"bounds":{"min","max"}(있으면),"xref"(외부 참조 경로, 있으면)}]}. 블록 편집은 명령으로: CAD_ExecuteCommand("bedit 이름") ·
 //   "bsave" · "bclose save|discard" · "bbase x,y" (탭을 여닫으므로 다음 CAD_Tick 에 처리된다).
-CAD_API int      CAD_GetBlocksJson(char* out, int cap);
-// 객체들로 새 블록 정의 + 그 자리(층 "0")에 INSERT 하나 — 명령 block 과 같다, 되돌리기 1. 반환 = 새 INSERT id(0 = 실패, 이유는 CAD_GetLastError)
-CAD_API uint32_t CAD_CreateBlock(const char* nameUtf8, const uint32_t* ids, int count, float baseX, float baseY, float baseZ);
-// 블록 참조의 속성 글 값 — JSON 문자열 배열(속성 글 id 순). Get: 반환 = 길이, 블록 참조가 아니면 -1.
-// Set: 같은 개수의 배열 — 그 INSERT 만 바뀐다(복사한 INSERT 와 같이 쓰던 묶음은 사본으로), 되돌리기 1. 실패면 false + CAD_GetLastError
-CAD_API int      CAD_GetInsertAttributesJson(uint32_t id, char* out, int cap);
-CAD_API bool     CAD_SetInsertAttributesJson(uint32_t id, const char* jsonArray);
+CAD_API int32_t    CAD_GetBlocksJson(char* buf, uint32_t capacity);
+// 객체들로 새 블록 정의 + 그 자리(층 "0")에 INSERT 하나 — 명령 block 과 같다, 되돌리기 1. base = 기준점(월드). *outInsertId = 새 INSERT id.
+// 없는 id CAD_E_BAD_HANDLE · 못 만듦(쓰는 이름·잠김 …) CAD_E_FAILED + 이유
+CAD_API CAD_Status CAD_CreateBlock(const char* nameUtf8, const uint32_t* ids, uint32_t count, CAD_GeVec3 base, uint32_t* outInsertId);
+// 블록 참조의 속성 글 값 — JSON 문자열 배열(속성 글 id 순). 블록 참조가 아니면 CAD_E_NOT_SUPPORTED.
+// Set: 같은 개수의 배열 — 그 INSERT 만 바뀐다(복사한 INSERT 와 같이 쓰던 묶음은 사본으로), 되돌리기 1. 모양이 틀리면 CAD_E_INVALID_ARG + 이유
+CAD_API int32_t    CAD_GetInsertAttributesJson(uint32_t id, char* buf, uint32_t capacity);
+CAD_API CAD_Status CAD_SetInsertAttributesJson(uint32_t id, const char* jsonArray);
 // 외부 참조(XREF — 정의 표에서 "xref" 가 있는 블록, ObjectARX acedXrefReload·acedXrefBind·acedXrefDetach·setPathName). 목록·경로·찾음 여부는
-// CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 false + CAD_GetLastError.
+// CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 CAD_E_FAILED + 이유(CAD_GetLastError).
 //   Reload : 그 파일을 다시 읽어 정의를 바꾼다(그 INSERT 들이 따라 바뀜)
 //   SetPath: pathOrKind = "absolute" | "relative" | "none"(파일 이름만) 이면 경로 모양만(상대는 도면을 저장한 뒤),
 //            그 밖은 새 경로 — 적고 그 파일로 다시 읽는다(옮긴 파일 다시 찾기)
 //   Bind   : 보통 블록으로 굳힘 — 딸린 이름 "SITE|문" → "SITE$0$문"(블록·도면층·선종류)
 //   Detach : 그 INSERT·정의를 지움(다른 블록 안에 들어 있으면 거부)
 // 저장(.lot·DXF·DWG)엔 경로만 쓰고 열 때 다시 읽는다 — 상대 경로는 저장 자리 기준으로 다시 맞춘다.
-CAD_API bool     CAD_XrefReload(const char* nameUtf8);
-CAD_API bool     CAD_XrefSetPath(const char* nameUtf8, const char* pathOrKindUtf8);
-CAD_API bool     CAD_XrefBind(const char* nameUtf8);
-CAD_API bool     CAD_XrefDetach(const char* nameUtf8);
+CAD_API CAD_Status CAD_XrefReload(const char* nameUtf8);
+CAD_API CAD_Status CAD_XrefSetPath(const char* nameUtf8, const char* pathOrKindUtf8);
+CAD_API CAD_Status CAD_XrefBind(const char* nameUtf8);
+CAD_API CAD_Status CAD_XrefDetach(const char* nameUtf8);
 
 /* ── 도면층 (ObjectARX AcDbLayerTable 자리) — 지금 문서의 표 ──
  * id 0 = 도면층 "0"(늘 있음, 늘 보이고 안 잠김, 흰색·실선·불투명 고정 — 바꾸려 하면 CAD_E_NOT_SUPPORTED). 없는 id CAD_E_BAD_HANDLE.

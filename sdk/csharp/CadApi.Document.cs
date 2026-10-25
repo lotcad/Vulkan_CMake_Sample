@@ -59,33 +59,28 @@ namespace LotCAD
         public static extern int CAD_GetLayersJson(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetBlocksJson(byte[] @out, int cap);
+        public static extern int CAD_GetBlocksJson(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_CreateBlock([MarshalAs(UnmanagedType.LPUTF8Str)] string nameUtf8, uint[] ids, int count, float baseX, float baseY, float baseZ);
+        public static extern int CAD_CreateBlock([MarshalAs(UnmanagedType.LPUTF8Str)] string nameUtf8, uint[] ids, uint count, CAD_GeVec3 @base, out uint outInsertId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetInsertAttributesJson(uint id, byte[] @out, int cap);
+        public static extern int CAD_GetInsertAttributesJson(uint id, byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetInsertAttributesJson(uint id, [MarshalAs(UnmanagedType.LPUTF8Str)] string jsonArray);
+        public static extern int CAD_SetInsertAttributesJson(uint id, [MarshalAs(UnmanagedType.LPUTF8Str)] string jsonArray);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_XrefReload([MarshalAs(UnmanagedType.LPUTF8Str)] string nameUtf8);
+        public static extern int CAD_XrefReload([MarshalAs(UnmanagedType.LPUTF8Str)] string nameUtf8);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_XrefSetPath([MarshalAs(UnmanagedType.LPUTF8Str)] string nameUtf8, [MarshalAs(UnmanagedType.LPUTF8Str)] string pathOrKindUtf8);
+        public static extern int CAD_XrefSetPath([MarshalAs(UnmanagedType.LPUTF8Str)] string nameUtf8, [MarshalAs(UnmanagedType.LPUTF8Str)] string pathOrKindUtf8);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_XrefBind([MarshalAs(UnmanagedType.LPUTF8Str)] string nameUtf8);
+        public static extern int CAD_XrefBind([MarshalAs(UnmanagedType.LPUTF8Str)] string nameUtf8);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_XrefDetach([MarshalAs(UnmanagedType.LPUTF8Str)] string nameUtf8);
+        public static extern int CAD_XrefDetach([MarshalAs(UnmanagedType.LPUTF8Str)] string nameUtf8);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_CreateLayer([MarshalAs(UnmanagedType.LPUTF8Str)] string name, out uint outLayerId);

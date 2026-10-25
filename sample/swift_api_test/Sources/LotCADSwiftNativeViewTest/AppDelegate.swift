@@ -561,7 +561,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         guard panel.runModal() == .OK, let url = panel.url else { return }
         let count = engine.loadPlugins(directory: url.path)
         installPluginUi()
-        commandBar.setTransient(count > 0 ? "플러그인 \(count)개 로드" : "올린 플러그인이 없습니다")
+        commandBar.setTransient(count > 0 ? "플러그인 \(count)개 로드"
+                                : count < 0 ? "플러그인 불러오기 실패: \(engine.lastError)" : "올린 플러그인이 없습니다")
     }
 
     // MARK: - 해석 패널

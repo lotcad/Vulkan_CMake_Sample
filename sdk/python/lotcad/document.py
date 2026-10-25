@@ -31,14 +31,14 @@ _n.bind("CAD_TransactionDepth", _c.c_int32, [])
 _n.bind("CAD_GetSceneRevision", _c.c_int32, [_c.POINTER(_c.c_uint64)])
 _n.bind("CAD_GetSceneTreeJson", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32])
 _n.bind("CAD_GetLayersJson", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32])
-_n.bind("CAD_GetBlocksJson", _c.c_int, [_c.POINTER(_c.c_char), _c.c_int])
-_n.bind("CAD_CreateBlock", _c.c_uint32, [_c.c_char_p, _c.POINTER(_c.c_uint32), _c.c_int, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_GetInsertAttributesJson", _c.c_int, [_c.c_uint32, _c.POINTER(_c.c_char), _c.c_int])
-_n.bind("CAD_SetInsertAttributesJson", _c.c_bool, [_c.c_uint32, _c.c_char_p])
-_n.bind("CAD_XrefReload", _c.c_bool, [_c.c_char_p])
-_n.bind("CAD_XrefSetPath", _c.c_bool, [_c.c_char_p, _c.c_char_p])
-_n.bind("CAD_XrefBind", _c.c_bool, [_c.c_char_p])
-_n.bind("CAD_XrefDetach", _c.c_bool, [_c.c_char_p])
+_n.bind("CAD_GetBlocksJson", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_CreateBlock", _c.c_int32, [_c.c_char_p, _c.POINTER(_c.c_uint32), _c.c_uint32, CAD_GeVec3, _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_GetInsertAttributesJson", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_SetInsertAttributesJson", _c.c_int32, [_c.c_uint32, _c.c_char_p])
+_n.bind("CAD_XrefReload", _c.c_int32, [_c.c_char_p])
+_n.bind("CAD_XrefSetPath", _c.c_int32, [_c.c_char_p, _c.c_char_p])
+_n.bind("CAD_XrefBind", _c.c_int32, [_c.c_char_p])
+_n.bind("CAD_XrefDetach", _c.c_int32, [_c.c_char_p])
 _n.bind("CAD_CreateLayer", _c.c_int32, [_c.c_char_p, _c.POINTER(_c.c_uint32)])
 _n.bind("CAD_SetLayerColor", _c.c_int32, [_c.c_uint32, CAD_Color])
 _n.bind("CAD_GetLayerColor", _c.c_int32, [_c.c_uint32, _c.POINTER(CAD_Color)])
@@ -270,7 +270,7 @@ def CAD_GetLayersJson() -> str | None:
 
 
 def CAD_GetBlocksJson() -> str | None:
-    """C: int CAD_GetBlocksJson(char* out, int cap)
+    """C: int32_t CAD_GetBlocksJson(char* buf, uint32_t capacity)
 
     블록(블록 참조 — docs/BLOCKS_2026-10-12.md). 정의 표 한 번에: {"blocks":[{"name","objects","references"(장면에 넣은 수),
     "base":[x,y,z],"bounds":{"min","max"}(있으면),"xref"(외부 참조 경로, 있으면)}]}. 블록 편집은 명령으로: CAD_ExecuteCommand("bedit 이름") ·
@@ -288,20 +288,23 @@ def CAD_GetBlocksJson() -> str | None:
         return _n.decode(_buf.value)
 
 
-def CAD_CreateBlock(nameUtf8: str | None, ids: Sequence | None, count: int, baseX: float, baseY: float, baseZ: float) -> int:
-    """C: uint32_t CAD_CreateBlock(const char* nameUtf8, const uint32_t* ids, int count, float baseX, float baseY, float baseZ)
+def CAD_CreateBlock(nameUtf8: str | None, ids: Sequence | None, count: int, base: CAD_GeVec3) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateBlock(const char* nameUtf8, const uint32_t* ids, uint32_t count, CAD_GeVec3 base, uint32_t* outInsertId)
 
-    객체들로 새 블록 정의 + 그 자리(층 "0")에 INSERT 하나 — 명령 block 과 같다, 되돌리기 1. 반환 = 새 INSERT id(0 = 실패, 이유는 CAD_GetLastError)
+    객체들로 새 블록 정의 + 그 자리(층 "0")에 INSERT 하나 — 명령 block 과 같다, 되돌리기 1. base = 기준점(월드). *outInsertId = 새 INSERT id.
+    없는 id CAD_E_BAD_HANDLE · 못 만듦(쓰는 이름·잠김 …) CAD_E_FAILED + 이유
     """
     _a_ids = _n.array(_c.c_uint32, ids)
-    return _f.CAD_CreateBlock(_n.text(nameUtf8), _a_ids, count, baseX, baseY, baseZ)
+    outInsertId = _c.c_uint32()
+    _r = _f.CAD_CreateBlock(_n.text(nameUtf8), _a_ids, count, base, _c.byref(outInsertId))
+    return (_r, outInsertId.value)
 
 
 def CAD_GetInsertAttributesJson(id: int) -> str | None:
-    """C: int CAD_GetInsertAttributesJson(uint32_t id, char* out, int cap)
+    """C: int32_t CAD_GetInsertAttributesJson(uint32_t id, char* buf, uint32_t capacity)
 
-    블록 참조의 속성 글 값 — JSON 문자열 배열(속성 글 id 순). Get: 반환 = 길이, 블록 참조가 아니면 -1.
-    Set: 같은 개수의 배열 — 그 INSERT 만 바뀐다(복사한 INSERT 와 같이 쓰던 묶음은 사본으로), 되돌리기 1. 실패면 false + CAD_GetLastError
+    블록 참조의 속성 글 값 — JSON 문자열 배열(속성 글 id 순). 블록 참조가 아니면 CAD_E_NOT_SUPPORTED.
+    Set: 같은 개수의 배열 — 그 INSERT 만 바뀐다(복사한 INSERT 와 같이 쓰던 묶음은 사본으로), 되돌리기 1. 모양이 틀리면 CAD_E_INVALID_ARG + 이유
     """
     _cap = 256
     while True:
@@ -315,20 +318,20 @@ def CAD_GetInsertAttributesJson(id: int) -> str | None:
         return _n.decode(_buf.value)
 
 
-def CAD_SetInsertAttributesJson(id: int, jsonArray: str | None) -> bool:
-    """C: bool CAD_SetInsertAttributesJson(uint32_t id, const char* jsonArray)
+def CAD_SetInsertAttributesJson(id: int, jsonArray: str | None) -> int:
+    """C: CAD_Status CAD_SetInsertAttributesJson(uint32_t id, const char* jsonArray)
 
-    블록 참조의 속성 글 값 — JSON 문자열 배열(속성 글 id 순). Get: 반환 = 길이, 블록 참조가 아니면 -1.
-    Set: 같은 개수의 배열 — 그 INSERT 만 바뀐다(복사한 INSERT 와 같이 쓰던 묶음은 사본으로), 되돌리기 1. 실패면 false + CAD_GetLastError
+    블록 참조의 속성 글 값 — JSON 문자열 배열(속성 글 id 순). 블록 참조가 아니면 CAD_E_NOT_SUPPORTED.
+    Set: 같은 개수의 배열 — 그 INSERT 만 바뀐다(복사한 INSERT 와 같이 쓰던 묶음은 사본으로), 되돌리기 1. 모양이 틀리면 CAD_E_INVALID_ARG + 이유
     """
     return _f.CAD_SetInsertAttributesJson(id, _n.text(jsonArray))
 
 
-def CAD_XrefReload(nameUtf8: str | None) -> bool:
-    """C: bool CAD_XrefReload(const char* nameUtf8)
+def CAD_XrefReload(nameUtf8: str | None) -> int:
+    """C: CAD_Status CAD_XrefReload(const char* nameUtf8)
 
     외부 참조(XREF — 정의 표에서 "xref" 가 있는 블록, ObjectARX acedXrefReload·acedXrefBind·acedXrefDetach·setPathName). 목록·경로·찾음 여부는
-    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 false + CAD_GetLastError.
+    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 CAD_E_FAILED + 이유(CAD_GetLastError).
     Reload : 그 파일을 다시 읽어 정의를 바꾼다(그 INSERT 들이 따라 바뀜)
     SetPath: pathOrKind = "absolute" | "relative" | "none"(파일 이름만) 이면 경로 모양만(상대는 도면을 저장한 뒤),
     그 밖은 새 경로 — 적고 그 파일로 다시 읽는다(옮긴 파일 다시 찾기)
@@ -339,11 +342,11 @@ def CAD_XrefReload(nameUtf8: str | None) -> bool:
     return _f.CAD_XrefReload(_n.text(nameUtf8))
 
 
-def CAD_XrefSetPath(nameUtf8: str | None, pathOrKindUtf8: str | None) -> bool:
-    """C: bool CAD_XrefSetPath(const char* nameUtf8, const char* pathOrKindUtf8)
+def CAD_XrefSetPath(nameUtf8: str | None, pathOrKindUtf8: str | None) -> int:
+    """C: CAD_Status CAD_XrefSetPath(const char* nameUtf8, const char* pathOrKindUtf8)
 
     외부 참조(XREF — 정의 표에서 "xref" 가 있는 블록, ObjectARX acedXrefReload·acedXrefBind·acedXrefDetach·setPathName). 목록·경로·찾음 여부는
-    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 false + CAD_GetLastError.
+    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 CAD_E_FAILED + 이유(CAD_GetLastError).
     Reload : 그 파일을 다시 읽어 정의를 바꾼다(그 INSERT 들이 따라 바뀜)
     SetPath: pathOrKind = "absolute" | "relative" | "none"(파일 이름만) 이면 경로 모양만(상대는 도면을 저장한 뒤),
     그 밖은 새 경로 — 적고 그 파일로 다시 읽는다(옮긴 파일 다시 찾기)
@@ -354,11 +357,11 @@ def CAD_XrefSetPath(nameUtf8: str | None, pathOrKindUtf8: str | None) -> bool:
     return _f.CAD_XrefSetPath(_n.text(nameUtf8), _n.text(pathOrKindUtf8))
 
 
-def CAD_XrefBind(nameUtf8: str | None) -> bool:
-    """C: bool CAD_XrefBind(const char* nameUtf8)
+def CAD_XrefBind(nameUtf8: str | None) -> int:
+    """C: CAD_Status CAD_XrefBind(const char* nameUtf8)
 
     외부 참조(XREF — 정의 표에서 "xref" 가 있는 블록, ObjectARX acedXrefReload·acedXrefBind·acedXrefDetach·setPathName). 목록·경로·찾음 여부는
-    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 false + CAD_GetLastError.
+    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 CAD_E_FAILED + 이유(CAD_GetLastError).
     Reload : 그 파일을 다시 읽어 정의를 바꾼다(그 INSERT 들이 따라 바뀜)
     SetPath: pathOrKind = "absolute" | "relative" | "none"(파일 이름만) 이면 경로 모양만(상대는 도면을 저장한 뒤),
     그 밖은 새 경로 — 적고 그 파일로 다시 읽는다(옮긴 파일 다시 찾기)
@@ -369,11 +372,11 @@ def CAD_XrefBind(nameUtf8: str | None) -> bool:
     return _f.CAD_XrefBind(_n.text(nameUtf8))
 
 
-def CAD_XrefDetach(nameUtf8: str | None) -> bool:
-    """C: bool CAD_XrefDetach(const char* nameUtf8)
+def CAD_XrefDetach(nameUtf8: str | None) -> int:
+    """C: CAD_Status CAD_XrefDetach(const char* nameUtf8)
 
     외부 참조(XREF — 정의 표에서 "xref" 가 있는 블록, ObjectARX acedXrefReload·acedXrefBind·acedXrefDetach·setPathName). 목록·경로·찾음 여부는
-    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 false + CAD_GetLastError.
+    CAD_GetBlocksJson 의 "xref"(적힌 경로)·"xrefFound"(읽은 파일)·"xrefLoaded". 명령 xref 와 같고 전부 되돌리기 1, 실패 CAD_E_FAILED + 이유(CAD_GetLastError).
     Reload : 그 파일을 다시 읽어 정의를 바꾼다(그 INSERT 들이 따라 바뀜)
     SetPath: pathOrKind = "absolute" | "relative" | "none"(파일 이름만) 이면 경로 모양만(상대는 도면을 저장한 뒤),
     그 밖은 새 경로 — 적고 그 파일로 다시 읽는다(옮긴 파일 다시 찾기)
