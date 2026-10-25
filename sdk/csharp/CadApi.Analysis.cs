@@ -381,13 +381,13 @@ namespace LotCAD
         public const int CAD_CLOTH_RES_FINE = 2;
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_WindTunnel([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] outUtf8, int cap);
+        public static extern int CAD_WindTunnel([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_Water([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] outUtf8, int cap);
+        public static extern int CAD_Water([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_StructuralAnalysis([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] outUtf8, int cap);
+        public static extern int CAD_StructuralAnalysis([MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_SimOpen(uint id);

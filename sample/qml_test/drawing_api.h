@@ -28,31 +28,33 @@ public:
     QVariantList views() const { return views_; }
     QString lastError() const { return lastError_; }
 
-    // 정면·평면·우측면(3각법) + 등각. scale <= 0 이면 엔진이 모델 크기에서 고른다.
+    // 정면·평면·우측면(3각법) + 등각. scale 0 이면 1. 반환 = 만든 뷰 수(실패면 음수 CAD_E_*).
     // 대상은 "보이는 솔리드 전부"(count 0) — 선택만 넘기는 변형은 QML 에 아직 필요 없다.
     Q_INVOKABLE int createStandardViews(double scale) {
-        const uint32_t n = CAD_CreateDrawingViews(nullptr, 0, float(scale));
-        finish(n == 0);
+        const int32_t n = CAD_CreateDrawingViews(nullptr, 0, scale);
+        finish(n <= 0);
         return int(n);
     }
 
     // 단면도 A-A — 정투상 뷰를 가로지르는 선(a → b), 보는 쪽 = 선의 왼쪽. 반환 = 뷰 id(0 실패).
     Q_INVOKABLE int createSectionView(double ax, double ay, double bx, double by) {
-        const uint32_t id = CAD_CreateSectionView(float(ax), float(ay), float(bx), float(by));
-        finish(id == 0);
-        return int(id);
+        uint32_t id = 0;   // 결과 코드(0 = CAD_OK) + 새 뷰 id
+        const CAD_Status st = CAD_CreateSectionView(CAD_GeVec3{ax, ay, 0.0}, CAD_GeVec3{bx, by, 0.0}, &id);
+        finish(st != CAD_OK);
+        return st == CAD_OK ? int(id) : 0;
     }
 
     // 상세도 — 정투상 뷰 위 원(중심·반지름)을 factor 배로. factor 0 이면 엔진 기본값 2배.
     Q_INVOKABLE int createDetailView(double cx, double cy, double radius, double factor) {
-        const uint32_t id = CAD_CreateDetailView(float(cx), float(cy), float(radius), float(factor));
-        finish(id == 0);
-        return int(id);
+        uint32_t id = 0;
+        const CAD_Status st = CAD_CreateDetailView(CAD_GeVec3{cx, cy, 0.0}, radius, factor, &id);
+        finish(st != CAD_OK);
+        return st == CAD_OK ? int(id) : 0;
     }
 
     // 뷰 옮기기 — 엔진이 3각법 정렬을 유지해 준다(평면도는 위아래로만 등).
     Q_INVOKABLE bool moveView(int viewId, double dx, double dy) {
-        const bool ok = CAD_MoveDrawingView(uint32_t(viewId), float(dx), float(dy));
+        const bool ok = CAD_MoveDrawingView(uint32_t(viewId), CAD_GeVec3{dx, dy, 0.0}) == CAD_OK;   // 0 = 성공
         finish(!ok);
         return ok;
     }

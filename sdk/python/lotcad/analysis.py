@@ -82,9 +82,9 @@ CAD_CLOTH_RES_NORMAL = 0
 CAD_CLOTH_RES_FAST = 1
 CAD_CLOTH_RES_FINE = 2
 
-_n.bind("CAD_WindTunnel", _c.c_int, [_c.c_char_p, _c.POINTER(_c.c_char), _c.c_int])
-_n.bind("CAD_Water", _c.c_int, [_c.c_char_p, _c.POINTER(_c.c_char), _c.c_int])
-_n.bind("CAD_StructuralAnalysis", _c.c_int, [_c.c_char_p, _c.POINTER(_c.c_char), _c.c_int])
+_n.bind("CAD_WindTunnel", _c.c_int32, [_c.c_char_p, _c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_Water", _c.c_int32, [_c.c_char_p, _c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_StructuralAnalysis", _c.c_int32, [_c.c_char_p, _c.POINTER(_c.c_char), _c.c_uint32])
 _n.bind("CAD_SimOpen", _c.c_int32, [_c.c_uint32])
 _n.bind("CAD_SimClose", _c.c_int32, [])
 _n.bind("CAD_SimClear", _c.c_int32, [])
@@ -157,12 +157,12 @@ _n.bind("CAD_ClothBake", _c.c_int32, [_c.POINTER(_c.c_uint32)])
 
 
 def CAD_WindTunnel(argsJson: str | None) -> str | None:
-    """C: int CAD_WindTunnel(const char* argsJson, char* outUtf8, int cap)
+    """C: int32_t CAD_WindTunnel(const char* argsJson, char* buf, uint32_t capacity)
 
     해석 — MCP 도구 wind_tunnel · water · structural_analysis 와 같은 창구(엔진 windTunnelOp·waterOp·simOp). argsJson = {"op": …, …}
-    (없으면 status), 결과 JSON(ok·error·message·상태)을 outUtf8 에(cap 바이트, null 이면 길이만). 반환 = 길이, 실패 -1.
+    (없으면 status), 결과 JSON(ok·error·message·상태)을 buf 에(capacity 바이트, NUL 까지 — NULL 이면 길이만). 반환 = 전체 길이, 실패 = 음수 CAD_E_*(이유 = CAD_GetLastError).
     켜기(start)는 다음 프레임에, 구조 해석 풀이(run·converge)는 작업 스레드에서 — status 로 끝을 본다.
-    2회 호출(outUtf8 null 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
+    2회 호출(buf NULL 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
      바람 터널: status · start {ids|id, grid fast|normal|fine, wind 0.02~0.10} · stop · reset · pause · play ·
                 view {field speed|pressure|vortex|smoke, plane x|y|z, at 0~1, smoke, surface} · wind {value}      — 바람은 +X
      물:        status · start {id(그릇), level 0~1, grid} · stop · reset · pause · play · tilt {x, y 도} · shake {amplitude 0~1, period}
@@ -182,12 +182,12 @@ def CAD_WindTunnel(argsJson: str | None) -> str | None:
 
 
 def CAD_Water(argsJson: str | None) -> str | None:
-    """C: int CAD_Water(const char* argsJson, char* outUtf8, int cap)
+    """C: int32_t CAD_Water(const char* argsJson, char* buf, uint32_t capacity)
 
     해석 — MCP 도구 wind_tunnel · water · structural_analysis 와 같은 창구(엔진 windTunnelOp·waterOp·simOp). argsJson = {"op": …, …}
-    (없으면 status), 결과 JSON(ok·error·message·상태)을 outUtf8 에(cap 바이트, null 이면 길이만). 반환 = 길이, 실패 -1.
+    (없으면 status), 결과 JSON(ok·error·message·상태)을 buf 에(capacity 바이트, NUL 까지 — NULL 이면 길이만). 반환 = 전체 길이, 실패 = 음수 CAD_E_*(이유 = CAD_GetLastError).
     켜기(start)는 다음 프레임에, 구조 해석 풀이(run·converge)는 작업 스레드에서 — status 로 끝을 본다.
-    2회 호출(outUtf8 null 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
+    2회 호출(buf NULL 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
      바람 터널: status · start {ids|id, grid fast|normal|fine, wind 0.02~0.10} · stop · reset · pause · play ·
                 view {field speed|pressure|vortex|smoke, plane x|y|z, at 0~1, smoke, surface} · wind {value}      — 바람은 +X
      물:        status · start {id(그릇), level 0~1, grid} · stop · reset · pause · play · tilt {x, y 도} · shake {amplitude 0~1, period}
@@ -207,12 +207,12 @@ def CAD_Water(argsJson: str | None) -> str | None:
 
 
 def CAD_StructuralAnalysis(argsJson: str | None) -> str | None:
-    """C: int CAD_StructuralAnalysis(const char* argsJson, char* outUtf8, int cap)
+    """C: int32_t CAD_StructuralAnalysis(const char* argsJson, char* buf, uint32_t capacity)
 
     해석 — MCP 도구 wind_tunnel · water · structural_analysis 와 같은 창구(엔진 windTunnelOp·waterOp·simOp). argsJson = {"op": …, …}
-    (없으면 status), 결과 JSON(ok·error·message·상태)을 outUtf8 에(cap 바이트, null 이면 길이만). 반환 = 길이, 실패 -1.
+    (없으면 status), 결과 JSON(ok·error·message·상태)을 buf 에(capacity 바이트, NUL 까지 — NULL 이면 길이만). 반환 = 전체 길이, 실패 = 음수 CAD_E_*(이유 = CAD_GetLastError).
     켜기(start)는 다음 프레임에, 구조 해석 풀이(run·converge)는 작업 스레드에서 — status 로 끝을 본다.
-    2회 호출(outUtf8 null 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
+    2회 호출(buf NULL 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
      바람 터널: status · start {ids|id, grid fast|normal|fine, wind 0.02~0.10} · stop · reset · pause · play ·
                 view {field speed|pressure|vortex|smoke, plane x|y|z, at 0~1, smoke, surface} · wind {value}      — 바람은 +X
      물:        status · start {id(그릇), level 0~1, grid} · stop · reset · pause · play · tilt {x, y 도} · shake {amplitude 0~1, period}

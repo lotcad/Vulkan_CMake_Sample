@@ -46,12 +46,14 @@ inline CAD_Status CadStartCommand(const char* name)
 // out=NULL 로 길이를 물을 때 **한 번 실행**하고, 같은 인자로 버퍼를 주면 다시 실행하지 않고 그 결과를 준다.
 // 고정 버퍼로 먼저 불렀다 모자라 다시 부르면 start·run 이 두 번 들어간다("이미 도는 중") — 반드시 이 순서로.
 // 실패면 빈 문자열(이유는 CadLastError()).
-inline std::string CadCallJson(int (*fn)(const char*, char*, int), const std::string& argsJson)
+// 반환 = 전체 길이, 실패 = 음수 CAD_E_*.
+using CadJsonFn = int32_t (*)(const char*, char*, uint32_t);
+inline std::string CadCallJson(CadJsonFn fn, const std::string& argsJson)
 {
-	const int need = fn(argsJson.c_str(), nullptr, 0);   // 길이를 물으며 실행
+	const int32_t need = fn(argsJson.c_str(), nullptr, 0);   // 길이를 물으며 실행
 	if (need < 0) return {};
-	std::string out(need + 1, '\0');
-	if (fn(argsJson.c_str(), &out[0], need + 1) < 0) return {};   // 같은 인자 → 결과만
+	std::string out(static_cast<size_t>(need) + 1, '\0');
+	if (fn(argsJson.c_str(), &out[0], static_cast<uint32_t>(need) + 1) < 0) return {};   // 같은 인자 → 결과만
 	out.resize(strlen(out.c_str()));
 	return out;
 }

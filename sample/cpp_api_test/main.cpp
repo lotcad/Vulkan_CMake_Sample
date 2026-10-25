@@ -54,8 +54,8 @@ int main() {
     // 분해 — 문자를 윤곽선 폴리선으로 쪼갠다.
     // (폴리선·사각형이면 개별 선분으로 쪼개진다. 선·원·호는 대상이 아니다)
     // 새 id 를 주는 함수는 outIds = NULL 이면 개수만 알려 주고 아무것도 안 바꾼다 — 개수를 묻고 그만큼 칸을 준다.
-    const uint32_t textId = CAD_CreateText(0.0f, -2.0f, 0.0f, "CAD", 300.0f);
-    if (textId != 0) {
+    uint32_t textId = 0;
+    if (CAD_CreateText(CAD_GeVec3{0.0, -2.0, 0.0}, "CAD", 300.0, nullptr, &textId) == CAD_OK) {
         const int32_t before = CAD_GetObjectCount();
         const int32_t n = CAD_EntityExplode(&textId, 1, /*keepOriginal*/false, nullptr, 0);
         if (n > 0) {

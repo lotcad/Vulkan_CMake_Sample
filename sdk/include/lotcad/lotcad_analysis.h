@@ -10,9 +10,9 @@
 extern "C" {
 #endif
 /* 해석 — MCP 도구 wind_tunnel · water · structural_analysis 와 같은 창구(엔진 windTunnelOp·waterOp·simOp). argsJson = {"op": …, …}
- * (없으면 status), 결과 JSON(ok·error·message·상태)을 outUtf8 에(cap 바이트, null 이면 길이만). 반환 = 길이, 실패 -1.
+ * (없으면 status), 결과 JSON(ok·error·message·상태)을 buf 에(capacity 바이트, NUL 까지 — NULL 이면 길이만). 반환 = 전체 길이, 실패 = 음수 CAD_E_*(이유 = CAD_GetLastError).
  * 켜기(start)는 다음 프레임에, 구조 해석 풀이(run·converge)는 작업 스레드에서 — status 로 끝을 본다.
- * 2회 호출(outUtf8 null 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
+ * 2회 호출(buf NULL 로 길이 → 버퍼)은 첫 호출에서 한 번만 실행하고, 같은 인자의 다음 호출엔 그 결과를 준다.
  *  바람 터널: status · start {ids|id, grid fast|normal|fine, wind 0.02~0.10} · stop · reset · pause · play ·
  *             view {field speed|pressure|vortex|smoke, plane x|y|z, at 0~1, smoke, surface} · wind {value}      — 바람은 +X
  *  물:        status · start {id(그릇), level 0~1, grid} · stop · reset · pause · play · tilt {x, y 도} · shake {amplitude 0~1, period}
@@ -21,9 +21,9 @@ extern "C" {
  *             fix|free {face} · force {face, force[3] N} · pressure {face, value MPa} · temp {face, value °C} · flux {face, value W} · convect {face, h, ambient}
  *             face = 번호 또는 그 면 가까운 점 [x,y,z]. 결과는 status 의 result(응력·변위·안전율·온도·진동수·좌굴 배수·convergence). */
 
-CAD_API int      CAD_WindTunnel(const char* argsJson, char* outUtf8, int cap);
-CAD_API int      CAD_Water(const char* argsJson, char* outUtf8, int cap);
-CAD_API int      CAD_StructuralAnalysis(const char* argsJson, char* outUtf8, int cap);
+CAD_API int32_t  CAD_WindTunnel(const char* argsJson, char* buf, uint32_t capacity);
+CAD_API int32_t  CAD_Water(const char* argsJson, char* buf, uint32_t capacity);
+CAD_API int32_t  CAD_StructuralAnalysis(const char* argsJson, char* buf, uint32_t capacity);
 
 /* ── 구조 해석 — 값 함수 (CAD_Sim*) ──────────────────────────────────────
  * 닫힌 솔리드 하나를 2차 사면체(tet10)로 나눠 선형 탄성·열전도·모드(고유진동)·좌굴을 푼다. 위 JSON 창구(CAD_StructuralAnalysis · MCP

@@ -33,14 +33,14 @@ namespace {
 namespace demo {
 namespace {
 
-using AnalysisFn = int (*)(const char*, char*, int);
+using AnalysisFn = int32_t (*)(const char*, char*, uint32_t);   // 반환 = 전체 길이, 실패 = 음수 CAD_E_*
 
 // 해석 API 한 번. 결과 JSON 원문을 주고, 실패면 err 에 이유(결과의 "error" 또는 GetLastError).
 std::string analysisCall(AnalysisFn fn, const std::string& args, std::string& err) {
-    const int n = fn(args.c_str(), nullptr, 0);   // 길이 — 이때 한 번 실행된다
+    const int32_t n = fn(args.c_str(), nullptr, 0);   // 길이 — 이때 한 번 실행된다
     if (n < 0) { err = lastError(); return {}; }
     std::string s(static_cast<size_t>(n) + 1, '\0');
-    if (fn(args.c_str(), &s[0], n + 1) < 0) { err = lastError(); return {}; }   // 같은 인자 → 다시 실행하지 않고 그 결과
+    if (fn(args.c_str(), &s[0], static_cast<uint32_t>(n) + 1) < 0) { err = lastError(); return {}; }   // 같은 인자 → 다시 실행하지 않고 그 결과
     s.resize(static_cast<size_t>(n));
     err = jsonString(s, "error");
     return s;

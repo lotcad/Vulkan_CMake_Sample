@@ -43,10 +43,12 @@ extension LotCADEngine {
     @discardableResult
     func attachImage(_ image: UIImage, widthWorld: Float = 0.0) -> UInt32 {
         guard let rgba = Self.rgbaBytes(from: image) else { return 0 }
-        return rgba.pixels.withUnsafeBufferPointer { buf in
+        var id: UInt32 = 0   // 결과 코드(0 = CAD_OK) + 새 id — 실패면 0(이유는 CAD_GetLastError)
+        let status = rgba.pixels.withUnsafeBufferPointer { buf in
             CAD_AttachImageFromMemory(buf.baseAddress, Int32(rgba.width), Int32(rgba.height),
-                                      "사진", widthWorld, 0, 0, 0)
+                                      "사진", Double(widthWorld), CAD_GeVec3(x: 0, y: 0, z: 0), nil, &id)
         }
+        return status == 0 ? id : 0
     }
 
     /// UIImage → RGBA8. Vision 과 엔진이 **같은 픽셀 좌표**를 쓰도록 여기서 한 번만 만든다.

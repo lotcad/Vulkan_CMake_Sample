@@ -114,15 +114,15 @@ namespace LotCadWpf
         [DllImport(DLL)] public static extern int CAD_GetLastError(byte[] outUtf8, uint capacity);   // 직전 실패 이유
 
         // ── 해석 — 바람 터널 · 물 · 구조 해석 ── (Analysis.cs 가 쓴다)
-        // argsJson = {"op": …} 를 UTF-8 로, 결과 JSON 이 outUtf8 에. 반환 = 길이, 실패 -1.
+        // argsJson = {"op": …} 를 UTF-8 로, 결과 JSON 이 outUtf8 에(capacity 바이트). 반환 = 전체 길이, 실패 = 음수 CAD_E_*(이유는 CAD_GetLastError).
         // ⚠️ 2회 호출 규약: outUtf8=null 로 길이를 물을 때 **한 번 실행**하고, 같은 인자로 버퍼를 주면 그 결과만 준다.
         //    고정 버퍼로 먼저 불렀다 모자라 다시 부르면 start·run 이 두 번 들어간다 → 아래 CallOnce 로만 읽는다.
         // 해석 모듈 LotCADSim.dll · LotCADCfd.dll 이 LotCADCore.dll 옆에 있어야 한다(csproj 가 같이 복사).
-        [DllImport(DLL)] public static extern int CAD_WindTunnel(byte[] argsJson, byte[] outUtf8, int cap);
-        [DllImport(DLL)] public static extern int CAD_Water(byte[] argsJson, byte[] outUtf8, int cap);
-        [DllImport(DLL)] public static extern int CAD_StructuralAnalysis(byte[] argsJson, byte[] outUtf8, int cap);
+        [DllImport(DLL)] public static extern int CAD_WindTunnel(byte[] argsJson, byte[] outUtf8, uint capacity);
+        [DllImport(DLL)] public static extern int CAD_Water(byte[] argsJson, byte[] outUtf8, uint capacity);
+        [DllImport(DLL)] public static extern int CAD_StructuralAnalysis(byte[] argsJson, byte[] outUtf8, uint capacity);
 
-        public delegate int JsonFn(byte[] argsJson, byte[] outUtf8, int cap);
+        public delegate int JsonFn(byte[] argsJson, byte[] outUtf8, uint capacity);
 
         /// <summary>2회 호출 규약대로 한 번만 실행하고 결과 글을 받는다. 실패면 null.</summary>
         public static string CallOnce(JsonFn fn, string argsJson)
@@ -131,7 +131,7 @@ namespace LotCadWpf
             int need = fn(args, null, 0);          // 길이를 물으며 실행
             if (need < 0) return null;
             var buf = new byte[need + 1];
-            if (fn(args, buf, buf.Length) < 0) return null;   // 같은 인자 → 다시 실행하지 않고 결과만
+            if (fn(args, buf, (uint)buf.Length) < 0) return null;   // 같은 인자 → 다시 실행하지 않고 결과만
             return FromUtf8(buf);
         }
 

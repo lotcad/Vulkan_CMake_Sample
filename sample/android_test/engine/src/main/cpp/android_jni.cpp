@@ -232,10 +232,11 @@ JNI(jint, nativeAttachImageRgba)(JNIEnv* env, jobject, jbyteArray rgba, jint w, 
     if (!rgba || w <= 0 || h <= 0) return 0;
     jbyte* p = env->GetByteArrayElements(rgba, nullptr);
     if (!p) return 0;
-    const uint32_t id = CAD_AttachImageFromMemory(
-        reinterpret_cast<const unsigned char*>(p), w, h, "사진", 0.0f, 0, 0, 0);
+    uint32_t id = 0;   // 결과 코드(0 = CAD_OK) + 새 id — 실패면 0 을 돌려준다(이유는 CAD_GetLastError)
+    const CAD_Status st = CAD_AttachImageFromMemory(
+        reinterpret_cast<const unsigned char*>(p), w, h, "사진", 0.0, CAD_GeVec3{0.0, 0.0, 0.0}, nullptr, &id);
     env->ReleaseByteArrayElements(rgba, p, JNI_ABORT);
-    return static_cast<jint>(id);
+    return st == CAD_OK ? static_cast<jint>(id) : 0;
 }
 
 // ── OCR 결과 주입 ──

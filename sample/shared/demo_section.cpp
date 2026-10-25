@@ -48,8 +48,8 @@ protected:
         header("도면 뷰 (CAD_CreateDrawingViews)");
         button("3각법 도면 만들기", [this] {
             sectionOff();   // 도면 뷰는 모델 옆에 놓인다 — 실시간 단면이 그쪽을 자르지 않게 끈다
-            const uint32_t n = CAD_CreateDrawingViews(nullptr, 0, 1.0f);
-            note_ = n ? fmt("도면 뷰 %u개 (정면·평면·우측면·등각)", n) : "실패: " + lastError();
+            const int32_t n = CAD_CreateDrawingViews(nullptr, 0, 1.0);   // 반환 = 만든 뷰 수, 실패 = 음수
+            note_ = n > 0 ? fmt("도면 뷰 %d개 (정면·평면·우측면·등각)", n) : "실패: " + lastError();
             CAD_SetView(1);   // 도면은 XY 평면 — 위에서 본다
             CAD_ZoomExtents();
         });
@@ -129,9 +129,9 @@ private:
         double x0, y0, x1, y1;
         if (!baseBounds(x0, y0, x1, y1)) { note_ = "기본 뷰가 없습니다"; return; }
         const double y = (y0 + y1) * 0.5, pad = (x1 - x0) * 0.1;   // 정면도 가운데를 가로지르는 선
-        const uint32_t v = CAD_CreateSectionView(static_cast<float>(x0 - pad), static_cast<float>(y),
-                                                 static_cast<float>(x1 + pad), static_cast<float>(y));
-        note_ = v ? "단면도 A-A 를 만들었습니다" : "실패: " + lastError();
+        uint32_t v = 0;
+        const CAD_Status st = CAD_CreateSectionView(CAD_GeVec3{x0 - pad, y, 0.0}, CAD_GeVec3{x1 + pad, y, 0.0}, &v);
+        note_ = st == CAD_OK ? "단면도 A-A 를 만들었습니다" : "실패: " + lastError();
         CAD_ZoomExtents();
     }
 
@@ -139,9 +139,9 @@ private:
         double x0, y0, x1, y1;
         if (!baseBounds(x0, y0, x1, y1)) { note_ = "기본 뷰가 없습니다"; return; }
         const double r = std::fmin(x1 - x0, y1 - y0) * 0.2;
-        const uint32_t v = CAD_CreateDetailView(static_cast<float>((x0 + x1) * 0.5), static_cast<float>((y0 + y1) * 0.5),
-                                                static_cast<float>(r), 2.0f);
-        note_ = v ? "상세도(2배)를 만들었습니다" : "실패: " + lastError();
+        uint32_t v = 0;
+        const CAD_Status st = CAD_CreateDetailView(CAD_GeVec3{(x0 + x1) * 0.5, (y0 + y1) * 0.5, 0.0}, r, 2.0, &v);
+        note_ = st == CAD_OK ? "상세도(2배)를 만들었습니다" : "실패: " + lastError();
         CAD_ZoomExtents();
     }
 

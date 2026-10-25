@@ -98,7 +98,7 @@ namespace {
 	}
 
 	/// 해석 API 한 번 — 결과 JSON. 실패면 error 에 이유.
-	MiniJson::Value Call(int (*fn)(const char*, char*, int), const std::string& args, std::wstring& error)
+	MiniJson::Value Call(CadJsonFn fn, const std::string& args, std::wstring& error)
 	{
 		const std::string text = CadCallJson(fn, args);
 		if (text.empty()) {

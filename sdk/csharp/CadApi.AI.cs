@@ -8,41 +8,42 @@ namespace LotCAD
 {
     public static partial class CadApi
     {
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_AiSetEndpoint([MarshalAs(UnmanagedType.LPUTF8Str)] string url, [MarshalAs(UnmanagedType.LPUTF8Str)] string model);
+        public const int CAD_AI_IDLE = 0;
+        public const int CAD_AI_BUSY = 1;
+        public const int CAD_AI_DONE = 2;
+        public const int CAD_AI_ERROR = 3;
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_AiStartLocalServer();
+        public static extern int CAD_AiSetEndpoint([MarshalAs(UnmanagedType.LPUTF8Str)] string url, [MarshalAs(UnmanagedType.LPUTF8Str)] string model);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_AiSubmit([MarshalAs(UnmanagedType.LPUTF8Str)] string prompt);
+        public static extern int CAD_AiStartLocalServer();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_AiSubmitWithImage([MarshalAs(UnmanagedType.LPUTF8Str)] string prompt, [MarshalAs(UnmanagedType.LPUTF8Str)] string imagePath);
+        public static extern int CAD_AiSubmit([MarshalAs(UnmanagedType.LPUTF8Str)] string prompt);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_AiGetStatus();
+        public static extern int CAD_AiSubmitWithImage([MarshalAs(UnmanagedType.LPUTF8Str)] string prompt, [MarshalAs(UnmanagedType.LPUTF8Str)] string imagePath);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_AiGetLastAnswer(byte[] @out, int cap);
+        public static extern int CAD_AiGetStatus(out int outState);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_AiGetNotes(byte[] @out, int cap);
+        public static extern int CAD_AiGetLastAnswer(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_AiCancel();
+        public static extern int CAD_AiGetNotes(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_RunAiActionsJson([MarshalAs(UnmanagedType.LPUTF8Str)] string actionsJson, byte[] outNotes, int cap);
+        public static extern int CAD_AiCancel();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_McpCall([MarshalAs(UnmanagedType.LPUTF8Str)] string toolName, [MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] @out, int cap);
+        public static extern int CAD_RunAiActionsJson([MarshalAs(UnmanagedType.LPUTF8Str)] string actionsJson, byte[] outNotes, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetMcpToolsJson(byte[] outUtf8, int cap);
+        public static extern int CAD_McpCall([MarshalAs(UnmanagedType.LPUTF8Str)] string toolName, [MarshalAs(UnmanagedType.LPUTF8Str)] string argsJson, byte[] buf, uint capacity);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_GetMcpToolsJson(byte[] buf, uint capacity);
     }
 }

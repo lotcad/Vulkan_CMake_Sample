@@ -38,16 +38,17 @@ public:
     }
 
     void update(double) override {
-        const int st = CAD_AiGetStatus();   // 2·3 은 한 번만 — 놓치지 않게 매 프레임
-        if (st == 1) phase_ = "생각하는 중…";
-        else if (st == 2) {
+        int32_t st = CAD_AI_IDLE;
+        CAD_AiGetStatus(&st);   // 끝남·오류(CAD_AI_DONE·ERROR)는 한 번만 — 놓치지 않게 매 프레임
+        if (st == CAD_AI_BUSY) phase_ = "생각하는 중…";
+        else if (st == CAD_AI_DONE) {
             phase_ = "완료";
             answer_ = readString([](char* o, int c) { return CAD_AiGetLastAnswer(o, c); });
             notes_ = readString([](char* o, int c) { return CAD_AiGetNotes(o, c); });
-        } else if (st == 3) {
+        } else if (st == CAD_AI_ERROR) {
             phase_ = "오류: " + lastError();
         }
-        busy_ = st == 1;
+        busy_ = st == CAD_AI_BUSY;
         status = "AI: " + phase_;
     }
 
@@ -58,17 +59,17 @@ protected:
         header("LLM 서버 (OpenAI 호환 /v1/chat/completions)");
         textField("주소", [this] { return url_; }, [this](const std::string& s) { url_ = s; });
         button("연결", [this] {
-            phase_ = CAD_AiSetEndpoint(url_.c_str(), nullptr) ? "연결 확인 중 (1초쯤)" : "연결 실패: " + lastError();
+            phase_ = CAD_AiSetEndpoint(url_.c_str(), nullptr) == CAD_OK ? "연결 확인 중 (1초쯤)" : "연결 실패: " + lastError();
         });
         button("이 컴퓨터에서 서버 켜기", [this] {
-            phase_ = CAD_AiStartLocalServer() ? "로컬 서버 시작 — 모델 로딩을 기다리세요" : "시작 못 함: " + lastError();
+            phase_ = CAD_AiStartLocalServer() == CAD_OK ? "로컬 서버 시작 — 모델 로딩을 기다리세요" : "시작 못 함: " + lastError();
         });
 
         header("말로 시키기 (CAD_AiSubmit)");
         textField("요청", [this] { return prompt_; }, [this](const std::string& s) { prompt_ = s; });
         button("보내기", [this] {
             answer_.clear(); notes_.clear();
-            phase_ = CAD_AiSubmit(prompt_.c_str()) ? "보냄" : "보내지 못함: " + lastError();
+            phase_ = CAD_AiSubmit(prompt_.c_str()) == CAD_OK ? "보냄" : "보내지 못함: " + lastError();
         }, [this] { return !busy_; });
         button("취소", [] { CAD_AiCancel(); }, [this] { return busy_; });
         label("답", [this] { return answer_.empty() ? std::string("—") : answer_; });

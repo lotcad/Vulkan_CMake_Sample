@@ -75,13 +75,13 @@ signals:
 
 private:
     static QJsonObject invoke(const QString& which, const QVariantMap& args) {
-        using Fn = int (*)(const char*, char*, int);
+        using Fn = int32_t (*)(const char*, char*, uint32_t);   // 반환 = 전체 길이, 실패 = 음수 CAD_E_*
         const Fn fn = which == "wind" ? &CAD_WindTunnel : which == "water" ? &CAD_Water : &CAD_StructuralAnalysis;
         const QByteArray in = QJsonDocument(QJsonObject::fromVariantMap(args)).toJson(QJsonDocument::Compact);
-        const int need = fn(in.constData(), nullptr, 0);   // 길이 질의 — 여기서 한 번 실행된다
+        const int32_t need = fn(in.constData(), nullptr, 0);   // 길이 질의 — 여기서 한 번 실행된다
         if (need < 0) return {{"ok", false}, {"error", cadjson::lastError()}};
         QByteArray buf(need + 1, '\0');
-        const int n = fn(in.constData(), buf.data(), int(buf.size()));   // 같은 인자 → 다시 실행하지 않고 결과만
+        const int32_t n = fn(in.constData(), buf.data(), uint32_t(buf.size()));   // 같은 인자 → 다시 실행하지 않고 결과만
         if (n < 0) return {{"ok", false}, {"error", cadjson::lastError()}};
         buf.resize(qMin(n, int(buf.size())));
         return QJsonDocument::fromJson(buf).object();
