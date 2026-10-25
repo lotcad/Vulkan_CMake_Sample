@@ -39,7 +39,7 @@ public:
         mode_ = 0;
         x_ = 0; y_ = 0;
         lastState_ = "대기";
-        CAD_ClearSelection();
+        CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
         CAD_SetView(3);
         CAD_ZoomExtents();
     }
@@ -111,7 +111,7 @@ private:
             mkCylinder(0, -2.5f, 0, 0.5f, 1.0f),
             mkSphere(0, -2.5f, 0, 0.5f),
         };
-        CAD_ClearSelection();
+        CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
         if (!CAD_JigBeginVariants(0, ids, 3, 0, -2.5f, 0)) { lastState_ = "시작 실패: " + lastError(); return; }
         x_ = 0; y_ = -2.5f;
         moveTo();

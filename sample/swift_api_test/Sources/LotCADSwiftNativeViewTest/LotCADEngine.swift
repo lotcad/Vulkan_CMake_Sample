@@ -56,7 +56,7 @@ final class LotCADEngine {
     @discardableResult
     func execute(_ command: String) -> Bool {
         guard isCreated else { return false }
-        return CAD_ExecuteCommand(command)
+        return CAD_ExecuteCommand(command) == 0   // 0 = CAD_OK, 모르는 명령 = CAD_E_NOT_FOUND(음수)
     }
 
     // ── 알림(콜백) ──
@@ -109,7 +109,7 @@ final class LotCADEngine {
             CAD_SetPosition(boxId, CAD_GeVec3(x: 1.0, y: 0.0, z: 1.5))
             CAD_SetScale(boxId, CAD_GeVec3(x: 0.8, y: 0.8, z: 0.8))
             CAD_SetRotationAxisAngle(boxId, CAD_GeVec3(x: 0.0, y: 0.0, z: 1.0), 0.7853982)
-            CAD_SelectObject(boxId, false)
+            _ = CAD_SetSelection([boxId], 1, Int32(CAD_SELECT_REPLACE))
         }
 
         _ = createLine(
@@ -222,25 +222,26 @@ final class LotCADEngine {
         return id
     }
 
-    func startLineSketch() { guard isCreated else { return }; CAD_RequestStartLineSketch() }
-    func startRectangleSketch() { guard isCreated else { return }; CAD_RequestStartRectangleSketch() }
-    func startCircleSketch() { guard isCreated else { return }; CAD_RequestStartCircleSketch() }
-    func startPolygonSketch() { guard isCreated else { return }; CAD_RequestStartPolygonSketch() }
-    func cyclePolygonSides() { guard isCreated else { return }; CAD_RequestCyclePolygonSides() }
-    func startExtrude() { guard isCreated else { return }; CAD_RequestStartExtrude() }
-    func startArcSketch() { guard isCreated else { return }; CAD_RequestStartArcSketch() }
-    func cycleArcMode() { guard isCreated else { return }; CAD_RequestCycleArcMode() }
-    func startPolylineSketch() { guard isCreated else { return }; CAD_RequestStartPolylineSketch() }
-    func startLightPlacement() { guard isCreated else { return }; CAD_RequestStartLightPlacement() }
-    func cycleMaterial() { guard isCreated else { return }; CAD_RequestCycleMaterial() }
-    func removeMaterial() { guard isCreated else { return }; CAD_RequestRemoveMaterial() }
+    // 도구 시작·선택지 — 엔진 명령 이름으로(명령행에 치는 것과 같은 길)
+    func startLineSketch() { execute("line") }
+    func startRectangleSketch() { execute("rect") }
+    func startCircleSketch() { execute("circle") }
+    func startPolygonSketch() { execute("polygon") }
+    func cyclePolygonSides() { execute("sides") }
+    func startExtrude() { execute("extrude") }
+    func startArcSketch() { execute("arc") }
+    func cycleArcMode() { execute("arcmode") }
+    func startPolylineSketch() { execute("polyline") }
+    func startLightPlacement() { execute("light") }
+    func cycleMaterial() { guard isCreated else { return }; _ = CAD_CycleMaterial() }
+    func removeMaterial() { guard isCreated else { return }; _ = CAD_RemoveMaterial() }
     func adjustTextureScale(_ delta: Float) {
         guard isCreated else { return }
-        CAD_AdjustTextureScale(delta)
+        _ = CAD_AdjustTextureScale(Double(delta))
     }
     func adjustLineWidth(_ deltaPx: Float) {
         guard isCreated else { return }
-        CAD_AdjustLineWidth(deltaPx)
+        _ = CAD_AdjustLineWidth(Double(deltaPx))
     }
     // 옮기기·돌리기·축척·복사·색 — C API 는 대상 id 를 받는다(CAD_Entity*). 돌리기·축척 기준점 = 고른 것 전체 경계 상자 가운데
     private func offset(_ direction: CADPoint, _ distance: Float) -> CAD_GeVec3? {
@@ -295,19 +296,21 @@ final class LotCADEngine {
     func redo() { guard isCreated else { return }; CAD_Redo() }
     var canUndo: Bool { isCreated && CAD_CanUndo() }
     var canRedo: Bool { isCreated && CAD_CanRedo() }
-    func selectAll()      { guard isCreated else { return }; CAD_RequestSelectAll() }
-    func clearSelection() { guard isCreated else { return }; CAD_ClearSelection() }
-    func deleteSelected() { guard isCreated else { return }; CAD_RequestDeleteSelected() }
-    func clearAll()       { guard isCreated else { return }; CAD_RequestClearAll() }
-    var selectedCount: Int { isCreated ? Int(CAD_GetSelectedCount()) : 0 }
+    func selectAll()      { execute("selectall") }
+    func clearSelection() { guard isCreated else { return }; _ = CAD_SetSelection(nil, 0, Int32(CAD_SELECT_REPLACE)) }   // REPLACE + 0개 = 비우기
+    func deleteSelected() { execute("delete") }
+    func clearAll()       { guard isCreated else { return }; _ = CAD_ClearAll() }
+    var selectedCount: Int { isCreated ? max(0, Int(CAD_GetSelection(nil, 0))) : 0 }
 
     // ── 솔리드 편집 (인자만으로 결정되는 것들 — 클릭이 필요한 도구는 execute 로) ──
     // C API 는 대상 id 를 받는다 — 화면에서 고른 것을 모아 넘긴다(로프트는 고른 차례가 아니라 id 순)
+    // CAD_GetSelection: 개수만 먼저(nil, 0) 묻고 그만큼 칸을 잡아 한 번에 받는다
     private var selectedIds: [UInt32] {
-        (0..<CAD_GetSelectedCount()).compactMap { i -> UInt32? in
-            var id: UInt32 = 0
-            return CAD_GetSelectedObjectId(i, &id) && id != 0 ? id : nil
-        }
+        let n = CAD_GetSelection(nil, 0)
+        guard n > 0 else { return [] }
+        var ids = [UInt32](repeating: 0, count: Int(n))
+        let got = Int(max(0, min(n, CAD_GetSelection(&ids, UInt32(n)))))
+        return ids.prefix(got).filter { $0 != 0 }
     }
     func booleanUnion() {
         guard isCreated else { return }
@@ -405,12 +408,12 @@ final class LotCADEngine {
     /// 상시 안내(지금 뭘 해야 하는지). onPrompt 콜백과 같은 값 — 초기 표시용.
     var statusMessage: String {
         guard isCreated else { return "" }
-        return readString { CAD_GetStatusMessage($0, $1) }
+        return readString { CAD_GetPrompt($0, UInt32($1)) }   // 칸 = uint32
     }
     /// 일회성 안내(방금 왜 안 됐는지). 없으면 빈 문자열 — 매 틱 폴링해도 싸다.
     var transientMessage: String {
         guard isCreated else { return "" }
-        return readString { CAD_GetTransientMessage($0, $1) }
+        return readString { CAD_GetTransientMessage($0, UInt32($1)) }
     }
 
     // ── 플러그인이 등록한 UI 항목 ──
@@ -441,9 +444,10 @@ final class LotCADEngine {
     /// 플러그인이 등록한 콘솔 명령 (이름, 표시 이름).
     func registeredCommands() -> [(name: String, title: String)] {
         guard isCreated else { return [] }
-        return (0..<CAD_GetRegisteredCommandCount()).map { i in
-            (readString { CAD_GetRegisteredCommandName(i, $0, $1) },
-             readString { CAD_GetRegisteredCommandTitle(i, $0, $1) })
+        let count = max(0, CAD_GetRegisteredCommandCount())   // 음수 = 이유 코드
+        return (0..<UInt32(count)).map { i in
+            (readString { CAD_GetRegisteredCommandName(i, $0, UInt32($1)) },
+             readString { CAD_GetRegisteredCommandTitle(i, $0, UInt32($1)) })
         }
     }
     /// 폴더의 플러그인을 올린다. 반환 = 성공한 개수.

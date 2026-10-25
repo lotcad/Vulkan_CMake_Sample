@@ -19,11 +19,26 @@ SNAP_MODES = [(1, "끝점"), (2, "중간점"), (4, "중심점"), (8, "면 중심
               (32, "사분점"), (64, "교차점"), (128, "수직점"), (256, "접선"), (512, "근처점")]
 
 
+# 스냅·직교·극좌표 Get 함수는 결과 코드를 돌려주고 값은 출력 인자로 준다 — 감싸기 함수는
+# (결과 코드, 값…) 튜플로 바꿔 준다. 실패(음수)면 꺼진 것으로 본다.
+def osnap_on():
+    status, on = lotcad.CAD_GetOSnapEnabled()
+    return status == lotcad.CAD_OK and on
+
+
+def osnap_modes():
+    status, mask = lotcad.CAD_GetOSnapModes()
+    return mask if status == lotcad.CAD_OK else 0
+
+
+def ortho_on():
+    status, on = lotcad.CAD_GetOrthoEnabled()
+    return status == lotcad.CAD_OK and on
+
+
 def polar_on():
-    # CAD_GetPolarTracking(float* incrementDeg) 은 켜짐 여부(bool)를 돌려준다. 감싸기 함수는
-    # "bool 반환 + 출력 인자" 를 "성공하면 출력값, 아니면 None" 으로 바꾸므로, 켜짐 여부만 볼 땐
-    # 원시 함수(lotcad.native)에 NULL 을 넘기는 편이 뜻이 분명하다.
-    return bool(lotcad.native.CAD_GetPolarTracking(None))
+    status, on, _increment = lotcad.CAD_GetPolarTracking()   # (결과 코드, 켜짐, 각 증분 rad)
+    return status == lotcad.CAD_OK and on
 
 
 class CadStatusBar(QStatusBar):
@@ -41,7 +56,7 @@ class CadStatusBar(QStatusBar):
         self._style_button()
         self._projection = self._button(self._projection_text(), lambda: owner.set_ortho(not owner.ortho),
                                         "원근(Persp) / 직교(Ortho) 투영 전환")
-        self._toggle("직교(F8)", lotcad.CAD_GetOrthoEnabled, self.toggle_ortho_tracking,
+        self._toggle("직교(F8)", ortho_on, self.toggle_ortho_tracking,
                      "직교 추적 — 그리는 방향을 가로·세로로 고정 (F8, 명령 ortho)")
         self._toggle("극좌표(F10)", polar_on, self.toggle_polar,
                      "극좌표 추적 — 일정 각도마다 추적선 (F10). 각도는 명령행에 polar 30 처럼")
@@ -96,18 +111,18 @@ class CadStatusBar(QStatusBar):
         menu = QMenu(button)
         menu.aboutToShow.connect(lambda: self._fill_snap_menu(menu))
         button.setMenu(menu)
-        self._toggles.append((button, lotcad.CAD_GetOSnapEnabled))
+        self._toggles.append((button, osnap_on))
         self.addPermanentWidget(button)
 
     def _fill_snap_menu(self, menu):
         menu.clear()
-        modes = lotcad.CAD_GetOSnapModes()
+        modes = osnap_modes()
         for bit, name in SNAP_MODES:
             act = menu.addAction(name)
             act.setCheckable(True)
             act.setChecked(bool(modes & bit))
             # 고른 종류 하나만 뒤집는다 (메뉴를 열 때의 값을 기준으로 하지 않고 지금 값을 다시 읽는다)
-            act.triggered.connect(lambda _=False, bit=bit: lotcad.CAD_SetOSnapModes(lotcad.CAD_GetOSnapModes() ^ bit))
+            act.triggered.connect(lambda _=False, bit=bit: lotcad.CAD_SetOSnapModes(osnap_modes() ^ bit))
 
     # ── 동작 (F3·F8·F10 키도 같은 함수) ──
     def _toggle_grid(self):
@@ -120,15 +135,15 @@ class CadStatusBar(QStatusBar):
         self.refresh()
 
     def toggle_ortho_tracking(self):
-        lotcad.CAD_SetOrthoEnabled(not lotcad.CAD_GetOrthoEnabled())
+        lotcad.CAD_SetOrthoEnabled(not ortho_on())
         self.refresh()
 
     def toggle_polar(self):
-        lotcad.CAD_SetPolarTracking(not polar_on(), 0.0)   # 0 = 각도 증분은 지금 값 유지
+        lotcad.CAD_SetPolarTracking(not polar_on(), 0.0)   # 0 이하 = 각도 증분(rad)은 지금 값 유지
         self.refresh()
 
     def toggle_osnap(self):
-        lotcad.CAD_SetOSnapEnabled(not lotcad.CAD_GetOSnapEnabled())
+        lotcad.CAD_SetOSnapEnabled(not osnap_on())
         self.refresh()
 
     def apply_initial(self):

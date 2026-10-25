@@ -13,6 +13,7 @@
 #include "LotCAD_MFCDlg.h"
 #include "CadText.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <memory>
 #include <vector>
@@ -67,9 +68,38 @@ namespace {
 
 	std::vector<uint32_t> SelectedIds()
 	{
-		std::vector<uint32_t> ids(CAD_GetSelectedCount());
-		for (uint32_t i = 0; i < (uint32_t)ids.size(); ++i) CAD_GetSelectedObjectId(i, &ids[i]);
+		// 개수만 먼저(NULL, 0) 묻고 그만큼 칸을 잡아 한 번에 받는다
+		const int32_t n = CAD_GetSelection(nullptr, 0);
+		std::vector<uint32_t> ids(n > 0 ? (size_t)n : 0);
+		if (!ids.empty()) {
+			const int32_t got = CAD_GetSelection(ids.data(), (uint32_t)ids.size());
+			ids.resize(got > 0 ? (std::min)((size_t)got, ids.size()) : 0);
+		}
 		return ids;
+	}
+
+	// ── 점 하나 묻기 (오토캐드 acedGetPoint 자리) ──
+	// 엔진 명령행에 안내를 띄우고 바로 돌아온다 — 답(클릭·좌표 입력·ESC)은 onTick 에서 PollPickPoint 로 본다.
+	// 다른 질문이나 엔진 명령(선·이동 …)이 값을 기다리는 중이면 CAD_E_BUSY. 반환 = 못 시작한 이유(빈 글 = 시작함).
+	std::wstring BeginPickPoint(const char* promptUtf8)
+	{
+		const CAD_Status s = CAD_EdGetPoint(promptUtf8, nullptr);   // NULL = 선택 없음(기준점·기본값·키워드 없이)
+		if (s == CAD_OK) return L"";
+		const std::wstring why = CadLastError();
+		if (!why.empty()) return why;
+		return s == CAD_E_BUSY ? L"다른 명령이 진행 중입니다 — ESC 로 끝낸 뒤 다시 누르세요" : L"점 묻기를 시작하지 못했습니다";
+	}
+
+	// 0 = 아직 묻는 중 · 1 = 점을 받음(out) · -1 = 취소(ESC·빈 Enter·문서 바꿈)
+	int PollPickPoint(float out[3])
+	{
+		CAD_EdInputResult r{};
+		r.size = sizeof(r);
+		if (CAD_EdGetInputResult(&r) != CAD_OK) return -1;
+		if (r.status == CAD_ED_RESULT_PENDING) return 0;
+		if (r.status != CAD_ED_RESULT_NORMAL || r.kind != CAD_ED_KIND_POINT) return -1;
+		out[0] = (float)r.point.x; out[1] = (float)r.point.y; out[2] = (float)r.point.z;
+		return 1;
 	}
 }
 
@@ -253,10 +283,11 @@ void CLotCADMFCDlg::OpenNavPanel()
 	p.AddSection(L"3. 주행");
 	p.AddButton(L"목적지 찍기 — 3D 뷰 클릭", [this, st] {
 		// 엔진에 점 하나를 받아 달라고 하고, 결과는 onTick 에서 확인한다 (안내문은 명령행에 뜬다)
-		CAD_BeginGetPoint(u8"내비 목적지: 바닥을 클릭  (ESC 취소)");   // u8 — 엔진은 UTF-8 을 받는다
-		st->picking = true;
-		st->msg = L"3D 뷰에서 목적지를 클릭하세요";
-		m_view.SetFocus();
+		if (st->picking) CAD_EdCancelInput();   // 두 번 누름 — 앞의 질문을 끝내고 새로 묻는다
+		const std::wstring why = BeginPickPoint(u8"내비 목적지: 바닥을 클릭  (ESC 취소)");   // u8 — 엔진은 UTF-8 을 받는다
+		st->picking = why.empty();
+		st->msg = st->picking ? L"3D 뷰에서 목적지를 클릭하세요" : L"목적지 찍기 실패: " + why;
+		if (st->picking) m_view.SetFocus();
 	});
 	p.AddButton(L"출발", [st] {
 		if (CAD_NavStart(0)) { st->msg = L"출발"; return; }
@@ -277,13 +308,13 @@ void CLotCADMFCDlg::OpenNavPanel()
 
 	p.onTick = [this, st] {
 		if (st->picking) {
-			float x, y, z;
-			uint32_t id;
-			if (CAD_TryGetPickResult(&x, &y, &z, &id)) {
+			float pt[3];
+			const int got = PollPickPoint(pt);
+			if (got > 0) {
 				st->picking = false;
-				st->msg = CAD_NavSetGoal(0, x, y, z) ? Format(L"목적지 (%.1f, %.1f) — 출발을 누르세요", x, y)
-				                                     : L"길 없음: " + CadLastError();
-			} else if (!CAD_IsPicking()) {
+				st->msg = CAD_NavSetGoal(0, pt[0], pt[1], pt[2]) ? Format(L"목적지 (%.1f, %.1f) — 출발을 누르세요", pt[0], pt[1])
+				                                                  : L"길 없음: " + CadLastError();
+			} else if (got < 0) {
 				st->picking = false;
 				st->msg = L"목적지 찍기 취소";
 			}
@@ -296,7 +327,7 @@ void CLotCADMFCDlg::OpenNavPanel()
 		                  std::to_wstring(JsonCount(j, "\"arrived\":true")));
 	};
 	p.onClose = [this, st] {
-		if (st->picking) CAD_CancelPick();   // 대상·지도는 장면 상태라 남긴다
+		if (st->picking) CAD_EdCancelInput();   // 묻던 점을 끝낸다. 대상·지도는 장면 상태라 남긴다
 		RelayoutNow();
 	};
 }
@@ -356,10 +387,11 @@ void CLotCADMFCDlg::OpenParticlePanel()
 	p.AddChoice(L"장면 단위", { L"m  (1 m = 1)", L"mm  (1 m = 1000)" }, 0,
 	            [st](int i) { st->unitsPerMeter = i == 0 ? 1.0f : 1000.0f; });
 	p.AddButton(L"위치 찍어 만들기 — 3D 뷰 클릭", [this, st] {
-		CAD_BeginGetPoint(u8"파티클 위치: 클릭  (ESC 취소)");
-		st->picking = true;
-		st->msg = L"3D 뷰에서 위치를 클릭하세요";
-		m_view.SetFocus();
+		if (st->picking) CAD_EdCancelInput();   // 두 번 누름 — 앞의 질문을 끝내고 새로 묻는다
+		const std::wstring why = BeginPickPoint(u8"파티클 위치: 클릭  (ESC 취소)");
+		st->picking = why.empty();
+		st->msg = st->picking ? L"3D 뷰에서 위치를 클릭하세요" : L"위치 찍기 실패: " + why;
+		if (st->picking) m_view.SetFocus();
 	});
 
 	p.AddSection(L"재생");
@@ -384,9 +416,10 @@ void CLotCADMFCDlg::OpenParticlePanel()
 
 	p.onTick = [this, st] {
 		if (st->picking) {
-			float x, y, z;
-			uint32_t hit;
-			if (CAD_TryGetPickResult(&x, &y, &z, &hit)) {
+			float pt[3];
+			const int got = PollPickPoint(pt);
+			if (got > 0) {
+				const float x = pt[0], y = pt[1], z = pt[2];
 				st->picking = false;
 				// 내장은 번호로, 라이브러리는 프리셋 파일 경로로 만든다. 처음엔 정지 상태라 바로 재생한다.
 				const uint32_t id = st->kind < 3
@@ -399,7 +432,7 @@ void CLotCADMFCDlg::OpenParticlePanel()
 				} else {
 					st->msg = L"만들기 실패: " + CadLastError();
 				}
-			} else if (!CAD_IsPicking()) {
+			} else if (got < 0) {
 				st->picking = false;
 				st->msg = L"위치 찍기 취소";
 			}
@@ -412,7 +445,7 @@ void CLotCADMFCDlg::OpenParticlePanel()
 		                  (live.empty() ? L"" : L"\n살아 있는 입자: " + live));
 	};
 	p.onClose = [this, st] {
-		if (st->picking) CAD_CancelPick();   // 방출기는 장면 객체라 남는다 (.lot 에 저장됨)
+		if (st->picking) CAD_EdCancelInput();   // 묻던 점을 끝낸다. 방출기는 장면 객체라 남는다 (.lot 에 저장됨)
 		RelayoutNow();
 	};
 }

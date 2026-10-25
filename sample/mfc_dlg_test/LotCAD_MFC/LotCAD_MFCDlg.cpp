@@ -337,7 +337,7 @@ bool CLotCADMFCDlg::PickPath(bool save, const TCHAR* filter, CString& outPath)
 void CLotCADMFCDlg::ReportFailure(const TCHAR* fallback)
 {
 	char msg[512] = {};
-	CAD_GetStatusMessage(msg, sizeof(msg));
+	CAD_GetPrompt(msg, (uint32_t)sizeof(msg));   // 칸이 모자라면 글자 경계에서 잘라 담는다
 	if (msg[0]) {
 		wchar_t msgW[512] = {};
 		MultiByteToWideChar(CP_UTF8, 0, msg, -1, msgW, 512);
@@ -405,9 +405,9 @@ void CLotCADMFCDlg::OnCadExit() { EndDialog(IDCANCEL); }
 // ── 편집 ────────────────────────────────────────────────────────────────
 void CLotCADMFCDlg::OnCadUndo()      { CAD_Undo(); }
 void CLotCADMFCDlg::OnCadRedo()      { CAD_Redo(); }
-void CLotCADMFCDlg::OnCadSelectAll() { CAD_RequestSelectAll(); }
-void CLotCADMFCDlg::OnCadDelete()    { CAD_RequestDeleteSelected(); }
-void CLotCADMFCDlg::OnCadClearAll()  { CAD_RequestClearAll(); }
+void CLotCADMFCDlg::OnCadSelectAll() { CAD_ExecuteCommand("selectall"); }
+void CLotCADMFCDlg::OnCadDelete()    { CAD_ExecuteCommand("delete"); }
+void CLotCADMFCDlg::OnCadClearAll()  { CAD_ClearAll(); }
 
 // ── 보기 ────────────────────────────────────────────────────────────────
 void CLotCADMFCDlg::OnCadZoom()  { CAD_ZoomExtents(); }
@@ -429,9 +429,9 @@ void CLotCADMFCDlg::SetOrtho(bool ortho)
 }
 
 // ── 만들기 ──────────────────────────────────────────────────────────────
-// 큐브만 전용 API 가 있고 나머지는 명령 이름으로 부른다 — 엔진 명령이 200개가 넘어
+// 전부 명령 이름으로 부른다 — 엔진 명령이 200개가 넘어
 // 하나씩 C API 를 뚫는 대신 CAD_ExecuteCommand 로 가는 것이 이 샘플의 방침이다.
-void CLotCADMFCDlg::OnCadCube()     { CAD_RequestAddCube(); }
+void CLotCADMFCDlg::OnCadCube()     { CAD_ExecuteCommand("cube"); }
 void CLotCADMFCDlg::OnCadSphere()   { CAD_ExecuteCommand("sphere"); }
 void CLotCADMFCDlg::OnCadCylinder() { CAD_ExecuteCommand("cylinder"); }
 void CLotCADMFCDlg::OnCadCone()     { CAD_ExecuteCommand("cone"); }

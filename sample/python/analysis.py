@@ -46,7 +46,13 @@ def num(value, spec):
 
 
 def selected_ids():
-    return [i for i in (lotcad.CAD_GetSelectedObjectId(k) for k in range(lotcad.CAD_GetSelectedCount())) if i]
+    # CAD_GetSelection — 개수만 먼저(None, 0) 묻고 그만큼 칸을 잡아 한 번에 받는다
+    n = lotcad.CAD_GetSelection(None, 0)
+    if n <= 0:
+        return []
+    buf = lotcad.buffer(ctypes.c_uint32, n)
+    got = lotcad.CAD_GetSelection(buf, n)
+    return [i for i in buf[:max(0, min(n, got))] if i]
 
 
 def axis_name(n):

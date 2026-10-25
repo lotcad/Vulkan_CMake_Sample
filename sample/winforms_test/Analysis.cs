@@ -35,9 +35,8 @@ namespace LotCadWinForms
         public static uint[] SelectedIds()
         {
             var ids = new List<uint>();
-            uint n = CadApi.CAD_GetSelectedCount();
-            for (uint i = 0; i < n; i++)
-                if (CadApi.CAD_GetSelectedObjectId(i, out uint id) && id != 0) ids.Add(id);
+            foreach (uint id in CadApi.SelectedIds())   // CAD_GetSelection — 개수를 묻고 한 번에 받는다
+                if (id != 0) ids.Add(id);
             return ids.ToArray();
         }
 

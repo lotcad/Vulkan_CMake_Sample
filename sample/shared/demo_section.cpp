@@ -77,7 +77,7 @@ private:
         if (!CAD_OpenFile(models_[static_cast<size_t>(k)].c_str())) {
             note_ = "모델을 열지 못했습니다: " + models_[static_cast<size_t>(k)];
         }
-        CAD_ClearSelection();
+        CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
         readBounds();
         mode_ = 1;
         axis_ = 0;

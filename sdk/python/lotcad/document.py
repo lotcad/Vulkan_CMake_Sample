@@ -222,7 +222,7 @@ def CAD_GetSceneTreeJson() -> str | None:
     "total","shown"(아래 객체 수·보이는 수),  객체 줄만: "objectId"(1 이상),"objectKind","visible","selected","locked"(bool),"layerId","layer"}]}
     objectKind = 문자열, CAD_GetObjectJson 의 "kind" 와 같다: "mesh" "line" "polyline" "circle" "arc" "text" "dimension"
     "pointcloud" "particle" "effect" "hatch" "insert"(블록 참조) (모르는 종류 "unknown"). 객체 id 는 늘 1 이상(0 = 없음/실패).
-    클릭·보이기·이름 바꾸기는 기존 함수로: CAD_SelectObject · CAD_SetObjectVisible · CAD_SetObjectName(묶음 줄은 children 의 objectId 들).
+    클릭·보이기·이름 바꾸기는 기존 함수로: CAD_SetSelection · CAD_SetObjectVisible · CAD_SetObjectName(묶음 줄은 children 의 objectId 들).
     """
     _cap = 256
     while True:
@@ -637,7 +637,7 @@ def CAD_SaveAs(pathUtf8: str | None, selectedOnly: bool) -> bool:
     **현재 문서에 추가**한다(새 탭을 만들지 않음). 새 탭으로 열려면
     CAD_OpenDocument 를 쓴다.
 
-    둘 다 실패 시 false 를 반환하고 사유는 CAD_GetStatusMessage 로 읽는다.
+    둘 다 실패 시 false 를 반환하고 사유는 CAD_GetTransientMessage 로 읽는다(2e 에서 결과 코드로 바꿈).
     """
     return _f.CAD_SaveAs(_n.text(pathUtf8), selectedOnly)
 
@@ -656,7 +656,7 @@ def CAD_OpenFile(pathUtf8: str | None) -> bool:
     **현재 문서에 추가**한다(새 탭을 만들지 않음). 새 탭으로 열려면
     CAD_OpenDocument 를 쓴다.
 
-    둘 다 실패 시 false 를 반환하고 사유는 CAD_GetStatusMessage 로 읽는다.
+    둘 다 실패 시 false 를 반환하고 사유는 CAD_GetTransientMessage 로 읽는다(2e 에서 결과 코드로 바꿈).
     """
     return _f.CAD_OpenFile(_n.text(pathUtf8))
 

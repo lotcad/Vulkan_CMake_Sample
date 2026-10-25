@@ -35,7 +35,7 @@ public:
         mkBox(2.5f, -1.5f, 0.5f, 3.0f, 0.8f, 1.0f);
         mkCylinder(3.0f, 2.2f, 0, 0.7f, 1.0f);
         body_ = mkCylinder(-4.5f, -3.0f, 0, 0.3f, 0.8f);  // 달리는 대상
-        CAD_ClearSelection();
+        CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
         gx_ = 4.5f; gy_ = 3.0f;
         speed_ = 2.0f; rays_ = true; grid_ = false;
         agent_ = 0;

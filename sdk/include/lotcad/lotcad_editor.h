@@ -9,38 +9,30 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-// 진행 중인 치수 도구의 점 개수. 비활성이면 -1.
-// 모바일 커서 UI 의 [선택] 버튼 문구/종료 판단에 쓴다 — 클라이언트가 클릭을 세면
-// 엔진이 클릭을 거부하는 경우와 어긋나므로 반드시 엔진 값을 본다.
-CAD_API int  CAD_GetDimensionPointCount(void);
-// 진행 중인 도구의 안내 문구("첫 번째 점을 지정" 등). 도구가 없으면 빈 문자열.
-// 모바일 커서 UI 가 **도구 종류와 무관하게** 활성 여부/안내를 알기 위해 매 틱 폴링한다.
-// 반환: 복사한 길이(널 제외). buf 가 작으면 잘라서 복사한다.
-CAD_API int  CAD_GetPrompt(char* buf, int bufLen);
-
-CAD_API void CAD_RequestStartBoxSketch(void);
-CAD_API void CAD_RequestStartLineSketch(void);
-CAD_API void CAD_RequestStartRectangleSketch(void);
-CAD_API void CAD_RequestStartCircleSketch(void);
-CAD_API void CAD_RequestStartPolygonSketch(void);
-CAD_API void CAD_RequestCyclePolygonSides(void);
+/* 진행 중인 치수 도구의 점 개수 — 치수 도구가 아니면 CAD_E_NOT_READY.
+ * 모바일 커서 UI 의 [선택] 버튼 문구·끝 판단에 쓴다(클릭을 세면 엔진이 거부한 클릭과 어긋나니 엔진 값을 본다). */
+CAD_API int32_t    CAD_GetDimensionPointCount(void);
+/* 진행 중인 도구·묻기의 안내("첫 번째 점을 지정" 등) — 없으면 ""(길이 0). 모바일 커서 UI 가 도구 종류와 무관하게 매 틱 읽는다.
+ * 반환 = 전체 길이(NUL 제외), 칸이 모자라면 글자 경계에서 잘라 담는다. */
+CAD_API int32_t    CAD_GetPrompt(char* buf, uint32_t capacity);
+/* 한동안 뜨는 안내(몇 초 뒤 스스로 사라짐) — 프롬프트(지금 뭘 할지, 상시)와 다른 값: "방금 왜 안 됐는지".
+ *   예: "각도: 선을 클릭하세요". 없거나 지났으면 "". 데스크톱은 상태바가 그리지만 모바일은 이게 유일한 길(안 띄우면 클릭이 씹힌 듯 보인다). */
+CAD_API int32_t    CAD_GetTransientMessage(char* buf, uint32_t capacity);
 
 /* ── 명령 실행 ────────────────────────────────────────────────────────────
  *
- * 엔진의 **모든 명령**을 이름으로 실행한다. 아래 CAD_RequestXxx 들은 자주 쓰는 것만
- * 개별 함수로 뽑아 둔 것이고, 엔진에는 명령이 200개가 넘는다(trim / offset / fillet /
- * ocr / navmap / imageattach …). 이 함수 하나면 그 전부가 열리고, 새 명령을 추가할
- * 때마다 API 를 늘리지 않아도 된다.
+ * 엔진의 **모든 명령**을 이름으로 실행한다 — 도구 시작(line·circle·rect·arc·polygon·polyline·box·extrude·revolve·light …),
+ * 도구 선택지(sides·arcmode), trim·offset·fillet·ocr·navmap … 200개가 넘는다. 새 명령이 생겨도 API 를 늘리지 않는다.
  *
- *   CAD_ExecuteCommand("trim");        // 자르기
- *   CAD_ExecuteCommand("offset");      // 오프셋
- *   CAD_ExecuteCommand("2,3");         // 진행 중인 도구에 좌표/값 전달
+ *   CAD_ExecuteCommand("line");        // 선 도구 시작
+ *   CAD_ExecuteCommand("2,3");         // 진행 중인 도구에 좌표·값
+ *   CAD_ExecuteCommand(" ");           // 빈 Enter
  *
- * 이름은 하단 명령행에 치는 것과 **똑같다**(영문·짧은 별칭·한글 모두).
- * 진행 중인 도구가 있으면 값 입력으로 전달된다 — 명령행과 완전히 같은 경로. "" (또는 " ") = 빈 Enter.
- * 반환: 알 수 없는 이름이면 false. 값 입력으로 소비된 경우도 true. 기다리는 도구가 없는데 "" 면 false.
+ * 글은 하단 명령행에 치는 것과 **똑같다**(영문·짧은 별칭·한글, 진행 중인 도구가 있으면 값 입력) — 명령행과 같은 길.
+ * 모르는 명령은 AI 로 보내지 않는다(자연어는 CAD_AiSubmit). 반환: CAD_OK · 모르는 명령 CAD_E_NOT_FOUND ·
+ * 기다리는 도구가 없는데 빈 Enter CAD_E_NOT_READY.
  */
-CAD_API bool CAD_ExecuteCommand(const char* name);
+CAD_API CAD_Status CAD_ExecuteCommand(const char* text);
 
 /* ── 명령 등록 (플러그인) ─────────────────────────────────
  *
@@ -56,39 +48,27 @@ CAD_API bool CAD_ExecuteCommand(const char* name);
  * user   그대로 돌려받는다(플러그인 인스턴스 포인터 등).
  * owner  플러그인 ID. 언로드할 때 이 값으로 묶어 한꺼번에 지운다. 0 = 소유자 없음.
  *
- * 실패 조건: 빈 이름 · fn 이 NULL · 이미 등록된 이름.
- * ⚠️ 엔진 기본 명령(line/circle …)과 같은 이름은 등록도지만 불리지 않는다 —
- *    기본 명령이 먼저 조회된다(플러그인이 기본 동작을 가로채는 것을 막는다).
- * ⚠️ 콜백은 **엔진과 같은 스레드**에서 불린다 — 안에서 CAD_* 를 부릅니다.
- *    콜백이 던진 예외는 엔진이 잡아 삼킨다(프레임 루프가 죽지 않게).
+ * 실패: 빈 이름·fn NULL = CAD_E_INVALID_ARG · 이미 등록된 이름·엔진 기본 명령(line/circle …)과 같은 이름 = CAD_E_DUPLICATE
+ *   (기본 명령이 먼저 조회돼 절대 불리지 않으니 받지 않는다 — 플러그인이 기본 동작을 가로채는 것도 막는다).
+ * ⚠️ 콜백은 **엔진과 같은 스레드**에서 불린다 — 안에서 CAD_* 를 부른다. 던진 예외는 엔진이 잡아 삼킨다(프레임 루프가 죽지 않게).
  */
 typedef void (*CAD_CommandFn)(void* user);
-CAD_API bool CAD_RegisterCommand(const char* name, const char* title,
-                                 CAD_CommandFn fn, void* user, unsigned int owner);
-CAD_API bool CAD_UnregisterCommand(const char* name);
-/* 그 플러그인이 등록한 명령을 전부 제거. 반환 = 지운 개수. owner 0 은 아무것도 안 지운다.
- * 언로드 경로에서 반드시 부른다 — 안 지우면 사라진 DLL 의 함수를 부르게 된다. */
-CAD_API unsigned int CAD_UnregisterCommandsByOwner(unsigned int owner);
-/* 등록된 명령 수 / i 번째 이름·표시이름 — 메뉴·리본을 그릴 때 호스트가 읽는다.
- * buf 가 NULL 이거나 짧으면 필요한 길이(널문자 포함)를 반환한다. */
-CAD_API unsigned int CAD_GetRegisteredCommandCount(void);
-CAD_API int CAD_GetRegisteredCommandName(unsigned int index, char* buf, int bufLen);
-CAD_API int CAD_GetRegisteredCommandTitle(unsigned int index, char* buf, int bufLen);
+CAD_API CAD_Status CAD_RegisterCommand(const char* name, const char* title, CAD_CommandFn fn, void* user, uint32_t owner);
+CAD_API CAD_Status CAD_UnregisterCommand(const char* name);   /* 없는 이름 CAD_E_NOT_FOUND */
+/* 그 플러그인이 등록한 명령을 전부 지운다. 반환 = 지운 개수(owner 0 은 아무것도 안 지움).
+ * 언로드 길에서 반드시 부른다 — 안 지우면 사라진 DLL 의 함수를 부르게 된다. */
+CAD_API int32_t    CAD_UnregisterCommandsByOwner(uint32_t owner);
+/* 등록된 명령 수 · index 번째 이름·표시 이름(메뉴·리본을 그릴 때). index 범위 밖 CAD_E_OUT_OF_RANGE */
+CAD_API int32_t    CAD_GetRegisteredCommandCount(void);
+CAD_API int32_t    CAD_GetRegisteredCommandName(uint32_t index, char* buf, uint32_t capacity);
+CAD_API int32_t    CAD_GetRegisteredCommandTitle(uint32_t index, char* buf, uint32_t capacity);
 
-CAD_API void CAD_RequestStartExtrude(void);
-CAD_API void CAD_RequestStartArcSketch(void);
-CAD_API void CAD_RequestCycleArcMode(void);
-CAD_API void CAD_RequestStartPolylineSketch(void);
-CAD_API void CAD_RequestOpenFileDialog(void);
-
-CAD_API void CAD_RequestSelectAll(void);
-CAD_API void CAD_RequestDeleteSelected(void);
-CAD_API void CAD_RequestClearAll(void);
-CAD_API void CAD_RequestAddCube(void);
-CAD_API void CAD_RequestStartLightPlacement(void);
-
-CAD_API void CAD_RequestCycleMaterial(void);
-CAD_API void CAD_RequestRemoveMaterial(void);
+/* 파일 열기 창(엔진 창이 있는 호스트) · 장면 비우기 · 고른 객체 재질을 다음 것으로 · 고른 객체 재질 떼기 — 다음 틱에 한다(CAD_OK = 맡김).
+ * 한 객체에 이름으로 재질을 주는 것은 CAD_ApplyMaterial(id, 이름) */
+CAD_API CAD_Status CAD_OpenFileDialog(void);
+CAD_API CAD_Status CAD_ClearAll(void);
+CAD_API CAD_Status CAD_CycleMaterial(void);
+CAD_API CAD_Status CAD_RemoveMaterial(void);
 
 // ── Jig (오토캐드 AcEdJig 스타일) ────────────────────────────────────
 // 객체 id 를 물려 시작하면 그 객체가 **커서를 따라다니고**, 좌클릭에 그 자리로 확정된다
@@ -136,21 +116,27 @@ CAD_API void     CAD_TextEditCancel(void);               // 원복 + 종료
 /* 선택 문맥 JSON — 사람이 화면에서 고른 것. AI 요청마다 자동으로 붙는 것과 같은 문자열.
  * {"mode":"object|face|edge","view":"top|…","count":N,"objects":[CAD_GetObjectJson 과 같은 객체…],"more":n,
  *  "face":{"id","normal","center","area","triangles"},"edge":{"id","a","b","length"}}  반환=길이, 실패 -1. */
-CAD_API int      CAD_GetSelectionContext(char* outUtf8, int cap);
+CAD_API int32_t    CAD_GetSelectionContext(char* buf, uint32_t capacity);
 
-CAD_API bool CAD_SelectObject(uint32_t id, bool additive);
-CAD_API void CAD_ClearSelection(void);
+/* ── 선택 ── (ObjectARX acedSSGet/acedSSSetFirst 자리 — 사람이 고른 것과 같은 선택. 화면에서 묻는 것은 CAD_EdSSGet) */
+enum { CAD_SELECT_REPLACE = 0, CAD_SELECT_ADD = 1, CAD_SELECT_REMOVE = 2 };
+/* 지금 선택 — 칸만큼 채우고 전체 개수(outIds = NULL 이면 개수만) */
+CAD_API int32_t    CAD_GetSelection(uint32_t* outIds, uint32_t capacity);
+/* 선택 바꾸기 — mode = CAD_SELECT_*(REPLACE + count 0 = 비우기). 없는 id CAD_E_BAD_HANDLE, 넣을 것이 잠긴 도면층 CAD_E_LOCKED,
+ * 숨김·모양 없음(고를 수 없음) CAD_E_NOT_SUPPORTED — 하나라도 그러면 아무것도 안 바꾼다. 보기 상태라 되돌리기에 안 남는다 */
+CAD_API CAD_Status CAD_SetSelection(const uint32_t* ids, uint32_t count, int32_t mode);
 
-// ── 객체 스냅·직교·극좌표 — 상태바 버튼(객체스냅·직교(F8)·극좌표(F10))과 같은 설정. 명령 osnap/ortho/polar [on|off] 과도 같다.
-// 모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
-CAD_API bool     CAD_SetOSnapEnabled(bool on);
-CAD_API bool     CAD_GetOSnapEnabled(void);
-CAD_API bool     CAD_SetOSnapModes(uint32_t mask);
-CAD_API uint32_t CAD_GetOSnapModes(void);
-CAD_API void     CAD_SetOrthoEnabled(bool on);
-CAD_API bool     CAD_GetOrthoEnabled(void);
-CAD_API bool     CAD_SetPolarTracking(bool on, float incrementDeg);   // incrementDeg <= 0 = 지금 값 유지(기본 45°, 1~90)
-CAD_API bool     CAD_GetPolarTracking(float* incrementDeg);           // 켜짐 여부, incrementDeg NULL 가능
+/* ── 객체 스냅·직교·극좌표 — 상태바 버튼(객체스냅·직교(F8)·극좌표(F10))과 같은 설정. 명령 osnap/ortho/polar [on|off] 과도 같다.
+ * 모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처) */
+CAD_API CAD_Status CAD_SetOSnapEnabled(bool on);
+CAD_API CAD_Status CAD_GetOSnapEnabled(bool* outOn);
+CAD_API CAD_Status CAD_SetOSnapModes(uint32_t mask);          /* 모르는 비트 CAD_E_INVALID_ARG */
+CAD_API CAD_Status CAD_GetOSnapModes(uint32_t* outMask);
+CAD_API CAD_Status CAD_SetOrthoEnabled(bool on);
+CAD_API CAD_Status CAD_GetOrthoEnabled(bool* outOn);
+/* 극좌표 추적 — increment = 각 증분(rad, 1°~90°, 0 이하 = 지금 값 그대로, 기본 45°). 범위 밖 CAD_E_OUT_OF_RANGE */
+CAD_API CAD_Status CAD_SetPolarTracking(bool on, double increment);
+CAD_API CAD_Status CAD_GetPolarTracking(bool* outOn, double* outIncrement);   /* 출력은 NULL 가능 */
 /* 장면에서 point 의 반경 radius(mm) 안 가장 가까운 스냅점 — 화면·커서 없이(AI·스크립트가 "이 근처 끝점" 을 잡을 때).
  * modes = CAD_OSNAP_* 합(상태바 설정과 무관), 보이는 객체만, 근처(NEA)는 다른 스냅이 없을 때만(오토캐드처럼).
  * opt 의 직전 점은 수직·접선에 쓴다(고른 점은 point). 새 규칙: 찾으면 CAD_OK + outPoint(id = 그 객체),
@@ -158,23 +144,6 @@ CAD_API bool     CAD_GetPolarTracking(float* incrementDeg);           // 켜짐 
 CAD_API CAD_Status CAD_SnapNearPoint(CAD_GeVec3 point, double radius, uint32_t modes, const CAD_OsnapOptions* opt,
                                      CAD_OsnapPoint* outPoint);
 
-CAD_API uint32_t CAD_GetSelectedCount(void);
-CAD_API bool CAD_GetSelectedObjectId(uint32_t index, uint32_t* id);
-
-// ── 대화형 픽 (AutoLISP getpoint / ObjectARX acedGetEntsel 대응) ──
-// 비동기: Begin 후 사용자가 클릭할 때까지 대기. 호스트가 매 프레임 bool 폴링.
-//   IsPicking=true            → 대기 중
-//   IsPicking=false + Try=true  → 완료 (좌표/엔티티 소비)
-//   IsPicking=false + Try=false → 취소(ESC)
-// EntSel 은 빈 곳/비객체 클릭을 통과 안 시킴(유효 객체만 완료). Point 는 어디든 좌표 반환.
-// 옛 함수 — 새 코드는 CAD_EdGetPoint · CAD_EdEntSel(아래 「명령행 입력 받기」, 2단계에서 정리). 속은 같은 길이라
-// 안내가 명령행에 늘 보이고 좌표("x,y")도 받는다. 다른 명령이 진행 중이면 그것을 끄고 시작한다(예전 그대로).
-CAD_API void CAD_BeginGetPoint(const char* prompt);
-CAD_API void CAD_BeginGetEntSel(const char* prompt);
-CAD_API bool CAD_IsPicking(void);
-// 완료됐으면 true(1회 소비) + 좌표(+EntSel 은 outId). Point 는 outId=0. 대기/취소면 false.
-CAD_API bool CAD_TryGetPickResult(float* x, float* y, float* z, uint32_t* outId);
-CAD_API void CAD_CancelPick(void);
 
 // Static mesh component selection, main thread. Mode: 0 object, 1 face, 2 edge.
 // Pick ray is in world coordinates. Face output contains triangle numbers (not corners).
@@ -189,19 +158,6 @@ CAD_API int32_t CAD_GetSelectedBRepFaceId(void);
 // endpoints6 = {ax,ay,az,bx,by,bz}, world coordinates. False if no selected edge.
 CAD_API bool CAD_GetSelectedEdge(float* endpoints6);
 
-// ── Revolve 도구 ──
-CAD_API void CAD_RequestStartRevolve(void);
-
-// 명령 프롬프트(현재 대화형 도구 안내). buf 에 UTF-8 로 복사, 반환=문자열 길이(널 제외).
-// 호스트가 자기 상태바에 표시하려고 매 프레임 폴링. buf/bufLen 0 이면 길이만 반환.
-CAD_API int  CAD_GetStatusMessage(char* buf, int bufLen);
-
-// 일회성 안내 (몇 초 뒤 스스로 사라짐). 프롬프트와 **다른 값**이다 —
-// 프롬프트는 "지금 뭘 해야 하는지"(상시), 이쪽은 "방금 왜 안 됐는지"(일시).
-//   예: "각도: 선을 클릭하세요", "선: 커서를 방향으로 옮긴 뒤 거리를 입력하세요"
-// 없거나 만료됐으면 빈 문자열(길이 0). 데스크톱은 ImGui 상태바가 그리지만 모바일은
-// 표시할 곳이 없어 이게 유일한 경로다 — 안 띄우면 클릭이 씹힌 것처럼 보인다.
-CAD_API int  CAD_GetTransientMessage(char* buf, int bufLen);
 
 /* ── 명령행 입력 받기 (CAD_Ed*) — ObjectARX acedGetPoint·GetCorner·GetDist·GetAngle·GetInt·GetReal·GetString·GetKword·
  *    EntSel·SSGet 자리 ───────────────────────────────────────────────────────────────────────────────────
@@ -335,7 +291,7 @@ typedef struct CAD_EdSelectOptions {
 } CAD_EdSelectOptions;
 
 /* 화면 없이 창 선택 — 두 구석(월드)을 지금 보기(활성 칸 카메라)로 화면에 옮겨 사람이 드래그한 것과 같은 판정.
- * 선택은 바꾸지 않는다(필요하면 CAD_SelectObject). 칸만큼 채우고 전체 개수. 구석이 카메라 뒤면 CAD_E_INVALID_ARG,
+ * 선택은 바꾸지 않는다(필요하면 CAD_SetSelection). 칸만큼 채우고 전체 개수. 구석이 카메라 뒤면 CAD_E_INVALID_ARG,
  * 화면에서 3px 도 안 벌어지면 CAD_E_DEGENERATE */
 CAD_API int32_t    CAD_EdSelectWindow(CAD_GeVec3 corner1, CAD_GeVec3 corner2, const CAD_EdSelectOptions* opt,
                                       uint32_t* outIds, uint32_t capacity);

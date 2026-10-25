@@ -72,7 +72,7 @@ namespace LotCadWinForms
             while (!IsDisposed && !PeekMessage(out _, IntPtr.Zero, 0, 0, 0))
             {
                 _render.Tick();
-                string info = $"객체 {CadApi.CAD_GetObjectCount()} · 선택 {CadApi.CAD_GetSelectedCount()}";
+                string info = $"객체 {CadApi.CAD_GetObjectCount()} · 선택 {CadApi.SelectedCount()}";
                 if (info != _lastSceneInfo) { _sceneInfo.Text = info; _lastSceneInfo = info; }
                 if (!_render.EngineReady) break;   // 엔진이 없으면 돌 것이 없다
             }
@@ -83,15 +83,15 @@ namespace LotCadWinForms
         {
             var menu = new MenuStrip { BackColor = Bg, ForeColor = TextMain, Padding = new Padding(4, 2, 0, 2) };
             menu.Items.Add(Menu("파일(&F)",
-                Item("모두 지움", (s, e) => CadApi.CAD_RequestClearAll()),
+                Item("모두 지움", (s, e) => CadApi.CAD_ClearAll()),
                 null,
                 Item("종료", (s, e) => Close())));
             menu.Items.Add(Menu("편집(&E)",
                 Item("실행 취소 (Undo)", (s, e) => CadApi.CAD_Undo()),
                 Item("다시 실행 (Redo)", (s, e) => CadApi.CAD_Redo()),
                 null,
-                Item("전체 선택", (s, e) => CadApi.CAD_RequestSelectAll()),
-                Item("선택 삭제", (s, e) => CadApi.CAD_RequestDeleteSelected())));
+                Item("전체 선택", (s, e) => CadApi.CAD_ExecuteCommand("selectall")),
+                Item("선택 삭제", (s, e) => CadApi.CAD_ExecuteCommand("delete"))));
             menu.Items.Add(Menu("뷰(&V)",
                 Item("정면", (s, e) => CadApi.CAD_SetView(0)),
                 Item("평면", (s, e) => CadApi.CAD_SetView(1)),
@@ -126,15 +126,15 @@ namespace LotCadWinForms
             };
             bar.Controls.Add(GroupLabel("그리기"));
             bar.Controls.Add(ToolButton("큐브", (s, e) => CadApi.CAD_CreateBox(new CadApi.GeVec3(0, 0, 0), new CadApi.GeVec3(1, 1, 1), IntPtr.Zero, out _), accent: true));
-            bar.Controls.Add(ToolButton("선", (s, e) => CadApi.CAD_RequestStartLineSketch()));
-            bar.Controls.Add(ToolButton("사각형", (s, e) => CadApi.CAD_RequestStartRectangleSketch()));
-            bar.Controls.Add(ToolButton("원", (s, e) => CadApi.CAD_RequestStartCircleSketch()));
-            bar.Controls.Add(ToolButton("폴리라인", (s, e) => CadApi.CAD_RequestStartPolylineSketch()));
+            bar.Controls.Add(ToolButton("선", (s, e) => CadApi.CAD_ExecuteCommand("line")));
+            bar.Controls.Add(ToolButton("사각형", (s, e) => CadApi.CAD_ExecuteCommand("rect")));
+            bar.Controls.Add(ToolButton("원", (s, e) => CadApi.CAD_ExecuteCommand("circle")));
+            bar.Controls.Add(ToolButton("폴리라인", (s, e) => CadApi.CAD_ExecuteCommand("polyline")));
 
             bar.Controls.Add(Separator());
             bar.Controls.Add(GroupLabel("편집"));
-            bar.Controls.Add(ToolButton("전체선택", (s, e) => CadApi.CAD_RequestSelectAll()));
-            bar.Controls.Add(ToolButton("삭제", (s, e) => CadApi.CAD_RequestDeleteSelected()));
+            bar.Controls.Add(ToolButton("전체선택", (s, e) => CadApi.CAD_ExecuteCommand("selectall")));
+            bar.Controls.Add(ToolButton("삭제", (s, e) => CadApi.CAD_ExecuteCommand("delete")));
             bar.Controls.Add(ToolButton("↶ Undo", (s, e) => CadApi.CAD_Undo()));
             bar.Controls.Add(ToolButton("↷ Redo", (s, e) => CadApi.CAD_Redo()));
 

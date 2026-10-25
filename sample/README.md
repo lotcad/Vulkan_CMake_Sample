@@ -21,8 +21,8 @@ CAD_CreateBox
 CAD_SetPosition
 CAD_SetScale
 CAD_SetRotationAxisAngle
-CAD_SelectObject
-CAD_RequestZoomExtents
+CAD_SetSelection
+CAD_ZoomExtents
 CAD_Tick
 CAD_DeleteObject
 CAD_DestroyEngine

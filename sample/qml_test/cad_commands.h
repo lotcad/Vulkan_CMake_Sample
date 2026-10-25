@@ -1,7 +1,7 @@
 #pragma once
 
 // CadCommands — QML 툴바 버튼이 호출하는 얇은 명령 브릿지.
-// QML 에서 Q_INVOKABLE 메서드로 CAD_Request* / CAD_Undo 등 C API 를 부른다.
+// QML 에서 Q_INVOKABLE 메서드로 CAD_ExecuteCommand / CAD_Undo 등 C API 를 부른다.
 // (엔진 상태 변경은 전부 C API 경계를 지나가므로 QML 은 엔진 내부를 전혀 모른다.)
 
 #include "../../sdk/include/LotCAD_API.h"
@@ -21,10 +21,10 @@ class CadCommands : public QObject {
 public:
     explicit CadCommands(QObject* parent = nullptr) : QObject(parent) {}
 
-    Q_INVOKABLE void addCube()        { CAD_RequestAddCube(); }
-    Q_INVOKABLE void selectAll()      { CAD_RequestSelectAll(); }
-    Q_INVOKABLE void deleteSelected() { CAD_RequestDeleteSelected(); }
-    Q_INVOKABLE void clearAll()       { CAD_RequestClearAll(); }
+    Q_INVOKABLE void addCube()        { CAD_ExecuteCommand("cube"); }
+    Q_INVOKABLE void selectAll()      { CAD_ExecuteCommand("selectall"); }
+    Q_INVOKABLE void deleteSelected() { CAD_ExecuteCommand("delete"); }
+    Q_INVOKABLE void clearAll()       { CAD_ClearAll(); }
     Q_INVOKABLE void zoomExtents()    { CAD_ZoomExtents(); }
     Q_INVOKABLE void focusSelected()  { CAD_FocusSelected(); }
     Q_INVOKABLE void toggleProjection(){ bool ortho = false; if (CAD_GetProjection(&ortho) == CAD_OK) CAD_SetProjection(!ortho); }
@@ -35,17 +35,18 @@ public:
     // 명령행과 같은 입구 — 이름은 영문·별칭·한글 모두 받는다.
     // 기능 패널의 "화면에서 고르기" 가 이걸로 엔진 도구를 띄워 3D 뷰에서 클릭을 받게 한다.
     // 진행 중인 도구가 있으면 같은 함수가 값 입력("12,30")으로 들어간다.
+    // 반환 = 성공 여부(결과 코드 CAD_OK). 모르는 명령은 CAD_E_NOT_FOUND → false.
     Q_INVOKABLE bool executeCommand(const QString& name) {
-        return CAD_ExecuteCommand(name.toUtf8().constData());
+        return CAD_ExecuteCommand(name.toUtf8().constData()) == CAD_OK;
     }
 
-    // 스케치 도구
-    Q_INVOKABLE void startBox()       { CAD_RequestStartBoxSketch(); }
-    Q_INVOKABLE void startLine()      { CAD_RequestStartLineSketch(); }
-    Q_INVOKABLE void startRect()      { CAD_RequestStartRectangleSketch(); }
-    Q_INVOKABLE void startCircle()    { CAD_RequestStartCircleSketch(); }
-    Q_INVOKABLE void startPolyline()  { CAD_RequestStartPolylineSketch(); }
-    Q_INVOKABLE void startExtrude()   { CAD_RequestStartExtrude(); }
+    // 스케치 도구 — 엔진 명령 이름으로 시작한다
+    Q_INVOKABLE void startBox()       { CAD_ExecuteCommand("box"); }
+    Q_INVOKABLE void startLine()      { CAD_ExecuteCommand("line"); }
+    Q_INVOKABLE void startRect()      { CAD_ExecuteCommand("rect"); }
+    Q_INVOKABLE void startCircle()    { CAD_ExecuteCommand("circle"); }
+    Q_INVOKABLE void startPolyline()  { CAD_ExecuteCommand("polyline"); }
+    Q_INVOKABLE void startExtrude()   { CAD_ExecuteCommand("extrude"); }
 
     // ── 파일 ──
     // QtQuick.Dialogs(qml6-module-qtquick-dialogs) 는 배포처에 없을 수 있어 QFileDialog 를 쓴다.
@@ -76,8 +77,9 @@ public:
     // 실패 사유 표시용 — CAD_SaveAs/CAD_OpenFile 이 false 를 준 뒤 읽는다.
     Q_INVOKABLE QString statusMessage() const {
         char buf[512] = {0};
-        const int n = CAD_GetStatusMessage(buf, int(sizeof(buf)));
-        return n > 0 ? QString::fromUtf8(buf, n) : QString();
+        // 반환 = 전체 길이(NUL 제외) — 칸보다 길면 잘라 담으므로 NUL 까지 읽는다
+        const int32_t n = CAD_GetPrompt(buf, uint32_t(sizeof(buf)));
+        return n > 0 ? QString::fromUtf8(buf) : QString();
     }
 
 private:

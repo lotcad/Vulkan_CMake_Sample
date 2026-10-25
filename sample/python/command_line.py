@@ -105,7 +105,7 @@ class CommandLine(QWidget):
     def run(self, text):
         active = tool_active()
         self.append(("  > " if active else "명령: ") + text)
-        if not lotcad.CAD_ExecuteCommand(text):
+        if lotcad.CAD_ExecuteCommand(text) != lotcad.CAD_OK:   # 결과 코드 — 0 = 성공, 음수 = 이유
             self.append("  (진행 중인 도구가 이 값을 받지 않았습니다)" if active else f"알 수 없는 명령: {text}")
 
     def cancel(self):

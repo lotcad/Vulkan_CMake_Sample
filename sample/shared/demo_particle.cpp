@@ -98,7 +98,7 @@ private:
         if (preset_ >= 0 && preset_ < static_cast<int>(presetPaths_.size()))
             emitter_ = CAD_CreateParticleEmitterFromPreset(presetPaths_[static_cast<size_t>(preset_)].c_str(), 0, 0, 0, 1.0f);
         if (!emitter_) emitter_ = CAD_CreateParticleEmitter(preset_ % 3, 0, 0, 0, 1.0f);
-        CAD_ClearSelection();   // 만든 객체가 선택돼 기즈모가 뜨지 않게
+        CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기 — 만든 객체가 선택돼 기즈모가 뜨지 않게
         if (playing_) CAD_SetParticlePlayback(emitter_, 1);
         refreshSettings();
         const std::vector<double> c = jsonNumbers(settings_, "start_color");

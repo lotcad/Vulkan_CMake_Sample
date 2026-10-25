@@ -26,7 +26,13 @@ def command(name):
 
 
 def selected_ids():
-    return [lotcad.CAD_GetSelectedObjectId(i) for i in range(lotcad.CAD_GetSelectedCount())]
+    # CAD_GetSelection — 개수만 먼저(None, 0) 묻고 그만큼 칸을 잡아 한 번에 받는다
+    n = lotcad.CAD_GetSelection(None, 0)
+    if n <= 0:
+        return []
+    buf = lotcad.buffer(ctypes.c_uint32, n)
+    got = lotcad.CAD_GetSelection(buf, n)
+    return list(buf[:max(0, min(n, got))])
 
 
 class MainWindow(QMainWindow):
@@ -162,7 +168,7 @@ class MainWindow(QMainWindow):
 
     def _report(self, fallback):
         # 실패 이유는 엔진이 상태 메시지로 남긴다(포맷 미지원·깨진 파일 등)
-        QMessageBox.warning(self, "LotCAD", lotcad.CAD_GetStatusMessage() or fallback)
+        QMessageBox.warning(self, "LotCAD", lotcad.CAD_GetPrompt() or fallback)
 
     # ── 차집합 — 두 번 눌러 기준 → 뺄 것 ──
     # 엔진 선택 목록은 id 순이라 "먼저 고른 것" 을 알 수 없어, 오토캐드 SUBTRACT 처럼 두 단계로 받는다.
@@ -206,9 +212,9 @@ class MainWindow(QMainWindow):
         g.add("복사", command("cp"))
         g.add("배열", command("3a"))          # ar 은 대화상자 — 3a 는 명령행에 값을 묻는다
         g = home.add_group("선택")
-        g.add("전체 선택", lotcad.CAD_RequestSelectAll)
-        g.add("삭제", lotcad.CAD_RequestDeleteSelected)
-        g.add("모두 지우기", lotcad.CAD_RequestClearAll)
+        g.add("전체 선택", command("selectall"))
+        g.add("삭제", command("delete"))
+        g.add("모두 지우기", lotcad.CAD_ClearAll)
         g = home.add_group("실행")
         g.add("실행취소", lotcad.CAD_Undo)
         g.add("다시실행", lotcad.CAD_Redo)
@@ -234,7 +240,7 @@ class MainWindow(QMainWindow):
         three_d = r.add_tab("3D")
         g = three_d.add_group("프리미티브")
         g.add("박스", command("b"))                  # 3단계 스케치
-        g.add("큐브", lotcad.CAD_RequestAddCube)      # 기본 크기로 바로
+        g.add("큐브", command("cube"))                # 기본 크기로 바로
         for text, name in [("구", "sphere"), ("원기둥", "cyl"), ("원뿔", "cone"), ("토러스", "torus")]:
             g.add(text, command(name))
         g = three_d.add_group("형상")                # 닫힌 스케치 → 솔리드

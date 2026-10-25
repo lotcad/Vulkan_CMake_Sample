@@ -19,6 +19,7 @@
 #include "CadText.h"
 #include "MiniJson.h"
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 
@@ -40,11 +41,14 @@ namespace {
 
 	std::vector<uint32_t> SelectedIds()
 	{
-		std::vector<uint32_t> ids;
-		for (uint32_t i = 0; i < CAD_GetSelectedCount(); ++i) {
-			uint32_t id = 0;
-			if (CAD_GetSelectedObjectId(i, &id) && id) ids.push_back(id);
+		// 개수만 먼저(NULL, 0) 묻고 그만큼 칸을 잡아 한 번에 받는다
+		const int32_t n = CAD_GetSelection(nullptr, 0);
+		std::vector<uint32_t> ids(n > 0 ? (size_t)n : 0);
+		if (!ids.empty()) {
+			const int32_t got = CAD_GetSelection(ids.data(), (uint32_t)ids.size());
+			ids.resize(got > 0 ? (std::min)((size_t)got, ids.size()) : 0);
 		}
+		ids.erase(std::remove(ids.begin(), ids.end(), 0u), ids.end());
 		return ids;
 	}
 

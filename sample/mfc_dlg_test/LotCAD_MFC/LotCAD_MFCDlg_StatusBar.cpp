@@ -24,6 +24,12 @@ namespace {
 		{   1, L"끝점" },   {   2, L"중간점" }, {   4, L"중심점" }, {   8, L"면 중심" }, {  16, L"노드(점)" },
 		{  32, L"사분점" }, {  64, L"교차점" }, { 128, L"수직점" }, { 256, L"접선" },    { 512, L"근처점" },
 	};
+
+	// 스냅·직교·극좌표 Get 은 결과 코드를 돌려주고 값은 출력 인자로 준다 — 실패(음수)면 꺼진 것으로 본다.
+	bool OSnapOn()     { bool on = false; return CAD_GetOSnapEnabled(&on) == CAD_OK && on; }
+	uint32_t OSnapModes() { uint32_t m = 0; return CAD_GetOSnapModes(&m) == CAD_OK ? m : 0; }
+	bool OrthoOn()     { bool on = false; return CAD_GetOrthoEnabled(&on) == CAD_OK && on; }
+	bool PolarOn()     { bool on = false; return CAD_GetPolarTracking(&on, nullptr) == CAD_OK && on; }   // 각 증분(rad)은 안 읽음
 }
 
 void CLotCADMFCDlg::BuildStatusBar()
@@ -64,12 +70,12 @@ void CLotCADMFCDlg::BuildStatusBar()
 		L"원근(Persp) / 직교(Ortho) 투영 전환");
 
 	s.AddToggle(L"직교(F8)",
-		[] { return CAD_GetOrthoEnabled(); },
+		[] { return OrthoOn(); },
 		[this] { ToggleOrthoTracking(); },
 		L"직교 추적 — 그리는 방향을 가로·세로로 고정 (F8, 명령 ortho)");
 
 	s.AddToggle(L"극좌표(F10)",
-		[] { return CAD_GetPolarTracking(nullptr); },
+		[] { return PolarOn(); },
 		[this] { TogglePolarTracking(); },
 		L"극좌표 추적 — 일정 각도마다 추적선 (F10)\n각도는 명령행에 polar 30 처럼");
 
@@ -77,10 +83,10 @@ void CLotCADMFCDlg::BuildStatusBar()
 	s.AddButton(
 		[] { return std::wstring(L"객체스냅 ▾"); },
 		[this](const CRect& rc) {
-			const uint32_t modes = CAD_GetOSnapModes();
+			const uint32_t modes = OSnapModes();
 			CMenu menu;
 			menu.CreatePopupMenu();
-			menu.AppendMenu(MF_STRING | (CAD_GetOSnapEnabled() ? MF_CHECKED : 0), 1000, L"객체스냅 켜기  (F3)");
+			menu.AppendMenu(MF_STRING | (OSnapOn() ? MF_CHECKED : 0), 1000, L"객체스냅 켜기  (F3)");
 			menu.AppendMenu(MF_SEPARATOR);
 			for (const SnapMode& m : kSnapModes)
 				menu.AppendMenu(MF_STRING | ((modes & m.bit) ? MF_CHECKED : 0), m.bit, m.name);
@@ -89,24 +95,24 @@ void CLotCADMFCDlg::BuildStatusBar()
 			else if (picked > 0)   CAD_SetOSnapModes(modes ^ (uint32_t)picked);   // 고른 종류 하나만 뒤집는다
 		},
 		L"객체스냅 — 끝점·중간점·중심점… 에 커서가 달라붙는다 (F3)\n누르면 켜기/끄기와 종류를 고른다",
-		[] { return CAD_GetOSnapEnabled(); });
+		[] { return OSnapOn(); });
 }
 
 // F3 / F8 / F10 과 상태바 버튼이 같이 부른다. 상태는 엔진이 들고 있어 뒤집기만 하면 된다.
 void CLotCADMFCDlg::ToggleOSnap()
 {
-	CAD_SetOSnapEnabled(!CAD_GetOSnapEnabled());
+	CAD_SetOSnapEnabled(!OSnapOn());
 	m_statusBar.Refresh();
 }
 
 void CLotCADMFCDlg::ToggleOrthoTracking()
 {
-	CAD_SetOrthoEnabled(!CAD_GetOrthoEnabled());
+	CAD_SetOrthoEnabled(!OrthoOn());
 	m_statusBar.Refresh();
 }
 
 void CLotCADMFCDlg::TogglePolarTracking()
 {
-	CAD_SetPolarTracking(!CAD_GetPolarTracking(nullptr), 0.0f);   // 0 = 각도 증분은 지금 값 유지
+	CAD_SetPolarTracking(!PolarOn(), 0.0);   // 0 이하 = 각도 증분(rad)은 지금 값 유지
 	m_statusBar.Refresh();
 }

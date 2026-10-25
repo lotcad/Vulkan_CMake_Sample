@@ -22,6 +22,8 @@
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 
+#include <vector>
+
 class AnalysisApi : public QObject {
     Q_OBJECT
     QML_ELEMENT
@@ -58,11 +60,12 @@ public:
     // 지금 선택한 객체 id — 해석 대상(솔리드·그릇)을 고르는 데 쓴다.
     Q_INVOKABLE QVariantList selectedIds() const {
         QVariantList ids;
-        const uint32_t n = CAD_GetSelectedCount();
-        for (uint32_t i = 0; i < n; ++i) {
-            uint32_t id = 0;
-            if (CAD_GetSelectedObjectId(i, &id)) ids.append(id);
-        }
+        // 개수만 먼저(NULL, 0) 묻고 그만큼 칸을 잡아 한 번에 받는다
+        const int32_t n = CAD_GetSelection(nullptr, 0);
+        if (n <= 0) return ids;
+        std::vector<uint32_t> buf(static_cast<size_t>(n));
+        const int32_t got = CAD_GetSelection(buf.data(), static_cast<uint32_t>(buf.size()));
+        for (int32_t i = 0; i < got && i < n; ++i) ids.append(buf[static_cast<size_t>(i)]);
         return ids;
     }
 

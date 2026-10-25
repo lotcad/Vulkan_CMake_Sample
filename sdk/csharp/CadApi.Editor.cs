@@ -67,6 +67,9 @@ namespace LotCAD
 
     public static partial class CadApi
     {
+        public const int CAD_SELECT_REPLACE = 0;
+        public const int CAD_SELECT_ADD = 1;
+        public const int CAD_SELECT_REMOVE = 2;
         public const int CAD_ED_KIND_POINT = 1;
         public const int CAD_ED_KIND_CORNER = 2;
         public const int CAD_ED_KIND_DISTANCE = 3;
@@ -94,85 +97,43 @@ namespace LotCAD
         public static extern int CAD_GetDimensionPointCount();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetPrompt(byte[] buf, int bufLen);
+        public static extern int CAD_GetPrompt(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestStartBoxSketch();
+        public static extern int CAD_GetTransientMessage(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestStartLineSketch();
+        public static extern int CAD_ExecuteCommand([MarshalAs(UnmanagedType.LPUTF8Str)] string text);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestStartRectangleSketch();
+        public static extern int CAD_RegisterCommand([MarshalAs(UnmanagedType.LPUTF8Str)] string name, [MarshalAs(UnmanagedType.LPUTF8Str)] string title, CAD_CommandFn fn, IntPtr user, uint owner);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestStartCircleSketch();
+        public static extern int CAD_UnregisterCommand([MarshalAs(UnmanagedType.LPUTF8Str)] string name);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestStartPolygonSketch();
+        public static extern int CAD_UnregisterCommandsByOwner(uint owner);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestCyclePolygonSides();
+        public static extern int CAD_GetRegisteredCommandCount();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_ExecuteCommand([MarshalAs(UnmanagedType.LPUTF8Str)] string name);
+        public static extern int CAD_GetRegisteredCommandName(uint index, byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_RegisterCommand([MarshalAs(UnmanagedType.LPUTF8Str)] string name, [MarshalAs(UnmanagedType.LPUTF8Str)] string title, CAD_CommandFn fn, IntPtr user, uint owner);
+        public static extern int CAD_GetRegisteredCommandTitle(uint index, byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_UnregisterCommand([MarshalAs(UnmanagedType.LPUTF8Str)] string name);
+        public static extern int CAD_OpenFileDialog();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_UnregisterCommandsByOwner(uint owner);
+        public static extern int CAD_ClearAll();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetRegisteredCommandCount();
+        public static extern int CAD_CycleMaterial();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetRegisteredCommandName(uint index, byte[] buf, int bufLen);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetRegisteredCommandTitle(uint index, byte[] buf, int bufLen);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestStartExtrude();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestStartArcSketch();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestCycleArcMode();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestStartPolylineSketch();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestOpenFileDialog();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestSelectAll();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestDeleteSelected();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestClearAll();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestAddCube();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestStartLightPlacement();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestCycleMaterial();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestRemoveMaterial();
+        public static extern int CAD_RemoveMaterial();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.I1)]
@@ -245,44 +206,37 @@ namespace LotCAD
         public static extern void CAD_TextEditCancel();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetSelectionContext(byte[] outUtf8, int cap);
+        public static extern int CAD_GetSelectionContext(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SelectObject(uint id, [MarshalAs(UnmanagedType.I1)] bool additive);
+        public static extern int CAD_GetSelection(uint[] outIds, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_ClearSelection();
+        public static extern int CAD_SetSelection(uint[] ids, uint count, int mode);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetOSnapEnabled([MarshalAs(UnmanagedType.I1)] bool on);
+        public static extern int CAD_SetOSnapEnabled([MarshalAs(UnmanagedType.I1)] bool on);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetOSnapEnabled();
+        public static extern int CAD_GetOSnapEnabled([MarshalAs(UnmanagedType.I1)] out bool outOn);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetOSnapModes(uint mask);
+        public static extern int CAD_SetOSnapModes(uint mask);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetOSnapModes();
+        public static extern int CAD_GetOSnapModes(out uint outMask);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetOrthoEnabled([MarshalAs(UnmanagedType.I1)] bool on);
+        public static extern int CAD_SetOrthoEnabled([MarshalAs(UnmanagedType.I1)] bool on);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetOrthoEnabled();
+        public static extern int CAD_GetOrthoEnabled([MarshalAs(UnmanagedType.I1)] out bool outOn);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetPolarTracking([MarshalAs(UnmanagedType.I1)] bool on, float incrementDeg);
+        public static extern int CAD_SetPolarTracking([MarshalAs(UnmanagedType.I1)] bool on, double increment);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetPolarTracking(out float incrementDeg);
+        public static extern int CAD_GetPolarTracking([MarshalAs(UnmanagedType.I1)] out bool outOn, out double outIncrement);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_SnapNearPoint(CAD_GeVec3 point, double radius, uint modes, CAD_OsnapOptions[] opt, out CAD_OsnapPoint outPoint);
@@ -298,30 +252,6 @@ namespace LotCAD
             if (opt.size == 0) opt.size = (uint)Marshal.SizeOf(typeof(CAD_OsnapOptions));
             return CAD_SnapNearPoint(point, radius, modes, new[] { opt }, out outPoint);
         }
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetSelectedCount();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetSelectedObjectId(uint index, out uint id);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_BeginGetPoint([MarshalAs(UnmanagedType.LPUTF8Str)] string prompt);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_BeginGetEntSel([MarshalAs(UnmanagedType.LPUTF8Str)] string prompt);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_IsPicking();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_TryGetPickResult(out float x, out float y, out float z, out uint outId);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_CancelPick();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.I1)]
@@ -346,15 +276,6 @@ namespace LotCAD
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool CAD_GetSelectedEdge(float[] endpoints6);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestStartRevolve();
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetStatusMessage(byte[] buf, int bufLen);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetTransientMessage(byte[] buf, int bufLen);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_EdGetPoint([MarshalAs(UnmanagedType.LPUTF8Str)] string prompt, CAD_EdInputOptions[] opt);

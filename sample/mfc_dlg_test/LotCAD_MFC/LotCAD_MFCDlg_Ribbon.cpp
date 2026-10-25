@@ -48,9 +48,9 @@ void CLotCADMFCDlg::BuildRibbon()
 	r.AddSmall(L"배열", I::Array,  Command("3a"));   // ar 은 대화상자 — 3a 는 명령행에 "r 열 행 층 dx dy dz" 를 묻는다
 
 	r.AddGroup(L"선택");
-	r.AddLarge(L"전체 선택",   I::SelectAll, [] { CAD_RequestSelectAll(); });
-	r.AddSmall(L"삭제",        I::Delete,    [] { CAD_RequestDeleteSelected(); });
-	r.AddSmall(L"모두 지우기", I::ClearAll,  [] { CAD_RequestClearAll(); });
+	r.AddLarge(L"전체 선택",   I::SelectAll, Command("selectall"));
+	r.AddSmall(L"삭제",        I::Delete,    Command("delete"));
+	r.AddSmall(L"모두 지우기", I::ClearAll,  [] { CAD_ClearAll(); });
 
 	r.AddGroup(L"실행");
 	r.AddLarge(L"실행취소", I::Undo, [] { CAD_Undo(); });
@@ -93,7 +93,7 @@ void CLotCADMFCDlg::BuildRibbon()
 
 	r.AddGroup(L"프리미티브");
 	r.AddLarge(L"박스",   I::Box,      Command("b"));                 // 3단계 스케치
-	r.AddSmall(L"큐브",   I::Box,      [] { CAD_RequestAddCube(); }); // 기본 크기로 바로
+	r.AddSmall(L"큐브",   I::Box,      Command("cube"));              // 기본 크기로 바로
 	r.AddSmall(L"구",     I::Sphere,   Command("sphere"));
 	r.AddSmall(L"원기둥", I::Cylinder, Command("cyl"));
 	r.AddSmall(L"원뿔",   I::Cone,     Command("cone"));
@@ -143,9 +143,13 @@ void CLotCADMFCDlg::BuildRibbon()
 //   2) 뺄 솔리드 선택   → 차집합   : CAD_BooleanSubtract 실행
 void CLotCADMFCDlg::SubtractStep()
 {
-	std::vector<uint32_t> selected(CAD_GetSelectedCount());
-	for (uint32_t i = 0; i < (uint32_t)selected.size(); ++i)
-		CAD_GetSelectedObjectId(i, &selected[i]);
+	// 지금 선택 — 개수만 먼저(NULL, 0) 묻고 그만큼 칸을 잡아 한 번에 받는다
+	const int32_t count = CAD_GetSelection(nullptr, 0);
+	std::vector<uint32_t> selected(count > 0 ? (size_t)count : 0);
+	if (!selected.empty()) {
+		const int32_t got = CAD_GetSelection(selected.data(), (uint32_t)selected.size());
+		selected.resize(got > 0 ? (std::min)((size_t)got, selected.size()) : 0);
+	}
 
 	if (m_subtractBase.empty()) {
 		if (selected.empty()) {

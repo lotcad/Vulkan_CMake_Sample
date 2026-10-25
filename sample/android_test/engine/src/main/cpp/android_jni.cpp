@@ -8,6 +8,7 @@
 
 #include "LotCAD_API.h"
 
+#include <algorithm>
 #include <string>   // 클립보드 보관
 #include <cstdio>
 #include <thread>
@@ -129,7 +130,7 @@ JNI(void, nativeTouch)(JNIEnv*, jobject, jint phase, jint button, jfloat x, jflo
 // **프롬프트가 비면 도구가 끝난 것**으로 보고 커서 모드를 해제한다.
 JNI(jstring, nativePrompt)(JNIEnv* env, jobject) {
     char buf[256] = {};
-    CAD_GetPrompt(buf, static_cast<int>(sizeof(buf)));
+    CAD_GetPrompt(buf, static_cast<uint32_t>(sizeof(buf)));   // 칸이 모자라면 글자 경계에서 잘라 담는다
     return env->NewStringUTF(buf);
 }
 
@@ -139,11 +140,11 @@ JNI(void, nativeScroll)(JNIEnv*, jobject, jfloat x, jfloat y, jfloat dy) {
 }
 
 // ── 툴바 명령 ──
-JNI(void, nativeAddCube)(JNIEnv*, jobject)      { CAD_RequestAddCube(); }
+JNI(void, nativeAddCube)(JNIEnv*, jobject)      { CAD_ExecuteCommand("cube"); }
 JNI(void, nativeCreateBox)(JNIEnv*, jobject)    { uint32_t id = 0; CAD_CreateBox(CAD_GeVec3{0, 0, 0}, CAD_GeVec3{1, 1, 1}, nullptr, &id); }
-JNI(void, nativeSelectAll)(JNIEnv*, jobject)    { CAD_RequestSelectAll(); }
-JNI(void, nativeDeleteSelected)(JNIEnv*, jobject){ CAD_RequestDeleteSelected(); }
-JNI(void, nativeClearAll)(JNIEnv*, jobject)     { CAD_RequestClearAll(); }
+JNI(void, nativeSelectAll)(JNIEnv*, jobject)    { CAD_ExecuteCommand("selectall"); }
+JNI(void, nativeDeleteSelected)(JNIEnv*, jobject){ CAD_ExecuteCommand("delete"); }
+JNI(void, nativeClearAll)(JNIEnv*, jobject)     { CAD_ClearAll(); }
 JNI(void, nativeZoomExtents)(JNIEnv*, jobject)  { CAD_ZoomExtents(); }
 JNI(void, nativeSetView)(JNIEnv*, jobject, jint v) { CAD_SetView(v); }
 JNI(void, nativeUndo)(JNIEnv*, jobject)         { CAD_Undo(); }
@@ -155,7 +156,7 @@ JNI(jint, nativeObjectCount)(JNIEnv*, jobject)  { return static_cast<jint>(CAD_G
 JNI(jboolean, nativeExecuteCommand)(JNIEnv* env, jobject, jstring name) {
     if (!name) return JNI_FALSE;
     const char* s = env->GetStringUTFChars(name, nullptr);
-    const bool ok = s && CAD_ExecuteCommand(s);
+    const bool ok = s && CAD_ExecuteCommand(s) == CAD_OK;   // 결과 코드 — 0 = 성공
     if (s) env->ReleaseStringUTFChars(name, s);
     return ok ? JNI_TRUE : JNI_FALSE;
 }
@@ -163,11 +164,15 @@ JNI(jboolean, nativeExecuteCommand)(JNIEnv* env, jobject, jstring name) {
 // ── 측정 ──
 // 선택만 하면 값이 나오는 경로. 점 찍기·스냅이 없어 모바일에서 가장 쓰기 쉽다.
 // 잴 수 없는 종류(메시·문자)는 엔진이 합에서 건너뛰므로 0 이 올 수 있다.
-JNI(jint,   nativeSelectedCount)(JNIEnv*, jobject)   { return static_cast<jint>(CAD_GetSelectedCount()); }
+JNI(jint,   nativeSelectedCount)(JNIEnv*, jobject)   { return static_cast<jint>(std::max(0, CAD_GetSelection(nullptr, 0))); }
 JNI(jfloat, nativeSelectionLength)(JNIEnv*, jobject) { double v = 0; CAD_GetSelectionLength(&v); return static_cast<jfloat>(v); }
 JNI(jfloat, nativeSelectionArea)(JNIEnv*, jobject)   { double v = 0; CAD_GetSelectionArea(&v); return static_cast<jfloat>(v); }
 // 진행 중인 치수 도구의 점 개수(비활성 -1). 커서 UI 가 클릭을 세는 대신 엔진에 물어본다.
-JNI(jint, nativeDimensionPointCount)(JNIEnv*, jobject) { return CAD_GetDimensionPointCount(); }
+// 엔진은 비활성이면 CAD_E_NOT_READY(음수)를 준다 — Kotlin 쪽 약속(-1)으로 맞춘다.
+JNI(jint, nativeDimensionPointCount)(JNIEnv*, jobject) {
+    const int32_t n = CAD_GetDimensionPointCount();
+    return n < 0 ? -1 : static_cast<jint>(n);
+}
 
 // ── 파일 열기 ──
 // 안드로이드 파일 선택기(SAF)는 content:// URI 를 주는데 엔진은 fopen 기반이라

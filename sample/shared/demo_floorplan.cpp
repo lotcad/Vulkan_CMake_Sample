@@ -93,7 +93,7 @@ private:
         const uint32_t n = CAD_CreateFloorplanWithOpenings(-(wA_ + wB_) * 0.5f, -depth_ * 0.5f, 0, rects, 2,
                                                            height_, 0.15f, op, 4, ids, 64);
         note_ = n ? fmt("벽 %u개 — 문 2 · 창 2", n) : "실패: " + lastError();
-        CAD_ClearSelection();
+        CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
         CAD_SetView(3);
         CAD_ZoomExtents();
     }
@@ -116,7 +116,7 @@ private:
         uint32_t ids[256];
         const uint32_t n = CAD_CreateFloorplanFromImage(path.c_str(), 0, height_, true, ids, 256);
         note_ = n ? fmt("벽 %u개 (축척은 문 폭 900mm 로 추정)", n) : "실패: " + lastError();
-        CAD_ClearSelection();
+        CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
         CAD_SetView(3);
         CAD_ZoomExtents();
     }
@@ -140,7 +140,7 @@ private:
         const uint32_t n = CAD_CreateWallGraph(ox, oy, 0, segs.data(), count, height_, 0.1f, ids, 256);
         note_ = n ? fmt("벽 선분 %u개 → 벽 %u개 · %s", count, n, jsonString(json, "summary").c_str())
                   : "실패: " + lastError();
-        CAD_ClearSelection();
+        CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
         CAD_SetView(3);
         CAD_ZoomExtents();
     }

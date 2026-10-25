@@ -34,17 +34,14 @@ namespace LotCadWinForms
         [StructLayout(LayoutKind.Sequential)] public struct GeVec3 { public double X, Y, Z; public GeVec3(double x, double y, double z) { X = x; Y = y; Z = z; } }
         // 반환 = 결과 코드(0 = 성공), 새 id 는 out — opt 는 IntPtr.Zero(지금 도면층·기본 색)
         [DllImport(DLL)] public static extern int CAD_CreateBox(GeVec3 center, GeVec3 size, IntPtr opt, out uint id);
-        [DllImport(DLL)] public static extern void CAD_RequestStartLineSketch();
-        [DllImport(DLL)] public static extern void CAD_RequestStartRectangleSketch();
-        [DllImport(DLL)] public static extern void CAD_RequestStartCircleSketch();
         // ── 명령 실행 ──
-        // 엔진 명령 200여 개를 이름으로 전부 쓸 수 있다. 아래 CAD_RequestXxx 는
-        // 자주 쓰는 것만 뽑아 둔 것이라, 없는 기능은 이걸로 부르면 된다.
+        // 엔진 명령 200여 개를 이름으로 전부 쓸 수 있다 — 도구 시작(line·rect·circle·polyline·cube …)·
+        // 전체 선택(selectall)·삭제(delete) 도 이것 하나로 부른다.
         //   CadApi.CAD_ExecuteCommand("trim");
         //   CadApi.CAD_ExecuteCommand("offset");
-        [DllImport(DLL, CharSet = CharSet.Ansi)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_ExecuteCommand(string name);
+        // 반환 0 = CAD_OK, 모르는 명령 CAD_E_NOT_FOUND(음수). 글은 UTF-8 로(한글 별칭도 된다).
+        [DllImport(DLL)]
+        public static extern int CAD_ExecuteCommand([MarshalAs(UnmanagedType.LPUTF8Str)] string text);
 
         // ── 알림(콜백) ──
         // ⚠️ 델리게이트를 **필드로 붙들어 둬야** 한다. 지역 변수로 넘기면 GC 가 걷어가
@@ -73,11 +70,7 @@ namespace LotCadWinForms
         public static extern bool CAD_ExportFile(string path,
                                                  [MarshalAs(UnmanagedType.I1)] bool selectedOnly);
 
-        [DllImport(DLL)] public static extern void CAD_RequestStartPolylineSketch();
-        [DllImport(DLL)] public static extern void CAD_RequestAddCube();
-        [DllImport(DLL)] public static extern void CAD_RequestSelectAll();
-        [DllImport(DLL)] public static extern void CAD_RequestDeleteSelected();
-        [DllImport(DLL)] public static extern void CAD_RequestClearAll();
+        [DllImport(DLL)] public static extern int CAD_ClearAll();   // 0 = CAD_OK(다음 틱에 비운다)
         // 보기 — 반환 0 = CAD_OK(카메라는 다음 틱에 움직인다)
         [DllImport(DLL)] public static extern int CAD_ZoomExtents();
         [DllImport(DLL)] public static extern int CAD_SetView(int viewType);   // 0=Front 1=Top 2=Right 3=Iso
@@ -97,9 +90,19 @@ namespace LotCadWinForms
 
         // ── 조회 ──
         [DllImport(DLL)] public static extern int CAD_GetObjectCount();        // 음수 = 이유 코드
-        [DllImport(DLL)] public static extern uint CAD_GetSelectedCount();
-        [DllImport(DLL)] [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetSelectedObjectId(uint index, out uint id);
+        // 지금 선택 — 칸만큼 채우고 전체 개수(outIds = null 이면 개수만)
+        [DllImport(DLL)] public static extern int CAD_GetSelection(uint[] outIds, uint capacity);
+        public static int SelectedCount() => Math.Max(0, CAD_GetSelection(null, 0));
+        public static uint[] SelectedIds()
+        {
+            int n = CAD_GetSelection(null, 0);
+            if (n <= 0) return Array.Empty<uint>();
+            var ids = new uint[n];
+            int got = CAD_GetSelection(ids, (uint)n);
+            if (got < 0) return Array.Empty<uint>();
+            if (got < n) Array.Resize(ref ids, got);
+            return ids;
+        }
         [DllImport(DLL)] public static extern int CAD_GetLastError(byte[] outUtf8, uint capacity);   // 직전 실패 이유
 
         // ── 해석 — 바람 터널 · 물 · 구조 해석 ── (Analysis.cs 가 쓴다)

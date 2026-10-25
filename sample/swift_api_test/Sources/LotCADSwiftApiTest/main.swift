@@ -43,7 +43,7 @@ guard CAD_CreateBox(CAD_GeVec3(x: 0.0, y: 0.0, z: 1.0), CAD_GeVec3(x: 0.5, y: 0.
 CAD_SetPosition(boxId, CAD_GeVec3(x: 1.0, y: 0.0, z: 1.5))
 CAD_SetScale(boxId, CAD_GeVec3(x: 0.8, y: 0.8, z: 0.8))
 CAD_SetRotationAxisAngle(boxId, CAD_GeVec3(x: 0.0, y: 0.0, z: 1.0), 0.7853982)
-CAD_SelectObject(boxId, false)
+CAD_SetSelection(&boxId, 1, Int32(CAD_SELECT_REPLACE))   // REPLACE = 이것 하나만 고름
 CAD_ZoomExtents()
 
 var p = CAD_GeVec3()
@@ -52,7 +52,7 @@ if CAD_GetPosition(boxId, &p) == 0 {
 }
 
 print("[swift_api_test] object count: \(CAD_GetObjectCount())")
-print("[swift_api_test] selected count: \(CAD_GetSelectedCount())")
+print("[swift_api_test] selected count: \(CAD_GetSelection(nil, 0))")   // nil, 0 = 개수만
 print("[swift_api_test] close the GLFW window to finish")
 
 while !CAD_ShouldClose() {

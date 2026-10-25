@@ -65,7 +65,7 @@ final class LotCADEngine {
             CAD_SetPosition(boxId, CAD_GeVec3(x: 1.0, y: 0.0, z: 1.5))
             CAD_SetScale(boxId, CAD_GeVec3(x: 0.8, y: 0.8, z: 0.8))
             CAD_SetRotationAxisAngle(boxId, CAD_GeVec3(x: 0.0, y: 0.0, z: 1.0), 0.7853982)
-            CAD_SelectObject(boxId, false)
+            _ = CAD_SetSelection([boxId], 1, Int32(CAD_SELECT_REPLACE))
         }
 
         _ = createLine(
@@ -181,10 +181,10 @@ final class LotCADEngine {
     // ─── 툴바 버튼 (Android MainActivity 미러링) ───
     // 큐브 추가/전체선택/삭제/전체삭제/줌은 appCommands_ 큐를 거쳐 iOS render-on-demand 에서도
     // 자동으로 한 프레임 렌더됨. Undo/Redo 는 즉시 실행이라 C++ 측에서 markInputDirty 처리.
-    func addCube()          { guard isCreated else { return }; CAD_RequestAddCube() }
-    func selectAll()        { guard isCreated else { return }; CAD_RequestSelectAll() }
-    func deleteSelected()   { guard isCreated else { return }; CAD_RequestDeleteSelected() }
-    func clearAll()         { guard isCreated else { return }; CAD_RequestClearAll() }
+    func addCube()          { executeCommand("cube") }
+    func selectAll()        { executeCommand("selectall") }
+    func deleteSelected()   { executeCommand("delete") }
+    func clearAll()         { guard isCreated else { return }; _ = CAD_ClearAll() }
     func zoomExtents()      { guard isCreated else { return }; CAD_ZoomExtents() }
 
     // ─── 명령 실행 ───
@@ -193,23 +193,28 @@ final class LotCADEngine {
     @discardableResult
     func executeCommand(_ name: String) -> Bool {
         guard isCreated else { return false }
-        return CAD_ExecuteCommand(name)
+        return CAD_ExecuteCommand(name) == 0   // 0 = CAD_OK, 모르는 명령 = CAD_E_NOT_FOUND(음수)
     }
 
     // ─── 측정 — 선택만 하면 값이 나온다 ───
     // 점 찍기·스냅·치수 객체 생성이 전혀 없어서 모바일에서 가장 쓰기 쉬운 경로다.
     // 잴 게 없거나 선택이 비면 0.
-    func selectedCount() -> UInt32 { isCreated ? CAD_GetSelectedCount() : 0 }
+    func selectedCount() -> UInt32 { isCreated ? UInt32(max(0, CAD_GetSelection(nil, 0))) : 0 }   // nil, 0 = 개수만
     /// 진행 중인 치수 도구의 점 개수. 비활성이면 -1.
     /// 클라이언트가 클릭을 세면 엔진이 클릭을 거부할 때 어긋나므로 **엔진 값을 본다**.
-    func dimensionPointCount() -> Int32 { isCreated ? CAD_GetDimensionPointCount() : -1 }
+    /// 엔진은 비활성이면 CAD_E_NOT_READY(음수)를 준다 — 이 래퍼의 약속(-1)으로 맞춘다.
+    func dimensionPointCount() -> Int32 {
+        guard isCreated else { return -1 }
+        let n = CAD_GetDimensionPointCount()
+        return n < 0 ? -1 : n
+    }
 
     /// 진행 중인 도구의 안내 문구. 도구가 없으면 빈 문자열.
     /// 도구 종류와 무관하게 "지금 뭘 해야 하는지" 를 엔진에서 그대로 받아 쓴다.
     func prompt() -> String {
         guard isCreated else { return "" }
         var buf = [CChar](repeating: 0, count: 256)
-        let n = CAD_GetPrompt(&buf, Int32(buf.count))
+        let n = CAD_GetPrompt(&buf, UInt32(buf.count))   // 반환 = 전체 길이, 넘치면 잘라 담는다
         return n > 0 ? String(decoding: buf.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self) : ""
     }
 
@@ -253,32 +258,35 @@ final class LotCADEngine {
     func objectCount() -> UInt32 { isCreated ? UInt32(max(0, CAD_GetObjectCount())) : 0 }
 
     // ─── 명령 요청 (SwiftUI 버튼/패널용) ───
-    func startLineSketch() { guard isCreated else { return }; CAD_RequestStartLineSketch() }
-    func startRectangleSketch() { guard isCreated else { return }; CAD_RequestStartRectangleSketch() }
-    func startCircleSketch() { guard isCreated else { return }; CAD_RequestStartCircleSketch() }
-    func startPolygonSketch() { guard isCreated else { return }; CAD_RequestStartPolygonSketch() }
-    func cyclePolygonSides() { guard isCreated else { return }; CAD_RequestCyclePolygonSides() }
-    func startExtrude() { guard isCreated else { return }; CAD_RequestStartExtrude() }
-    func startArcSketch() { guard isCreated else { return }; CAD_RequestStartArcSketch() }
-    func cycleArcMode() { guard isCreated else { return }; CAD_RequestCycleArcMode() }
-    func startPolylineSketch() { guard isCreated else { return }; CAD_RequestStartPolylineSketch() }
-    func startLightPlacement() { guard isCreated else { return }; CAD_RequestStartLightPlacement() }
-    func cycleMaterial() { guard isCreated else { return }; CAD_RequestCycleMaterial() }
-    func removeMaterial() { guard isCreated else { return }; CAD_RequestRemoveMaterial() }
+    // 도구 시작·선택지 — 엔진 명령 이름으로(명령행에 치는 것과 같은 길)
+    func startLineSketch() { executeCommand("line") }
+    func startRectangleSketch() { executeCommand("rect") }
+    func startCircleSketch() { executeCommand("circle") }
+    func startPolygonSketch() { executeCommand("polygon") }
+    func cyclePolygonSides() { executeCommand("sides") }
+    func startExtrude() { executeCommand("extrude") }
+    func startArcSketch() { executeCommand("arc") }
+    func cycleArcMode() { executeCommand("arcmode") }
+    func startPolylineSketch() { executeCommand("polyline") }
+    func startLightPlacement() { executeCommand("light") }
+    func cycleMaterial() { guard isCreated else { return }; _ = CAD_CycleMaterial() }
+    func removeMaterial() { guard isCreated else { return }; _ = CAD_RemoveMaterial() }
     func adjustTextureScale(_ delta: Float) {
         guard isCreated else { return }
-        CAD_AdjustTextureScale(delta)
+        _ = CAD_AdjustTextureScale(Double(delta))
     }
     func adjustLineWidth(_ deltaPx: Float) {
         guard isCreated else { return }
-        CAD_AdjustLineWidth(deltaPx)
+        _ = CAD_AdjustLineWidth(Double(deltaPx))
     }
     // 옮기기·돌리기·축척·복사·색 — C API 는 대상 id 를 받는다(CAD_Entity*). 돌리기·축척 기준점 = 고른 것 전체 경계 상자 가운데
+    // CAD_GetSelection: 개수만 먼저(nil, 0) 묻고 그만큼 칸을 잡아 한 번에 받는다
     private var selectedIds: [UInt32] {
-        (0..<CAD_GetSelectedCount()).compactMap { i -> UInt32? in
-            var id: UInt32 = 0
-            return CAD_GetSelectedObjectId(i, &id) && id != 0 ? id : nil
-        }
+        let n = CAD_GetSelection(nil, 0)
+        guard n > 0 else { return [] }
+        var ids = [UInt32](repeating: 0, count: Int(n))
+        let got = Int(max(0, min(n, CAD_GetSelection(&ids, UInt32(n)))))
+        return ids.prefix(got).filter { $0 != 0 }
     }
     private func offset(_ direction: CADPoint, _ distance: Float) -> CAD_GeVec3? {
         let len = (direction.x * direction.x + direction.y * direction.y + direction.z * direction.z).squareRoot()
@@ -389,7 +397,7 @@ final class LotCADEngine {
             let json = String(decoding: buf.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
             guard json.contains("\"text\":\"\(want)\"") else { continue }
             if nth > 0 { nth -= 1; continue }
-            _ = CAD_SelectObject(id, false)
+            _ = CAD_SetSelection([id], 1, Int32(CAD_SELECT_REPLACE))
             CAD_FocusSelected()
             print("[test] focus text id \(id)")
             return

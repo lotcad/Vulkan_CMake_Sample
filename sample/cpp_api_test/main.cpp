@@ -30,7 +30,7 @@ int main() {
     CAD_SetPosition(boxId, CAD_GeVec3{1.0, 0.0, 1.5});
     CAD_SetScale(boxId, CAD_GeVec3{0.8, 0.8, 0.8});
     CAD_SetRotationAxisAngle(boxId, CAD_GeVec3{0.0, 0.0, 1.0}, 0.7853982);
-    CAD_SelectObject(boxId, false);
+    CAD_SetSelection(&boxId, 1, CAD_SELECT_REPLACE);
     CAD_ZoomExtents();
 
     CAD_GeVec3 p{};
@@ -42,7 +42,7 @@ int main() {
     std::cout << "[cpp_api_test] object count: "
               << CAD_GetObjectCount() << std::endl;
     std::cout << "[cpp_api_test] selected count: "
-              << CAD_GetSelectedCount() << std::endl;
+              << CAD_GetSelection(nullptr, 0) << std::endl;   // NULL, 0 = 개수만
 
     // ── 편집 명령 예시 ──
     // 배열 — 박스를 X 로 3 × Y 로 2(간격 1.5) 복제. 대상은 id 로, 간격은 월드 벡터로. 반환 = 만든 사본 수

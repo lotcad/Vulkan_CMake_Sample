@@ -101,7 +101,7 @@ bool RobotDemo_Load(void) {
     g_robot = 0;
     g_playing = false;
     // 로봇 전용 장면 — 엔진 기본 데모 객체를 치운다(로봇이 그 사이에 묻혀 작게 보인다).
-    // CAD_RequestClearAll 은 큐로 가서 다음 틱에 돌므로 방금 불러온 로봇까지 지운다 → 즉시 삭제.
+    // CAD_ClearAll 은 큐로 가서 다음 틱에 돌므로 방금 불러온 로봇까지 지운다 → 즉시 삭제.
     std::vector<uint32_t> ids(static_cast<std::size_t>(std::max(0, CAD_GetObjectIds(nullptr, 0))));
     if (!ids.empty()) {
         const int32_t n = std::max(0, CAD_GetObjectIds(ids.data(), static_cast<uint32_t>(ids.size())));
@@ -112,7 +112,7 @@ bool RobotDemo_Load(void) {
     g_robot = CAD_LoadUrdf("models/demo_arm.urdf");
     if (g_robot == 0) return false;
     buildControls();
-    CAD_ClearSelection();         // 불러온 링크가 선택 강조색으로 보이지 않게
+    CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기 — 불러온 링크가 선택 강조색으로 보이지 않게
     CAD_SetView(3);        // Iso
     CAD_ZoomExtents();
     return true;

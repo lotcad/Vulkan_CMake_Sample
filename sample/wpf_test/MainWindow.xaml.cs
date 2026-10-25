@@ -38,7 +38,7 @@ namespace LotCadWpf
             CompositionTarget.Rendering += (s, ev) =>
             {
                 _host.Tick();
-                SceneInfo.Text = $"객체 {CadApi.CAD_GetObjectCount()} · 선택 {CadApi.CAD_GetSelectedCount()}";
+                SceneInfo.Text = $"객체 {CadApi.CAD_GetObjectCount()} · 선택 {CadApi.SelectedCount()}";
             };
         }
 
@@ -48,13 +48,13 @@ namespace LotCadWpf
 
         // ── 툴바 핸들러 ──
         void OnAddCube(object s, RoutedEventArgs e)   => CadApi.CAD_CreateBox(new CadApi.GeVec3(0, 0, 0), new CadApi.GeVec3(1, 1, 1), IntPtr.Zero, out _);
-        void OnLine(object s, RoutedEventArgs e)       => CadApi.CAD_RequestStartLineSketch();
-        void OnRect(object s, RoutedEventArgs e)       => CadApi.CAD_RequestStartRectangleSketch();
-        void OnCircle(object s, RoutedEventArgs e)     => CadApi.CAD_RequestStartCircleSketch();
-        void OnPolyline(object s, RoutedEventArgs e)   => CadApi.CAD_RequestStartPolylineSketch();
-        void OnSelectAll(object s, RoutedEventArgs e)  => CadApi.CAD_RequestSelectAll();
-        void OnDelete(object s, RoutedEventArgs e)     => CadApi.CAD_RequestDeleteSelected();
-        void OnClearAll(object s, RoutedEventArgs e)   => CadApi.CAD_RequestClearAll();
+        void OnLine(object s, RoutedEventArgs e)       => CadApi.CAD_ExecuteCommand("line");
+        void OnRect(object s, RoutedEventArgs e)       => CadApi.CAD_ExecuteCommand("rect");
+        void OnCircle(object s, RoutedEventArgs e)     => CadApi.CAD_ExecuteCommand("circle");
+        void OnPolyline(object s, RoutedEventArgs e)   => CadApi.CAD_ExecuteCommand("polyline");
+        void OnSelectAll(object s, RoutedEventArgs e)  => CadApi.CAD_ExecuteCommand("selectall");
+        void OnDelete(object s, RoutedEventArgs e)     => CadApi.CAD_ExecuteCommand("delete");
+        void OnClearAll(object s, RoutedEventArgs e)   => CadApi.CAD_ClearAll();
         void OnUndo(object s, RoutedEventArgs e)       => CadApi.CAD_Undo();
         void OnRedo(object s, RoutedEventArgs e)       => CadApi.CAD_Redo();
         void OnViewFront(object s, RoutedEventArgs e)  => CadApi.CAD_SetView(0);

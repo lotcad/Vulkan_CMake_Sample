@@ -27,7 +27,7 @@ namespace {
 	bool EngineToolActive()
 	{
 		char buf[8];
-		return CAD_GetPrompt(buf, sizeof(buf)) > 0;
+		return CAD_GetPrompt(buf, (uint32_t)sizeof(buf)) > 0;   // 반환 = 전체 길이(칸이 작아도 길이는 그대로)
 	}
 }
 
@@ -255,7 +255,7 @@ void CCommandLine::Run(const std::wstring& text)
 	// 유휴면 명령 이름, 도구가 진행 중이면 그 도구에 줄 값(좌표·거리) — 엔진이 알아서 가른다.
 	const bool toolActive = EngineToolActive();
 	AppendLog((toolActive ? L"  > " : L"명령: ") + text);
-	if (!CAD_ExecuteCommand(WideToUtf8(text).c_str()))
+	if (CAD_ExecuteCommand(WideToUtf8(text).c_str()) != CAD_OK)   // 결과 코드 — 0 = 성공, 음수 = 이유
 		AppendLog(toolActive ? L"  (진행 중인 도구가 이 값을 받지 않았습니다)" : L"알 수 없는 명령: " + text);
 }
 

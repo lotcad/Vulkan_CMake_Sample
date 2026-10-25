@@ -9,10 +9,13 @@ from typing import Any, Callable, Sequence  # noqa: F401  (형식 힌트)
 from . import _native as _n
 from ._types import *  # noqa: F401,F403
 
-__all__ = ['CAD_ED_KIND_POINT', 'CAD_ED_KIND_CORNER', 'CAD_ED_KIND_DISTANCE', 'CAD_ED_KIND_ANGLE', 'CAD_ED_KIND_INTEGER', 'CAD_ED_KIND_REAL', 'CAD_ED_KIND_STRING', 'CAD_ED_KIND_KEYWORD', 'CAD_ED_KIND_ENTITY', 'CAD_ED_KIND_SELECTION', 'CAD_ED_RESULT_PENDING', 'CAD_ED_RESULT_NORMAL', 'CAD_ED_RESULT_NONE', 'CAD_ED_RESULT_KEYWORD', 'CAD_ED_RESULT_CANCEL', 'CAD_ED_NO_NULL', 'CAD_ED_NO_ZERO', 'CAD_ED_NO_NEGATIVE', 'CAD_ED_ARBITRARY', 'CAD_ED_ALLOW_SPACES', 'CAD_ED_PICKFIRST', 'CAD_ED_SINGLE', 'CAD_GetDimensionPointCount', 'CAD_GetPrompt', 'CAD_RequestStartBoxSketch', 'CAD_RequestStartLineSketch', 'CAD_RequestStartRectangleSketch', 'CAD_RequestStartCircleSketch', 'CAD_RequestStartPolygonSketch', 'CAD_RequestCyclePolygonSides', 'CAD_ExecuteCommand', 'CAD_RegisterCommand', 'CAD_UnregisterCommand', 'CAD_UnregisterCommandsByOwner', 'CAD_GetRegisteredCommandCount', 'CAD_GetRegisteredCommandName', 'CAD_GetRegisteredCommandTitle', 'CAD_RequestStartExtrude', 'CAD_RequestStartArcSketch', 'CAD_RequestCycleArcMode', 'CAD_RequestStartPolylineSketch', 'CAD_RequestOpenFileDialog', 'CAD_RequestSelectAll', 'CAD_RequestDeleteSelected', 'CAD_RequestClearAll', 'CAD_RequestAddCube', 'CAD_RequestStartLightPlacement', 'CAD_RequestCycleMaterial', 'CAD_RequestRemoveMaterial', 'CAD_JigBegin', 'CAD_JigBeginOne', 'CAD_JigState', 'CAD_JigCancel', 'CAD_JigMoveTo', 'CAD_JigCommit', 'CAD_JigSetBasePoint', 'CAD_JigGetDelta', 'CAD_JigBeginVariants', 'CAD_JigNextVariant', 'CAD_JigVariantIndex', 'CAD_JigVariantId', 'CAD_BeginTextEdit', 'CAD_IsTextEditing', 'CAD_TextEditInsert', 'CAD_TextEditBackspace', 'CAD_TextEditDelete', 'CAD_TextEditMoveCaret', 'CAD_TextEditCommit', 'CAD_TextEditCancel', 'CAD_GetSelectionContext', 'CAD_SelectObject', 'CAD_ClearSelection', 'CAD_SetOSnapEnabled', 'CAD_GetOSnapEnabled', 'CAD_SetOSnapModes', 'CAD_GetOSnapModes', 'CAD_SetOrthoEnabled', 'CAD_GetOrthoEnabled', 'CAD_SetPolarTracking', 'CAD_GetPolarTracking', 'CAD_SnapNearPoint', 'CAD_GetSelectedCount', 'CAD_GetSelectedObjectId', 'CAD_BeginGetPoint', 'CAD_BeginGetEntSel', 'CAD_IsPicking', 'CAD_TryGetPickResult', 'CAD_CancelPick', 'CAD_SetSubobjectSelectionMode', 'CAD_GetSubobjectSelectionMode', 'CAD_PickSubobject', 'CAD_GetSubobjectSelectionId', 'CAD_GetSelectedFaceTriangles', 'CAD_GetSelectedBRepFaceId', 'CAD_GetSelectedEdge', 'CAD_RequestStartRevolve', 'CAD_GetStatusMessage', 'CAD_GetTransientMessage', 'CAD_EdGetPoint', 'CAD_EdGetCorner', 'CAD_EdGetDistance', 'CAD_EdGetAngle', 'CAD_EdGetInteger', 'CAD_EdGetReal', 'CAD_EdGetString', 'CAD_EdGetKeyword', 'CAD_EdEntSel', 'CAD_EdSSGet', 'CAD_EdGetInputResult', 'CAD_EdGetInputText', 'CAD_EdGetInputIds', 'CAD_EdCancelInput', 'CAD_EdSelectWindow', 'CAD_EdWorldToPixel', 'CAD_EdPixelToWorld', 'CAD_EdGetCommandState', 'CAD_EdGetCommandName']
+__all__ = ['CAD_SELECT_REPLACE', 'CAD_SELECT_ADD', 'CAD_SELECT_REMOVE', 'CAD_ED_KIND_POINT', 'CAD_ED_KIND_CORNER', 'CAD_ED_KIND_DISTANCE', 'CAD_ED_KIND_ANGLE', 'CAD_ED_KIND_INTEGER', 'CAD_ED_KIND_REAL', 'CAD_ED_KIND_STRING', 'CAD_ED_KIND_KEYWORD', 'CAD_ED_KIND_ENTITY', 'CAD_ED_KIND_SELECTION', 'CAD_ED_RESULT_PENDING', 'CAD_ED_RESULT_NORMAL', 'CAD_ED_RESULT_NONE', 'CAD_ED_RESULT_KEYWORD', 'CAD_ED_RESULT_CANCEL', 'CAD_ED_NO_NULL', 'CAD_ED_NO_ZERO', 'CAD_ED_NO_NEGATIVE', 'CAD_ED_ARBITRARY', 'CAD_ED_ALLOW_SPACES', 'CAD_ED_PICKFIRST', 'CAD_ED_SINGLE', 'CAD_GetDimensionPointCount', 'CAD_GetPrompt', 'CAD_GetTransientMessage', 'CAD_ExecuteCommand', 'CAD_RegisterCommand', 'CAD_UnregisterCommand', 'CAD_UnregisterCommandsByOwner', 'CAD_GetRegisteredCommandCount', 'CAD_GetRegisteredCommandName', 'CAD_GetRegisteredCommandTitle', 'CAD_OpenFileDialog', 'CAD_ClearAll', 'CAD_CycleMaterial', 'CAD_RemoveMaterial', 'CAD_JigBegin', 'CAD_JigBeginOne', 'CAD_JigState', 'CAD_JigCancel', 'CAD_JigMoveTo', 'CAD_JigCommit', 'CAD_JigSetBasePoint', 'CAD_JigGetDelta', 'CAD_JigBeginVariants', 'CAD_JigNextVariant', 'CAD_JigVariantIndex', 'CAD_JigVariantId', 'CAD_BeginTextEdit', 'CAD_IsTextEditing', 'CAD_TextEditInsert', 'CAD_TextEditBackspace', 'CAD_TextEditDelete', 'CAD_TextEditMoveCaret', 'CAD_TextEditCommit', 'CAD_TextEditCancel', 'CAD_GetSelectionContext', 'CAD_GetSelection', 'CAD_SetSelection', 'CAD_SetOSnapEnabled', 'CAD_GetOSnapEnabled', 'CAD_SetOSnapModes', 'CAD_GetOSnapModes', 'CAD_SetOrthoEnabled', 'CAD_GetOrthoEnabled', 'CAD_SetPolarTracking', 'CAD_GetPolarTracking', 'CAD_SnapNearPoint', 'CAD_SetSubobjectSelectionMode', 'CAD_GetSubobjectSelectionMode', 'CAD_PickSubobject', 'CAD_GetSubobjectSelectionId', 'CAD_GetSelectedFaceTriangles', 'CAD_GetSelectedBRepFaceId', 'CAD_GetSelectedEdge', 'CAD_EdGetPoint', 'CAD_EdGetCorner', 'CAD_EdGetDistance', 'CAD_EdGetAngle', 'CAD_EdGetInteger', 'CAD_EdGetReal', 'CAD_EdGetString', 'CAD_EdGetKeyword', 'CAD_EdEntSel', 'CAD_EdSSGet', 'CAD_EdGetInputResult', 'CAD_EdGetInputText', 'CAD_EdGetInputIds', 'CAD_EdCancelInput', 'CAD_EdSelectWindow', 'CAD_EdWorldToPixel', 'CAD_EdPixelToWorld', 'CAD_EdGetCommandState', 'CAD_EdGetCommandName']
 
 _f = _n.native
 
+CAD_SELECT_REPLACE = 0
+CAD_SELECT_ADD = 1
+CAD_SELECT_REMOVE = 2
 CAD_ED_KIND_POINT = 1
 CAD_ED_KIND_CORNER = 2
 CAD_ED_KIND_DISTANCE = 3
@@ -36,33 +39,20 @@ CAD_ED_ALLOW_SPACES = 16
 CAD_ED_PICKFIRST = 32
 CAD_ED_SINGLE = 64
 
-_n.bind("CAD_GetDimensionPointCount", _c.c_int, [])
-_n.bind("CAD_GetPrompt", _c.c_int, [_c.POINTER(_c.c_char), _c.c_int])
-_n.bind("CAD_RequestStartBoxSketch", None, [])
-_n.bind("CAD_RequestStartLineSketch", None, [])
-_n.bind("CAD_RequestStartRectangleSketch", None, [])
-_n.bind("CAD_RequestStartCircleSketch", None, [])
-_n.bind("CAD_RequestStartPolygonSketch", None, [])
-_n.bind("CAD_RequestCyclePolygonSides", None, [])
-_n.bind("CAD_ExecuteCommand", _c.c_bool, [_c.c_char_p])
-_n.bind("CAD_RegisterCommand", _c.c_bool, [_c.c_char_p, _c.c_char_p, CAD_CommandFn, _c.c_void_p, _c.c_uint])
-_n.bind("CAD_UnregisterCommand", _c.c_bool, [_c.c_char_p])
-_n.bind("CAD_UnregisterCommandsByOwner", _c.c_uint, [_c.c_uint])
-_n.bind("CAD_GetRegisteredCommandCount", _c.c_uint, [])
-_n.bind("CAD_GetRegisteredCommandName", _c.c_int, [_c.c_uint, _c.POINTER(_c.c_char), _c.c_int])
-_n.bind("CAD_GetRegisteredCommandTitle", _c.c_int, [_c.c_uint, _c.POINTER(_c.c_char), _c.c_int])
-_n.bind("CAD_RequestStartExtrude", None, [])
-_n.bind("CAD_RequestStartArcSketch", None, [])
-_n.bind("CAD_RequestCycleArcMode", None, [])
-_n.bind("CAD_RequestStartPolylineSketch", None, [])
-_n.bind("CAD_RequestOpenFileDialog", None, [])
-_n.bind("CAD_RequestSelectAll", None, [])
-_n.bind("CAD_RequestDeleteSelected", None, [])
-_n.bind("CAD_RequestClearAll", None, [])
-_n.bind("CAD_RequestAddCube", None, [])
-_n.bind("CAD_RequestStartLightPlacement", None, [])
-_n.bind("CAD_RequestCycleMaterial", None, [])
-_n.bind("CAD_RequestRemoveMaterial", None, [])
+_n.bind("CAD_GetDimensionPointCount", _c.c_int32, [])
+_n.bind("CAD_GetPrompt", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_GetTransientMessage", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_ExecuteCommand", _c.c_int32, [_c.c_char_p])
+_n.bind("CAD_RegisterCommand", _c.c_int32, [_c.c_char_p, _c.c_char_p, CAD_CommandFn, _c.c_void_p, _c.c_uint32])
+_n.bind("CAD_UnregisterCommand", _c.c_int32, [_c.c_char_p])
+_n.bind("CAD_UnregisterCommandsByOwner", _c.c_int32, [_c.c_uint32])
+_n.bind("CAD_GetRegisteredCommandCount", _c.c_int32, [])
+_n.bind("CAD_GetRegisteredCommandName", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_GetRegisteredCommandTitle", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_OpenFileDialog", _c.c_int32, [])
+_n.bind("CAD_ClearAll", _c.c_int32, [])
+_n.bind("CAD_CycleMaterial", _c.c_int32, [])
+_n.bind("CAD_RemoveMaterial", _c.c_int32, [])
 _n.bind("CAD_JigBegin", _c.c_bool, [_c.c_int, _c.POINTER(_c.c_uint32), _c.c_int, _c.c_float, _c.c_float, _c.c_float])
 _n.bind("CAD_JigBeginOne", _c.c_bool, [_c.c_int, _c.c_uint32, _c.c_float, _c.c_float, _c.c_float])
 _n.bind("CAD_JigState", _c.c_int, [])
@@ -83,25 +73,18 @@ _n.bind("CAD_TextEditDelete", None, [])
 _n.bind("CAD_TextEditMoveCaret", None, [_c.c_int])
 _n.bind("CAD_TextEditCommit", None, [])
 _n.bind("CAD_TextEditCancel", None, [])
-_n.bind("CAD_GetSelectionContext", _c.c_int, [_c.POINTER(_c.c_char), _c.c_int])
-_n.bind("CAD_SelectObject", _c.c_bool, [_c.c_uint32, _c.c_bool])
-_n.bind("CAD_ClearSelection", None, [])
-_n.bind("CAD_SetOSnapEnabled", _c.c_bool, [_c.c_bool])
-_n.bind("CAD_GetOSnapEnabled", _c.c_bool, [])
-_n.bind("CAD_SetOSnapModes", _c.c_bool, [_c.c_uint32])
-_n.bind("CAD_GetOSnapModes", _c.c_uint32, [])
-_n.bind("CAD_SetOrthoEnabled", None, [_c.c_bool])
-_n.bind("CAD_GetOrthoEnabled", _c.c_bool, [])
-_n.bind("CAD_SetPolarTracking", _c.c_bool, [_c.c_bool, _c.c_float])
-_n.bind("CAD_GetPolarTracking", _c.c_bool, [_c.POINTER(_c.c_float)])
+_n.bind("CAD_GetSelectionContext", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_GetSelection", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32])
+_n.bind("CAD_SetSelection", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32, _c.c_int32])
+_n.bind("CAD_SetOSnapEnabled", _c.c_int32, [_c.c_bool])
+_n.bind("CAD_GetOSnapEnabled", _c.c_int32, [_c.POINTER(_c.c_bool)])
+_n.bind("CAD_SetOSnapModes", _c.c_int32, [_c.c_uint32])
+_n.bind("CAD_GetOSnapModes", _c.c_int32, [_c.POINTER(_c.c_uint32)])
+_n.bind("CAD_SetOrthoEnabled", _c.c_int32, [_c.c_bool])
+_n.bind("CAD_GetOrthoEnabled", _c.c_int32, [_c.POINTER(_c.c_bool)])
+_n.bind("CAD_SetPolarTracking", _c.c_int32, [_c.c_bool, _c.c_double])
+_n.bind("CAD_GetPolarTracking", _c.c_int32, [_c.POINTER(_c.c_bool), _c.POINTER(_c.c_double)])
 _n.bind("CAD_SnapNearPoint", _c.c_int32, [CAD_GeVec3, _c.c_double, _c.c_uint32, _c.POINTER(CAD_OsnapOptions), _c.POINTER(CAD_OsnapPoint)])
-_n.bind("CAD_GetSelectedCount", _c.c_uint32, [])
-_n.bind("CAD_GetSelectedObjectId", _c.c_bool, [_c.c_uint32, _c.POINTER(_c.c_uint32)])
-_n.bind("CAD_BeginGetPoint", None, [_c.c_char_p])
-_n.bind("CAD_BeginGetEntSel", None, [_c.c_char_p])
-_n.bind("CAD_IsPicking", _c.c_bool, [])
-_n.bind("CAD_TryGetPickResult", _c.c_bool, [_c.POINTER(_c.c_float), _c.POINTER(_c.c_float), _c.POINTER(_c.c_float), _c.POINTER(_c.c_uint32)])
-_n.bind("CAD_CancelPick", None, [])
 _n.bind("CAD_SetSubobjectSelectionMode", _c.c_bool, [_c.c_int])
 _n.bind("CAD_GetSubobjectSelectionMode", _c.c_int, [])
 _n.bind("CAD_PickSubobject", _c.c_bool, [_c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float])
@@ -109,9 +92,6 @@ _n.bind("CAD_GetSubobjectSelectionId", _c.c_uint32, [])
 _n.bind("CAD_GetSelectedFaceTriangles", _c.c_uint32, [_c.POINTER(_c.c_uint32), _c.c_uint32])
 _n.bind("CAD_GetSelectedBRepFaceId", _c.c_int32, [])
 _n.bind("CAD_GetSelectedEdge", _c.c_bool, [_c.POINTER(_c.c_float)])
-_n.bind("CAD_RequestStartRevolve", None, [])
-_n.bind("CAD_GetStatusMessage", _c.c_int, [_c.POINTER(_c.c_char), _c.c_int])
-_n.bind("CAD_GetTransientMessage", _c.c_int, [_c.POINTER(_c.c_char), _c.c_int])
 _n.bind("CAD_EdGetPoint", _c.c_int32, [_c.c_char_p, _c.POINTER(CAD_EdInputOptions)])
 _n.bind("CAD_EdGetCorner", _c.c_int32, [_c.c_char_p, CAD_GeVec3, _c.POINTER(CAD_EdInputOptions)])
 _n.bind("CAD_EdGetDistance", _c.c_int32, [_c.c_char_p, _c.POINTER(CAD_EdInputOptions)])
@@ -134,21 +114,19 @@ _n.bind("CAD_EdGetCommandName", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32]
 
 
 def CAD_GetDimensionPointCount() -> int:
-    """C: int CAD_GetDimensionPointCount(void)
+    """C: int32_t CAD_GetDimensionPointCount(void)
 
-    진행 중인 치수 도구의 점 개수. 비활성이면 -1.
-    모바일 커서 UI 의 [선택] 버튼 문구/종료 판단에 쓴다 — 클라이언트가 클릭을 세면
-    엔진이 클릭을 거부하는 경우와 어긋나므로 반드시 엔진 값을 본다.
+    진행 중인 치수 도구의 점 개수 — 치수 도구가 아니면 CAD_E_NOT_READY.
+    모바일 커서 UI 의 [선택] 버튼 문구·끝 판단에 쓴다(클릭을 세면 엔진이 거부한 클릭과 어긋나니 엔진 값을 본다).
     """
     return _f.CAD_GetDimensionPointCount()
 
 
 def CAD_GetPrompt() -> str | None:
-    """C: int CAD_GetPrompt(char* buf, int bufLen)
+    """C: int32_t CAD_GetPrompt(char* buf, uint32_t capacity)
 
-    진행 중인 도구의 안내 문구("첫 번째 점을 지정" 등). 도구가 없으면 빈 문자열.
-    모바일 커서 UI 가 **도구 종류와 무관하게** 활성 여부/안내를 알기 위해 매 틱 폴링한다.
-    반환: 복사한 길이(널 제외). buf 가 작으면 잘라서 복사한다.
+    진행 중인 도구·묻기의 안내("첫 번째 점을 지정" 등) — 없으면 ""(길이 0). 모바일 커서 UI 가 도구 종류와 무관하게 매 틱 읽는다.
+    반환 = 전체 길이(NUL 제외), 칸이 모자라면 글자 경계에서 잘라 담는다.
     """
     _cap = 256
     while True:
@@ -162,65 +140,45 @@ def CAD_GetPrompt() -> str | None:
         return _n.decode(_buf.value)
 
 
-def CAD_RequestStartBoxSketch() -> None:
-    """C: void CAD_RequestStartBoxSketch(void)
+def CAD_GetTransientMessage() -> str | None:
+    """C: int32_t CAD_GetTransientMessage(char* buf, uint32_t capacity)
+
+    한동안 뜨는 안내(몇 초 뒤 스스로 사라짐) — 프롬프트(지금 뭘 할지, 상시)와 다른 값: "방금 왜 안 됐는지".
+      예: "각도: 선을 클릭하세요". 없거나 지났으면 "". 데스크톱은 상태바가 그리지만 모바일은 이게 유일한 길(안 띄우면 클릭이 씹힌 듯 보인다).
     """
-    _f.CAD_RequestStartBoxSketch()
+    _cap = 256
+    while True:
+        _buf = _c.create_string_buffer(_cap)
+        _r = _f.CAD_GetTransientMessage(_buf, _cap)
+        if _r < 0:
+            return None
+        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
+            _cap = max(_r + 1, _cap * 2)
+            continue
+        return _n.decode(_buf.value)
 
 
-def CAD_RequestStartLineSketch() -> None:
-    """C: void CAD_RequestStartLineSketch(void)
-    """
-    _f.CAD_RequestStartLineSketch()
-
-
-def CAD_RequestStartRectangleSketch() -> None:
-    """C: void CAD_RequestStartRectangleSketch(void)
-    """
-    _f.CAD_RequestStartRectangleSketch()
-
-
-def CAD_RequestStartCircleSketch() -> None:
-    """C: void CAD_RequestStartCircleSketch(void)
-    """
-    _f.CAD_RequestStartCircleSketch()
-
-
-def CAD_RequestStartPolygonSketch() -> None:
-    """C: void CAD_RequestStartPolygonSketch(void)
-    """
-    _f.CAD_RequestStartPolygonSketch()
-
-
-def CAD_RequestCyclePolygonSides() -> None:
-    """C: void CAD_RequestCyclePolygonSides(void)
-    """
-    _f.CAD_RequestCyclePolygonSides()
-
-
-def CAD_ExecuteCommand(name: str | None) -> bool:
-    """C: bool CAD_ExecuteCommand(const char* name)
+def CAD_ExecuteCommand(text: str | None) -> int:
+    """C: CAD_Status CAD_ExecuteCommand(const char* text)
 
     명령 실행
 
-    엔진의 **모든 명령**을 이름으로 실행한다. 아래 CAD_RequestXxx 들은 자주 쓰는 것만
-    개별 함수로 뽑아 둔 것이고, 엔진에는 명령이 200개가 넘는다(trim / offset / fillet /
-    ocr / navmap / imageattach …). 이 함수 하나면 그 전부가 열리고, 새 명령을 추가할
-    때마다 API 를 늘리지 않아도 된다.
+    엔진의 **모든 명령**을 이름으로 실행한다 — 도구 시작(line·circle·rect·arc·polygon·polyline·box·extrude·revolve·light …),
+    도구 선택지(sides·arcmode), trim·offset·fillet·ocr·navmap … 200개가 넘는다. 새 명령이 생겨도 API 를 늘리지 않는다.
 
-      CAD_ExecuteCommand("trim");        // 자르기
-      CAD_ExecuteCommand("offset");      // 오프셋
-      CAD_ExecuteCommand("2,3");         // 진행 중인 도구에 좌표/값 전달
+      CAD_ExecuteCommand("line");        // 선 도구 시작
+      CAD_ExecuteCommand("2,3");         // 진행 중인 도구에 좌표·값
+      CAD_ExecuteCommand(" ");           // 빈 Enter
 
-    이름은 하단 명령행에 치는 것과 **똑같다**(영문·짧은 별칭·한글 모두).
-    진행 중인 도구가 있으면 값 입력으로 전달된다 — 명령행과 완전히 같은 경로. "" (또는 " ") = 빈 Enter.
-    반환: 알 수 없는 이름이면 false. 값 입력으로 소비된 경우도 true. 기다리는 도구가 없는데 "" 면 false.
+    글은 하단 명령행에 치는 것과 **똑같다**(영문·짧은 별칭·한글, 진행 중인 도구가 있으면 값 입력) — 명령행과 같은 길.
+    모르는 명령은 AI 로 보내지 않는다(자연어는 CAD_AiSubmit). 반환: CAD_OK · 모르는 명령 CAD_E_NOT_FOUND ·
+    기다리는 도구가 없는데 빈 Enter CAD_E_NOT_READY.
     """
-    return _f.CAD_ExecuteCommand(_n.text(name))
+    return _f.CAD_ExecuteCommand(_n.text(text))
 
 
-def CAD_RegisterCommand(name: str | None, title: str | None, fn: Callable | None, user: int | None, owner: int) -> bool:
-    """C: bool CAD_RegisterCommand(const char* name, const char* title, CAD_CommandFn fn, void* user, unsigned int owner)
+def CAD_RegisterCommand(name: str | None, title: str | None, fn: Callable | None, user: int | None, owner: int) -> int:
+    """C: CAD_Status CAD_RegisterCommand(const char* name, const char* title, CAD_CommandFn fn, void* user, uint32_t owner)
 
     명령 등록 (플러그인)
 
@@ -236,21 +194,21 @@ def CAD_RegisterCommand(name: str | None, title: str | None, fn: Callable | None
     user   그대로 돌려받는다(플러그인 인스턴스 포인터 등).
     owner  플러그인 ID. 언로드할 때 이 값으로 묶어 한꺼번에 지운다. 0 = 소유자 없음.
 
-    실패 조건: 빈 이름 · fn 이 NULL · 이미 등록된 이름.
-    ⚠️ 엔진 기본 명령(line/circle …)과 같은 이름은 등록도지만 불리지 않는다 —
-       기본 명령이 먼저 조회된다(플러그인이 기본 동작을 가로채는 것을 막는다).
-    ⚠️ 콜백은 **엔진과 같은 스레드**에서 불린다 — 안에서 CAD_* 를 부릅니다.
-       콜백이 던진 예외는 엔진이 잡아 삼킨다(프레임 루프가 죽지 않게).
+    실패: 빈 이름·fn NULL = CAD_E_INVALID_ARG · 이미 등록된 이름·엔진 기본 명령(line/circle …)과 같은 이름 = CAD_E_DUPLICATE
+      (기본 명령이 먼저 조회돼 절대 불리지 않으니 받지 않는다 — 플러그인이 기본 동작을 가로채는 것도 막는다).
+    ⚠️ 콜백은 **엔진과 같은 스레드**에서 불린다 — 안에서 CAD_* 를 부른다. 던진 예외는 엔진이 잡아 삼킨다(프레임 루프가 죽지 않게).
     """
     _cb_fn = _n.callback(CAD_CommandFn, fn, ())
     _n.keep("CAD_RegisterCommand.fn", _cb_fn, replace=False)
     return _f.CAD_RegisterCommand(_n.text(name), _n.text(title), _cb_fn, user, owner)
 
 
-def CAD_UnregisterCommand(name: str | None) -> bool:
-    """C: bool CAD_UnregisterCommand(const char* name)
+def CAD_UnregisterCommand(name: str | None) -> int:
+    """C: CAD_Status CAD_UnregisterCommand(const char* name)
 
-    명령 등록 (플러그인)
+    없는 이름 CAD_E_NOT_FOUND
+
+    묶음 주석: 명령 등록 (플러그인)
 
     플러그인이 **콘솔 명령을 추가**한다. 명령행이 이 엔진의 모든 기능 진입점이라,
     이것만 있으면 플러그인이 "기능" 이 된다. ObjectARX 의 acedRegCmds 자리.
@@ -264,38 +222,34 @@ def CAD_UnregisterCommand(name: str | None) -> bool:
     user   그대로 돌려받는다(플러그인 인스턴스 포인터 등).
     owner  플러그인 ID. 언로드할 때 이 값으로 묶어 한꺼번에 지운다. 0 = 소유자 없음.
 
-    실패 조건: 빈 이름 · fn 이 NULL · 이미 등록된 이름.
-    ⚠️ 엔진 기본 명령(line/circle …)과 같은 이름은 등록도지만 불리지 않는다 —
-       기본 명령이 먼저 조회된다(플러그인이 기본 동작을 가로채는 것을 막는다).
-    ⚠️ 콜백은 **엔진과 같은 스레드**에서 불린다 — 안에서 CAD_* 를 부릅니다.
-       콜백이 던진 예외는 엔진이 잡아 삼킨다(프레임 루프가 죽지 않게).
+    실패: 빈 이름·fn NULL = CAD_E_INVALID_ARG · 이미 등록된 이름·엔진 기본 명령(line/circle …)과 같은 이름 = CAD_E_DUPLICATE
+      (기본 명령이 먼저 조회돼 절대 불리지 않으니 받지 않는다 — 플러그인이 기본 동작을 가로채는 것도 막는다).
+    ⚠️ 콜백은 **엔진과 같은 스레드**에서 불린다 — 안에서 CAD_* 를 부른다. 던진 예외는 엔진이 잡아 삼킨다(프레임 루프가 죽지 않게).
     """
     return _f.CAD_UnregisterCommand(_n.text(name))
 
 
 def CAD_UnregisterCommandsByOwner(owner: int) -> int:
-    """C: unsigned int CAD_UnregisterCommandsByOwner(unsigned int owner)
+    """C: int32_t CAD_UnregisterCommandsByOwner(uint32_t owner)
 
-    그 플러그인이 등록한 명령을 전부 제거. 반환 = 지운 개수. owner 0 은 아무것도 안 지운다.
-    언로드 경로에서 반드시 부른다 — 안 지우면 사라진 DLL 의 함수를 부르게 된다.
+    그 플러그인이 등록한 명령을 전부 지운다. 반환 = 지운 개수(owner 0 은 아무것도 안 지움).
+    언로드 길에서 반드시 부른다 — 안 지우면 사라진 DLL 의 함수를 부르게 된다.
     """
     return _f.CAD_UnregisterCommandsByOwner(owner)
 
 
 def CAD_GetRegisteredCommandCount() -> int:
-    """C: unsigned int CAD_GetRegisteredCommandCount(void)
+    """C: int32_t CAD_GetRegisteredCommandCount(void)
 
-    등록된 명령 수 / i 번째 이름·표시이름 — 메뉴·리본을 그릴 때 호스트가 읽는다.
-    buf 가 NULL 이거나 짧으면 필요한 길이(널문자 포함)를 반환한다.
+    등록된 명령 수 · index 번째 이름·표시 이름(메뉴·리본을 그릴 때). index 범위 밖 CAD_E_OUT_OF_RANGE
     """
     return _f.CAD_GetRegisteredCommandCount()
 
 
 def CAD_GetRegisteredCommandName(index: int) -> str | None:
-    """C: int CAD_GetRegisteredCommandName(unsigned int index, char* buf, int bufLen)
+    """C: int32_t CAD_GetRegisteredCommandName(uint32_t index, char* buf, uint32_t capacity)
 
-    등록된 명령 수 / i 번째 이름·표시이름 — 메뉴·리본을 그릴 때 호스트가 읽는다.
-    buf 가 NULL 이거나 짧으면 필요한 길이(널문자 포함)를 반환한다.
+    등록된 명령 수 · index 번째 이름·표시 이름(메뉴·리본을 그릴 때). index 범위 밖 CAD_E_OUT_OF_RANGE
     """
     _cap = 256
     while True:
@@ -310,10 +264,9 @@ def CAD_GetRegisteredCommandName(index: int) -> str | None:
 
 
 def CAD_GetRegisteredCommandTitle(index: int) -> str | None:
-    """C: int CAD_GetRegisteredCommandTitle(unsigned int index, char* buf, int bufLen)
+    """C: int32_t CAD_GetRegisteredCommandTitle(uint32_t index, char* buf, uint32_t capacity)
 
-    등록된 명령 수 / i 번째 이름·표시이름 — 메뉴·리본을 그릴 때 호스트가 읽는다.
-    buf 가 NULL 이거나 짧으면 필요한 길이(널문자 포함)를 반환한다.
+    등록된 명령 수 · index 번째 이름·표시 이름(메뉴·리본을 그릴 때). index 범위 밖 CAD_E_OUT_OF_RANGE
     """
     _cap = 256
     while True:
@@ -327,76 +280,40 @@ def CAD_GetRegisteredCommandTitle(index: int) -> str | None:
         return _n.decode(_buf.value)
 
 
-def CAD_RequestStartExtrude() -> None:
-    """C: void CAD_RequestStartExtrude(void)
+def CAD_OpenFileDialog() -> int:
+    """C: CAD_Status CAD_OpenFileDialog(void)
+
+    파일 열기 창(엔진 창이 있는 호스트) · 장면 비우기 · 고른 객체 재질을 다음 것으로 · 고른 객체 재질 떼기 — 다음 틱에 한다(CAD_OK = 맡김).
+    한 객체에 이름으로 재질을 주는 것은 CAD_ApplyMaterial(id, 이름)
     """
-    _f.CAD_RequestStartExtrude()
+    return _f.CAD_OpenFileDialog()
 
 
-def CAD_RequestStartArcSketch() -> None:
-    """C: void CAD_RequestStartArcSketch(void)
+def CAD_ClearAll() -> int:
+    """C: CAD_Status CAD_ClearAll(void)
+
+    파일 열기 창(엔진 창이 있는 호스트) · 장면 비우기 · 고른 객체 재질을 다음 것으로 · 고른 객체 재질 떼기 — 다음 틱에 한다(CAD_OK = 맡김).
+    한 객체에 이름으로 재질을 주는 것은 CAD_ApplyMaterial(id, 이름)
     """
-    _f.CAD_RequestStartArcSketch()
+    return _f.CAD_ClearAll()
 
 
-def CAD_RequestCycleArcMode() -> None:
-    """C: void CAD_RequestCycleArcMode(void)
+def CAD_CycleMaterial() -> int:
+    """C: CAD_Status CAD_CycleMaterial(void)
+
+    파일 열기 창(엔진 창이 있는 호스트) · 장면 비우기 · 고른 객체 재질을 다음 것으로 · 고른 객체 재질 떼기 — 다음 틱에 한다(CAD_OK = 맡김).
+    한 객체에 이름으로 재질을 주는 것은 CAD_ApplyMaterial(id, 이름)
     """
-    _f.CAD_RequestCycleArcMode()
+    return _f.CAD_CycleMaterial()
 
 
-def CAD_RequestStartPolylineSketch() -> None:
-    """C: void CAD_RequestStartPolylineSketch(void)
+def CAD_RemoveMaterial() -> int:
+    """C: CAD_Status CAD_RemoveMaterial(void)
+
+    파일 열기 창(엔진 창이 있는 호스트) · 장면 비우기 · 고른 객체 재질을 다음 것으로 · 고른 객체 재질 떼기 — 다음 틱에 한다(CAD_OK = 맡김).
+    한 객체에 이름으로 재질을 주는 것은 CAD_ApplyMaterial(id, 이름)
     """
-    _f.CAD_RequestStartPolylineSketch()
-
-
-def CAD_RequestOpenFileDialog() -> None:
-    """C: void CAD_RequestOpenFileDialog(void)
-    """
-    _f.CAD_RequestOpenFileDialog()
-
-
-def CAD_RequestSelectAll() -> None:
-    """C: void CAD_RequestSelectAll(void)
-    """
-    _f.CAD_RequestSelectAll()
-
-
-def CAD_RequestDeleteSelected() -> None:
-    """C: void CAD_RequestDeleteSelected(void)
-    """
-    _f.CAD_RequestDeleteSelected()
-
-
-def CAD_RequestClearAll() -> None:
-    """C: void CAD_RequestClearAll(void)
-    """
-    _f.CAD_RequestClearAll()
-
-
-def CAD_RequestAddCube() -> None:
-    """C: void CAD_RequestAddCube(void)
-    """
-    _f.CAD_RequestAddCube()
-
-
-def CAD_RequestStartLightPlacement() -> None:
-    """C: void CAD_RequestStartLightPlacement(void)
-    """
-    _f.CAD_RequestStartLightPlacement()
-
-
-def CAD_RequestCycleMaterial() -> None:
-    """C: void CAD_RequestCycleMaterial(void)
-    """
-    _f.CAD_RequestCycleMaterial()
-
-
-def CAD_RequestRemoveMaterial() -> None:
-    """C: void CAD_RequestRemoveMaterial(void)
-    """
-    _f.CAD_RequestRemoveMaterial()
+    return _f.CAD_RemoveMaterial()
 
 
 def CAD_JigBegin(mode: int, ids: Sequence | None, count: int, px: float, py: float, pz: float) -> bool:
@@ -647,7 +564,7 @@ def CAD_TextEditCancel() -> None:
 
 
 def CAD_GetSelectionContext() -> str | None:
-    """C: int CAD_GetSelectionContext(char* outUtf8, int cap)
+    """C: int32_t CAD_GetSelectionContext(char* buf, uint32_t capacity)
 
     선택 문맥 JSON — 사람이 화면에서 고른 것. AI 요청마다 자동으로 붙는 것과 같은 문자열.
     {"mode":"object|face|edge","view":"top|…","count":N,"objects":[CAD_GetObjectJson 과 같은 객체…],"more":n,
@@ -665,87 +582,105 @@ def CAD_GetSelectionContext() -> str | None:
         return _n.decode(_buf.value)
 
 
-def CAD_SelectObject(id: int, additive: bool) -> bool:
-    """C: bool CAD_SelectObject(uint32_t id, bool additive)
+def CAD_GetSelection(outIds: Any, capacity: int) -> int:
+    """C: int32_t CAD_GetSelection(uint32_t* outIds, uint32_t capacity)
+
+    지금 선택 — 칸만큼 채우고 전체 개수(outIds = NULL 이면 개수만)
     """
-    return _f.CAD_SelectObject(id, additive)
+    return _f.CAD_GetSelection(outIds, capacity)
 
 
-def CAD_ClearSelection() -> None:
-    """C: void CAD_ClearSelection(void)
+def CAD_SetSelection(ids: Sequence | None, count: int, mode: int) -> int:
+    """C: CAD_Status CAD_SetSelection(const uint32_t* ids, uint32_t count, int32_t mode)
+
+    선택 바꾸기 — mode = CAD_SELECT_*(REPLACE + count 0 = 비우기). 없는 id CAD_E_BAD_HANDLE, 넣을 것이 잠긴 도면층 CAD_E_LOCKED,
+    숨김·모양 없음(고를 수 없음) CAD_E_NOT_SUPPORTED — 하나라도 그러면 아무것도 안 바꾼다. 보기 상태라 되돌리기에 안 남는다
     """
-    _f.CAD_ClearSelection()
+    _a_ids = _n.array(_c.c_uint32, ids)
+    return _f.CAD_SetSelection(_a_ids, count, mode)
 
 
-def CAD_SetOSnapEnabled(on: bool) -> bool:
-    """C: bool CAD_SetOSnapEnabled(bool on)
+def CAD_SetOSnapEnabled(on: bool) -> int:
+    """C: CAD_Status CAD_SetOSnapEnabled(bool on)
 
+    객체 스냅·직교·극좌표 — 상태바 버튼(객체스냅·직교(F8)·극좌표(F10))과 같은 설정. 명령 osnap/ortho/polar [on|off] 과도 같다.
     모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
     return _f.CAD_SetOSnapEnabled(on)
 
 
-def CAD_GetOSnapEnabled() -> bool:
-    """C: bool CAD_GetOSnapEnabled(void)
+def CAD_GetOSnapEnabled() -> tuple[int, bool]:
+    """C: CAD_Status CAD_GetOSnapEnabled(bool* outOn)
 
+    객체 스냅·직교·극좌표 — 상태바 버튼(객체스냅·직교(F8)·극좌표(F10))과 같은 설정. 명령 osnap/ortho/polar [on|off] 과도 같다.
     모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
-    return _f.CAD_GetOSnapEnabled()
+    outOn = _c.c_bool()
+    _r = _f.CAD_GetOSnapEnabled(_c.byref(outOn))
+    return (_r, outOn.value)
 
 
-def CAD_SetOSnapModes(mask: int) -> bool:
-    """C: bool CAD_SetOSnapModes(uint32_t mask)
+def CAD_SetOSnapModes(mask: int) -> int:
+    """C: CAD_Status CAD_SetOSnapModes(uint32_t mask)
 
+    모르는 비트 CAD_E_INVALID_ARG
+
+    묶음 주석: 객체 스냅·직교·극좌표 — 상태바 버튼(객체스냅·직교(F8)·극좌표(F10))과 같은 설정. 명령 osnap/ortho/polar [on|off] 과도 같다.
     모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
     return _f.CAD_SetOSnapModes(mask)
 
 
-def CAD_GetOSnapModes() -> int:
-    """C: uint32_t CAD_GetOSnapModes(void)
+def CAD_GetOSnapModes() -> tuple[int, int]:
+    """C: CAD_Status CAD_GetOSnapModes(uint32_t* outMask)
 
+    객체 스냅·직교·극좌표 — 상태바 버튼(객체스냅·직교(F8)·극좌표(F10))과 같은 설정. 명령 osnap/ortho/polar [on|off] 과도 같다.
     모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
-    return _f.CAD_GetOSnapModes()
+    outMask = _c.c_uint32()
+    _r = _f.CAD_GetOSnapModes(_c.byref(outMask))
+    return (_r, outMask.value)
 
 
-def CAD_SetOrthoEnabled(on: bool) -> None:
-    """C: void CAD_SetOrthoEnabled(bool on)
+def CAD_SetOrthoEnabled(on: bool) -> int:
+    """C: CAD_Status CAD_SetOrthoEnabled(bool on)
 
+    객체 스냅·직교·극좌표 — 상태바 버튼(객체스냅·직교(F8)·극좌표(F10))과 같은 설정. 명령 osnap/ortho/polar [on|off] 과도 같다.
     모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
-    _f.CAD_SetOrthoEnabled(on)
+    return _f.CAD_SetOrthoEnabled(on)
 
 
-def CAD_GetOrthoEnabled() -> bool:
-    """C: bool CAD_GetOrthoEnabled(void)
+def CAD_GetOrthoEnabled() -> tuple[int, bool]:
+    """C: CAD_Status CAD_GetOrthoEnabled(bool* outOn)
 
+    객체 스냅·직교·극좌표 — 상태바 버튼(객체스냅·직교(F8)·극좌표(F10))과 같은 설정. 명령 osnap/ortho/polar [on|off] 과도 같다.
     모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
     """
-    return _f.CAD_GetOrthoEnabled()
+    outOn = _c.c_bool()
+    _r = _f.CAD_GetOrthoEnabled(_c.byref(outOn))
+    return (_r, outOn.value)
 
 
-def CAD_SetPolarTracking(on: bool, incrementDeg: float) -> bool:
-    """C: bool CAD_SetPolarTracking(bool on, float incrementDeg)
+def CAD_SetPolarTracking(on: bool, increment: float) -> int:
+    """C: CAD_Status CAD_SetPolarTracking(bool on, double increment)
 
-    incrementDeg <= 0 = 지금 값 유지(기본 45°, 1~90)
-
-    묶음 주석: 모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
+    극좌표 추적 — increment = 각 증분(rad, 1°~90°, 0 이하 = 지금 값 그대로, 기본 45°). 범위 밖 CAD_E_OUT_OF_RANGE
     """
-    return _f.CAD_SetPolarTracking(on, incrementDeg)
+    return _f.CAD_SetPolarTracking(on, increment)
 
 
-def CAD_GetPolarTracking() -> float | None:
-    """C: bool CAD_GetPolarTracking(float* incrementDeg)
+def CAD_GetPolarTracking() -> tuple[int, bool, float]:
+    """C: CAD_Status CAD_GetPolarTracking(bool* outOn, double* outIncrement)
 
-    켜짐 여부, incrementDeg NULL 가능
+    출력은 NULL 가능
 
-    묶음 주석: 모드 비트: CAD_OSNAP_END 1 · MID 2 · CEN 4 · FACE 8(면 중심) · NODE 16(점) · QUA 32(사분점) · INT 64(교차) · PER 128(수직) · TAN 256(접선) · NEA 512(근처)
+    묶음 주석: 극좌표 추적 — increment = 각 증분(rad, 1°~90°, 0 이하 = 지금 값 그대로, 기본 45°). 범위 밖 CAD_E_OUT_OF_RANGE
     """
-    incrementDeg = _c.c_float()
-    if not _f.CAD_GetPolarTracking(_c.byref(incrementDeg)):
-        return None
-    return incrementDeg.value
+    outOn = _c.c_bool()
+    outIncrement = _c.c_double()
+    _r = _f.CAD_GetPolarTracking(_c.byref(outOn), _c.byref(outIncrement))
+    return (_r, outOn.value, outIncrement.value)
 
 
 def CAD_SnapNearPoint(point: CAD_GeVec3, radius: float, modes: int, opt: CAD_OsnapOptions | None = None, **fields) -> tuple[int, CAD_OsnapPoint]:
@@ -764,85 +699,6 @@ def CAD_SnapNearPoint(point: CAD_GeVec3, radius: float, modes: int, opt: CAD_Osn
     outPoint = CAD_OsnapPoint()
     _r = _f.CAD_SnapNearPoint(point, radius, modes, _p_opt, _c.byref(outPoint))
     return (_r, outPoint)
-
-
-def CAD_GetSelectedCount() -> int:
-    """C: uint32_t CAD_GetSelectedCount(void)
-    """
-    return _f.CAD_GetSelectedCount()
-
-
-def CAD_GetSelectedObjectId(index: int) -> int | None:
-    """C: bool CAD_GetSelectedObjectId(uint32_t index, uint32_t* id)
-    """
-    id = _c.c_uint32()
-    if not _f.CAD_GetSelectedObjectId(index, _c.byref(id)):
-        return None
-    return id.value
-
-
-def CAD_BeginGetPoint(prompt: str | None) -> None:
-    """C: void CAD_BeginGetPoint(const char* prompt)
-
-    비동기: Begin 후 사용자가 클릭할 때까지 대기. 호스트가 매 프레임 bool 폴링.
-    IsPicking=true            → 대기 중
-    IsPicking=false + Try=true  → 완료 (좌표/엔티티 소비)
-    IsPicking=false + Try=false → 취소(ESC)
-    EntSel 은 빈 곳/비객체 클릭을 통과 안 시킴(유효 객체만 완료). Point 는 어디든 좌표 반환.
-    옛 함수 — 새 코드는 CAD_EdGetPoint · CAD_EdEntSel(아래 「명령행 입력 받기」, 2단계에서 정리). 속은 같은 길이라
-    안내가 명령행에 늘 보이고 좌표("x,y")도 받는다. 다른 명령이 진행 중이면 그것을 끄고 시작한다(예전 그대로).
-    """
-    _f.CAD_BeginGetPoint(_n.text(prompt))
-
-
-def CAD_BeginGetEntSel(prompt: str | None) -> None:
-    """C: void CAD_BeginGetEntSel(const char* prompt)
-
-    비동기: Begin 후 사용자가 클릭할 때까지 대기. 호스트가 매 프레임 bool 폴링.
-    IsPicking=true            → 대기 중
-    IsPicking=false + Try=true  → 완료 (좌표/엔티티 소비)
-    IsPicking=false + Try=false → 취소(ESC)
-    EntSel 은 빈 곳/비객체 클릭을 통과 안 시킴(유효 객체만 완료). Point 는 어디든 좌표 반환.
-    옛 함수 — 새 코드는 CAD_EdGetPoint · CAD_EdEntSel(아래 「명령행 입력 받기」, 2단계에서 정리). 속은 같은 길이라
-    안내가 명령행에 늘 보이고 좌표("x,y")도 받는다. 다른 명령이 진행 중이면 그것을 끄고 시작한다(예전 그대로).
-    """
-    _f.CAD_BeginGetEntSel(_n.text(prompt))
-
-
-def CAD_IsPicking() -> bool:
-    """C: bool CAD_IsPicking(void)
-
-    비동기: Begin 후 사용자가 클릭할 때까지 대기. 호스트가 매 프레임 bool 폴링.
-    IsPicking=true            → 대기 중
-    IsPicking=false + Try=true  → 완료 (좌표/엔티티 소비)
-    IsPicking=false + Try=false → 취소(ESC)
-    EntSel 은 빈 곳/비객체 클릭을 통과 안 시킴(유효 객체만 완료). Point 는 어디든 좌표 반환.
-    옛 함수 — 새 코드는 CAD_EdGetPoint · CAD_EdEntSel(아래 「명령행 입력 받기」, 2단계에서 정리). 속은 같은 길이라
-    안내가 명령행에 늘 보이고 좌표("x,y")도 받는다. 다른 명령이 진행 중이면 그것을 끄고 시작한다(예전 그대로).
-    """
-    return _f.CAD_IsPicking()
-
-
-def CAD_TryGetPickResult() -> tuple[float, float, float, int] | None:
-    """C: bool CAD_TryGetPickResult(float* x, float* y, float* z, uint32_t* outId)
-
-    완료됐으면 true(1회 소비) + 좌표(+EntSel 은 outId). Point 는 outId=0. 대기/취소면 false.
-    """
-    x = _c.c_float()
-    y = _c.c_float()
-    z = _c.c_float()
-    outId = _c.c_uint32()
-    if not _f.CAD_TryGetPickResult(_c.byref(x), _c.byref(y), _c.byref(z), _c.byref(outId)):
-        return None
-    return (x.value, y.value, z.value, outId.value)
-
-
-def CAD_CancelPick() -> None:
-    """C: void CAD_CancelPick(void)
-
-    완료됐으면 true(1회 소비) + 좌표(+EntSel 은 outId). Point 는 outId=0. 대기/취소면 false.
-    """
-    _f.CAD_CancelPick()
 
 
 def CAD_SetSubobjectSelectionMode(mode: int) -> bool:
@@ -909,49 +765,6 @@ def CAD_GetSelectedEdge(endpoints6: Any) -> bool:
     endpoints6 = {ax,ay,az,bx,by,bz}, world coordinates. False if no selected edge.
     """
     return _f.CAD_GetSelectedEdge(endpoints6)
-
-
-def CAD_RequestStartRevolve() -> None:
-    """C: void CAD_RequestStartRevolve(void)
-    """
-    _f.CAD_RequestStartRevolve()
-
-
-def CAD_GetStatusMessage() -> str | None:
-    """C: int CAD_GetStatusMessage(char* buf, int bufLen)
-
-    명령 프롬프트(현재 대화형 도구 안내). buf 에 UTF-8 로 복사, 반환=문자열 길이(널 제외).
-    호스트가 자기 상태바에 표시하려고 매 프레임 폴링. buf/bufLen 0 이면 길이만 반환.
-    """
-    _need = _f.CAD_GetStatusMessage(None, 0)   # 2회 호출 규약: 길이를 물으며 한 번 실행
-    if _need < 0:
-        return None
-    _cap = _need + 1
-    _buf = _c.create_string_buffer(_cap)
-    if _f.CAD_GetStatusMessage(_buf, _cap) < 0:   # 같은 인자 → 다시 실행하지 않고 결과만
-        return None
-    return _n.decode(_buf.value)
-
-
-def CAD_GetTransientMessage() -> str | None:
-    """C: int CAD_GetTransientMessage(char* buf, int bufLen)
-
-    일회성 안내 (몇 초 뒤 스스로 사라짐). 프롬프트와 **다른 값**이다 —
-    프롬프트는 "지금 뭘 해야 하는지"(상시), 이쪽은 "방금 왜 안 됐는지"(일시).
-    예: "각도: 선을 클릭하세요", "선: 커서를 방향으로 옮긴 뒤 거리를 입력하세요"
-    없거나 만료됐으면 빈 문자열(길이 0). 데스크톱은 ImGui 상태바가 그리지만 모바일은
-    표시할 곳이 없어 이게 유일한 경로다 — 안 띄우면 클릭이 씹힌 것처럼 보인다.
-    """
-    _cap = 256
-    while True:
-        _buf = _c.create_string_buffer(_cap)
-        _r = _f.CAD_GetTransientMessage(_buf, _cap)
-        if _r < 0:
-            return None
-        if _r >= _cap - 1 and _cap < (1 << 26):   # 모자라 보이면 키워 다시
-            _cap = max(_r + 1, _cap * 2)
-            continue
-        return _n.decode(_buf.value)
 
 
 def CAD_EdGetPoint(prompt: str | None, opt: CAD_EdInputOptions | None = None, **fields) -> int:
@@ -1133,7 +946,7 @@ def CAD_EdSelectWindow(corner1: CAD_GeVec3, corner2: CAD_GeVec3, outIds: Any, ca
     """C: int32_t CAD_EdSelectWindow(CAD_GeVec3 corner1, CAD_GeVec3 corner2, const CAD_EdSelectOptions* opt, uint32_t* outIds, uint32_t capacity)
 
     화면 없이 창 선택 — 두 구석(월드)을 지금 보기(활성 칸 카메라)로 화면에 옮겨 사람이 드래그한 것과 같은 판정.
-    선택은 바꾸지 않는다(필요하면 CAD_SelectObject). 칸만큼 채우고 전체 개수. 구석이 카메라 뒤면 CAD_E_INVALID_ARG,
+    선택은 바꾸지 않는다(필요하면 CAD_SetSelection). 칸만큼 채우고 전체 개수. 구석이 카메라 뒤면 CAD_E_INVALID_ARG,
     화면에서 3px 도 안 벌어지면 CAD_E_DEGENERATE
     """
     if opt is None and fields:

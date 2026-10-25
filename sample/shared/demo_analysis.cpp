@@ -58,11 +58,13 @@ std::string cellsText(const std::string& json) {
 }
 
 std::vector<uint32_t> selectedIds() {
-    std::vector<uint32_t> ids;
-    for (uint32_t i = 0, n = CAD_GetSelectedCount(); i < n; ++i) {
-        uint32_t id = 0;
-        if (CAD_GetSelectedObjectId(i, &id) && id) ids.push_back(id);
+    // 개수만 먼저(NULL, 0) 묻고 그만큼 칸을 잡아 한 번에 받는다
+    std::vector<uint32_t> ids(static_cast<std::size_t>(std::max(0, CAD_GetSelection(nullptr, 0))));
+    if (!ids.empty()) {
+        const int32_t n = std::max(0, CAD_GetSelection(ids.data(), static_cast<uint32_t>(ids.size())));
+        ids.resize(std::min<size_t>(static_cast<size_t>(n), ids.size()));
     }
+    ids.erase(std::remove(ids.begin(), ids.end(), 0u), ids.end());
     return ids;
 }
 
@@ -111,7 +113,7 @@ protected:
     void replaceExample(uint32_t id) {
         if (body_) CAD_DeleteObject(body_);
         body_ = id;
-        CAD_ClearSelection();   // 만든 객체가 선택돼 기즈모가 뜨지 않게
+        CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기 — 만든 객체가 선택돼 기즈모가 뜨지 않게
         CAD_ZoomExtents();
     }
 
