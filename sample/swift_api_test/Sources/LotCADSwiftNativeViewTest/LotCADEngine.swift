@@ -319,10 +319,11 @@ final class LotCADEngine {
     }
 
     // ── 편집 / 선택 ──
-    func undo() { guard isCreated else { return }; CAD_Undo() }
-    func redo() { guard isCreated else { return }; CAD_Redo() }
-    var canUndo: Bool { isCreated && CAD_CanUndo() }
-    var canRedo: Bool { isCreated && CAD_CanRedo() }
+    // 결과 코드 — 0 = CAD_OK, 되돌릴 것이 없으면 CAD_E_NOT_READY(음수)
+    func undo() { guard isCreated else { return }; _ = CAD_Undo() }
+    func redo() { guard isCreated else { return }; _ = CAD_Redo() }
+    var canUndo: Bool { guard isCreated else { return false }; var can = false; return CAD_CanUndo(&can) == 0 && can }
+    var canRedo: Bool { guard isCreated else { return false }; var can = false; return CAD_CanRedo(&can) == 0 && can }
     func selectAll()      { execute("selectall") }
     func clearSelection() { guard isCreated else { return }; _ = CAD_SetSelection(nil, 0, Int32(CAD_SELECT_REPLACE)) }   // REPLACE + 0개 = 비우기
     func deleteSelected() { execute("delete") }
@@ -399,36 +400,42 @@ final class LotCADEngine {
 
     // ── 문서 / 파일 ──
     // 확장자로 포맷이 갈린다. 대화상자는 호스트(NSOpenPanel/NSSavePanel)가 띄운다.
+    // 결과 코드(CAD_Status) — 0 = CAD_OK, 음수 = 실패(이유 글은 lastError)
+    /// 새 빈 문서(탭). 반환 = 문서 인덱스, 실패 -1.
     @discardableResult
     func newDocument(title: String = "제목 없음") -> Int32 {
         guard isCreated else { return -1 }
-        return CAD_NewDocument(title)
+        var index: Int32 = -1
+        return CAD_NewDocument(title, &index) == 0 ? index : -1
     }
     /// 새 탭으로 연다. 반환 = 문서 인덱스, 실패 -1.
     @discardableResult
     func openDocument(path: String) -> Int32 {
         guard isCreated else { return -1 }
-        return CAD_OpenDocument(path)
+        var index: Int32 = -1
+        return CAD_OpenDocument(path, &index) == 0 ? index : -1
     }
     /// 현재 문서에 **추가**한다(가져오기).
     @discardableResult
     func openFile(path: String) -> Bool {
         guard isCreated else { return false }
-        return CAD_OpenFile(path)
+        return CAD_OpenFile(path) == 0
     }
+    /// 확장자로 포맷이 정해진다 — 내보내기(.stl .dxf .obj .glb)도 이것 하나(selectedOnly = 선택만).
     @discardableResult
     func saveAs(path: String, selectedOnly: Bool) -> Bool {
         guard isCreated else { return false }
-        return CAD_SaveAs(path, selectedOnly)
+        return CAD_SaveAs(path, selectedOnly) == 0
     }
     var activeDocumentTitle: String {
         guard isCreated else { return "" }
         let index = CAD_GetActiveDocument()
-        return readString { CAD_GetDocumentTitle(index, $0, $1) }
+        return readString { CAD_GetDocumentTitle(index, $0, UInt32($1)) }   // 칸 = uint32
     }
     var isActiveDocumentDirty: Bool {
         guard isCreated else { return false }
-        return CAD_IsDocumentDirty(CAD_GetActiveDocument())
+        var dirty = false
+        return CAD_IsDocumentDirty(CAD_GetActiveDocument(), &dirty) == 0 && dirty
     }
 
     // ── 상태 문구 ──
@@ -441,6 +448,11 @@ final class LotCADEngine {
     var transientMessage: String {
         guard isCreated else { return "" }
         return readString { CAD_GetTransientMessage($0, UInt32($1)) }
+    }
+    /// 직전 실패 이유(열기·저장 등 결과 코드가 음수였을 때). 없으면 빈 문자열.
+    var lastError: String {
+        guard isCreated else { return "" }
+        return readString { CAD_GetLastError($0, UInt32($1)) }
     }
 
     // ── 플러그인이 등록한 UI 항목 ──

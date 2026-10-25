@@ -449,7 +449,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         let ok = asNewTab ? engine.openDocument(path: url.path) >= 0
                           : engine.openFile(path: url.path)
         if !ok {
-            alert("열지 못했습니다", detail: engine.statusMessage.isEmpty ? url.lastPathComponent : engine.statusMessage)
+            let why = engine.lastError   // 직전 실패 이유(CAD_GetLastError)
+            alert("열지 못했습니다", detail: why.isEmpty ? url.lastPathComponent : why)
         }
         updateWindowTitle()
     }
@@ -470,7 +471,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
         if !engine.saveAs(path: url.path, selectedOnly: selectedOnly) {
-            alert("저장하지 못했습니다", detail: engine.statusMessage.isEmpty ? url.lastPathComponent : engine.statusMessage)
+            let why = engine.lastError   // 직전 실패 이유(CAD_GetLastError)
+            alert("저장하지 못했습니다", detail: why.isEmpty ? url.lastPathComponent : why)
         }
         updateWindowTitle()
     }

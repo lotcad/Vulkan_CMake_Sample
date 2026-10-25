@@ -161,24 +161,26 @@ class MainWindow(QMainWindow):
             "CAD 파일 (*.lot *.obj *.stl *.dxf *.dwg *.ply *.gltf *.glb);;프로젝트 (*.lot);;모든 파일 (*)")
         if not path:
             return
-        if lotcad.CAD_OpenFile(path):
+        # 결과 코드 — CAD_OK(0) = 성공, 음수 = 실패(이유는 CAD_GetLastError)
+        if lotcad.CAD_OpenFile(path) == lotcad.CAD_OK:
             lotcad.CAD_ZoomExtents()   # 연 것이 화면 밖일 수 있다
         else:
             self._report("열기 실패")
 
     def _save_as(self):
         path, _ = QFileDialog.getSaveFileName(self, "다른 이름으로 저장", "", "프로젝트 (*.lot)")
-        if path and not lotcad.CAD_SaveAs(path if "." in path.split("/")[-1] else path + ".lot", False):
+        if path and lotcad.CAD_SaveAs(path if "." in path.split("/")[-1] else path + ".lot", False) != lotcad.CAD_OK:
             self._report("저장 실패")
 
     def _export(self):
+        # 내보내기도 CAD_SaveAs 한 길(예전 CAD_ExportFile 은 지워졌다) — 확장자로 포맷이 정해진다
         path, _ = QFileDialog.getSaveFileName(self, "내보내기", "", "STL (*.stl);;DXF (*.dxf);;OBJ (*.obj);;glTF (*.glb)")
-        if path and not lotcad.CAD_ExportFile(path, False):
+        if path and lotcad.CAD_SaveAs(path, False) != lotcad.CAD_OK:
             self._report("내보내기 실패")
 
     def _report(self, fallback):
-        # 실패 이유는 엔진이 상태 메시지로 남긴다(포맷 미지원·깨진 파일 등)
-        QMessageBox.warning(self, "LotCAD", lotcad.CAD_GetPrompt() or fallback)
+        # 실패 이유는 엔진이 직전 실패 이유로 남긴다(포맷 미지원·깨진 파일 등)
+        QMessageBox.warning(self, "LotCAD", lotcad.CAD_GetLastError() or fallback)
 
     # ── 차집합 — 두 번 눌러 기준 → 뺄 것 ──
     # 엔진 선택 목록은 id 순이라 "먼저 고른 것" 을 알 수 없어, 오토캐드 SUBTRACT 처럼 두 단계로 받는다.

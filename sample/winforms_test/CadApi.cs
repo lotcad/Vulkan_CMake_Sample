@@ -74,10 +74,6 @@ namespace LotCadWinForms
         [DllImport(DLL)] public static extern int CAD_GetSelectionLength(out double outLength);
         [DllImport(DLL)] public static extern int CAD_GetSelectionArea(out double outArea);
 
-        // ── 내보내기 ── 확장자로 포맷이 정해진다 (.stl .dxf .glb .obj .lot)
-        [DllImport(DLL, CharSet = CharSet.Ansi)] [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_ExportFile(string path,
-                                                 [MarshalAs(UnmanagedType.I1)] bool selectedOnly);
 
         [DllImport(DLL)] public static extern int CAD_ClearAll();   // 0 = CAD_OK(다음 틱에 비운다)
         // 보기 — 반환 0 = CAD_OK(카메라는 다음 틱에 움직인다)
@@ -86,14 +82,17 @@ namespace LotCadWinForms
         [DllImport(DLL)] public static extern int CAD_SetProjection([MarshalAs(UnmanagedType.I1)] bool ortho);
         [DllImport(DLL)] public static extern int CAD_GetProjection([MarshalAs(UnmanagedType.I1)] out bool ortho);
         public static void ToggleProjection() { if (CAD_GetProjection(out bool ortho) == 0) CAD_SetProjection(!ortho); }
-        [DllImport(DLL)] public static extern void CAD_Undo();
-        [DllImport(DLL)] public static extern void CAD_Redo();
+        // 되돌리기 — 0 = CAD_OK, 되돌릴 것이 없으면 CAD_E_NOT_READY(음수)
+        [DllImport(DLL)] public static extern int CAD_Undo();
+        [DllImport(DLL)] public static extern int CAD_Redo();
 
         // ── 파일 ──
         // 경로는 UTF-8 로 넘긴다. C# 의 기본 문자열 마샬링(Ansi)은 한글 경로에서 깨지므로
         // CharSet 을 쓰지 않고 byte[] 로 직접 넘긴다 (Utf8 헬퍼 참고).
-        [DllImport(DLL)] public static extern bool CAD_SaveAs(byte[] pathUtf8, bool selectedOnly);
-        [DllImport(DLL)] public static extern bool CAD_OpenFile(byte[] pathUtf8);
+        // 반환 0 = CAD_OK, 음수 = 이유 코드(글은 LastError()). 확장자로 포맷이 정해진다(.lot .dxf .dwg .stl .obj .glb) —
+        // 예전 CAD_ExportFile 은 CAD_SaveAs(path, selectedOnly) 와 같은 길이라 지워졌다.
+        [DllImport(DLL)] public static extern int CAD_SaveAs(byte[] pathUtf8, [MarshalAs(UnmanagedType.I1)] bool selectedOnly);
+        [DllImport(DLL)] public static extern int CAD_OpenFile(byte[] pathUtf8);
 
         // ── 편집 명령 — 분해·배열·대칭은 대상 id 를 받는 CAD_EntityExplode·CAD_EntityArrayRect/Polar·CAD_EntityMirror(sdk/csharp 바인딩) ──
 

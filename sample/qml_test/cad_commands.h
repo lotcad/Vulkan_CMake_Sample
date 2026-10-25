@@ -58,16 +58,17 @@ public:
     // qt6-base 에 이미 들어 있으므로 런타임 패키지가 늘지 않고, 별도 최상위 창이라
     // 네이티브 3D 자식 창에 가리지도 않는다.
     // 확장자로 포맷이 갈리는 건 엔진 몫이라 호스트는 경로만 넘긴다.
-    Q_INVOKABLE void newDocument() { CAD_NewDocument("제목 없음"); }
+    Q_INVOKABLE void newDocument() { CAD_NewDocument("제목 없음", nullptr); }   // 새 번호가 필요 없으면 NULL
 
     Q_INVOKABLE bool openDocument() {   // 새 탭으로 열기
         const QString p = QFileDialog::getOpenFileName(nullptr, "열기", QString(), kOpenFilter);
-        return !p.isEmpty() && CAD_OpenDocument(p.toUtf8().constData()) >= 0;
+        // 결과 코드 — CAD_OK(0) = 성공(새 문서 번호가 필요하면 둘째 인자), 음수 = 실패(이유는 statusMessage())
+        return !p.isEmpty() && CAD_OpenDocument(p.toUtf8().constData(), nullptr) == CAD_OK;
     }
 
     Q_INVOKABLE bool importFile() {     // 현재 문서에 추가
         const QString p = QFileDialog::getOpenFileName(nullptr, "가져오기", QString(), kOpenFilter);
-        return !p.isEmpty() && CAD_OpenFile(p.toUtf8().constData());
+        return !p.isEmpty() && CAD_OpenFile(p.toUtf8().constData()) == CAD_OK;
     }
 
     Q_INVOKABLE bool saveAs(bool selectedOnly = false) {
@@ -76,14 +77,14 @@ public:
         if (p.isEmpty()) return false;
         // 확장자를 안 붙이면 엔진이 포맷을 못 고른다 — 기본값으로 네이티브 형식을 채운다.
         if (QFileInfo(p).suffix().isEmpty()) p += ".lot";
-        return CAD_SaveAs(p.toUtf8().constData(), selectedOnly);
+        return CAD_SaveAs(p.toUtf8().constData(), selectedOnly) == CAD_OK;
     }
 
-    // 실패 사유 표시용 — CAD_SaveAs/CAD_OpenFile 이 false 를 준 뒤 읽는다.
+    // 실패 사유 표시용 — openDocument/importFile/saveAs 가 false 를 준 뒤 읽는다(직전 실패 이유 = CAD_GetLastError).
     Q_INVOKABLE QString statusMessage() const {
         char buf[512] = {0};
         // 반환 = 전체 길이(NUL 제외) — 칸보다 길면 잘라 담으므로 NUL 까지 읽는다
-        const int32_t n = CAD_GetPrompt(buf, uint32_t(sizeof(buf)));
+        const int32_t n = CAD_GetLastError(buf, uint32_t(sizeof(buf)));
         return n > 0 ? QString::fromUtf8(buf) : QString();
     }
 

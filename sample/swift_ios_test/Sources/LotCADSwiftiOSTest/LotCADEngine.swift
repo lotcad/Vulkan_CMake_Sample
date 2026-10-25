@@ -268,12 +268,12 @@ final class LotCADEngine {
     @discardableResult
     func openFile(_ path: String) -> Bool {
         guard isCreated else { return false }
-        return CAD_OpenFile(path)
+        return CAD_OpenFile(path) == 0   // 결과 코드 — 0 = CAD_OK, 음수 = 실패(이유는 CAD_GetLastError)
     }
     // viewType: 0=Front 1=Top 2=Right 3=Iso
     func setView(_ viewType: Int32) { guard isCreated else { return }; CAD_SetView(viewType) }
-    func undo()             { guard isCreated else { return }; CAD_Undo() }
-    func redo()             { guard isCreated else { return }; CAD_Redo() }
+    func undo()             { guard isCreated else { return }; _ = CAD_Undo() }   // 되돌릴 것이 없으면 CAD_E_NOT_READY
+    func redo()             { guard isCreated else { return }; _ = CAD_Redo() }
     func objectCount() -> UInt32 { isCreated ? UInt32(max(0, CAD_GetObjectCount())) : 0 }
 
     // ─── 명령 요청 (SwiftUI 버튼/패널용) ───

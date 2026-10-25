@@ -334,11 +334,11 @@ bool CLotCADMFCDlg::PickPath(bool save, const TCHAR* filter, CString& outPath)
 	return ok;
 }
 
-// 실패 사유는 엔진이 상태 메시지로 남긴다(포맷 미지원·깨진 파일·선택 없음 등).
+// 실패 사유는 엔진이 직전 실패 이유로 남긴다(포맷 미지원·깨진 파일·선택 없음 등) — CAD_GetLastError.
 void CLotCADMFCDlg::ReportFailure(const TCHAR* fallback)
 {
 	char msg[512] = {};
-	CAD_GetPrompt(msg, (uint32_t)sizeof(msg));   // 칸이 모자라면 글자 경계에서 잘라 담는다
+	CAD_GetLastError(msg, (uint32_t)sizeof(msg));   // 칸이 모자라면 글자 경계에서 잘라 담는다
 	if (msg[0]) {
 		wchar_t msgW[512] = {};
 		MultiByteToWideChar(CP_UTF8, 0, msg, -1, msgW, 512);
@@ -373,8 +373,9 @@ void CLotCADMFCDlg::OnCadOpen()
 
 	CString path;
 	if (!PickPath(false, kFilter, path)) return;
-	if (CAD_OpenFile(Utf8Path(path).buf)) CAD_ZoomExtents();  // 연 것이 화면 밖일 수 있다
-	else                                  ReportFailure(_T("열기 실패"));
+	// 결과 코드 — CAD_OK(0) = 성공, 음수 = 실패(이유는 CAD_GetLastError)
+	if (CAD_OpenFile(Utf8Path(path).buf) == CAD_OK) CAD_ZoomExtents();  // 연 것이 화면 밖일 수 있다
+	else                                            ReportFailure(_T("열기 실패"));
 }
 
 void CLotCADMFCDlg::OnCadSaveAs()
@@ -384,7 +385,7 @@ void CLotCADMFCDlg::OnCadSaveAs()
 	CString path;
 	if (!PickPath(true, kFilter, path)) return;
 	if (path.Find(_T('.')) < 0) path += _T(".lot");   // 확장자로 포맷이 정해진다
-	if (!CAD_SaveAs(Utf8Path(path).buf, false)) ReportFailure(_T("저장 실패"));
+	if (CAD_SaveAs(Utf8Path(path).buf, false) != CAD_OK) ReportFailure(_T("저장 실패"));
 }
 
 void CLotCADMFCDlg::OnCadExport()
@@ -398,7 +399,8 @@ void CLotCADMFCDlg::OnCadExport()
 	CString path;
 	if (!PickPath(true, kFilter, path)) return;
 	if (path.Find(_T('.')) < 0) path += _T(".stl");
-	if (!CAD_ExportFile(Utf8Path(path).buf, false)) ReportFailure(_T("내보내기 실패"));
+	// 내보내기도 CAD_SaveAs 한 길(예전 CAD_ExportFile 은 지워졌다) — selectedOnly = false 면 씬 전체
+	if (CAD_SaveAs(Utf8Path(path).buf, false) != CAD_OK) ReportFailure(_T("내보내기 실패"));
 }
 
 void CLotCADMFCDlg::OnCadExit() { EndDialog(IDCANCEL); }

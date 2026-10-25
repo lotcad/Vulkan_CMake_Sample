@@ -74,7 +74,7 @@ private:
     void loadModel(int k) {
         clearScene();
         model_ = k;
-        if (!CAD_OpenFile(models_[static_cast<size_t>(k)].c_str())) {
+        if (CAD_OpenFile(models_[static_cast<size_t>(k)].c_str()) != CAD_OK) {   // 0 = 성공, 음수 = 실패
             note_ = "모델을 열지 못했습니다: " + models_[static_cast<size_t>(k)];
         }
         CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기

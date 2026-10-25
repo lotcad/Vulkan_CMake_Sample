@@ -199,7 +199,7 @@ JNI(jint, nativeDimensionPointCount)(JNIEnv*, jobject) {
 JNI(jboolean, nativeOpenFile)(JNIEnv* env, jobject, jstring path) {
     if (!path) return JNI_FALSE;
     const char* s = env->GetStringUTFChars(path, nullptr);
-    const bool ok = s && CAD_OpenFile(s);
+    const bool ok = s && CAD_OpenFile(s) == CAD_OK;   // 결과 코드 — 0 = 성공, 음수 = 실패(이유는 CAD_GetLastError)
     if (s) env->ReleaseStringUTFChars(path, s);
     return ok ? JNI_TRUE : JNI_FALSE;
 }
