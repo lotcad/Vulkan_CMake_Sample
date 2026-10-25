@@ -11,7 +11,7 @@ macOS 라이브러리에는 MoltenVK 가 들어 있습니다(아래 [플랫폼�
 안드로이드는 엔진 `.so` 를 iOS 처럼 Releases 에서 받습니다.)
 
 > **`capi-v2` 브랜치** — C API 2단계(옛 함수를 새 규칙 `CAD_Status`·`CAD_GeVec3`·글자 길이로 바꾸기)를 따라가는 샘플. 영역마다 쌓고 끝나면 main 에 합친다.
-> 여기 `sdk/` 의 헤더·바인딩과 Windows 바이너리는 엔진 df1859a(2c 끝 + 노드 그래프 C API + 2d 보기·편집기 + CAD_CancelCommand + 2e 앱·이벤트·문서·도면층·선종류·저장·되돌리기·블록·외부 참조·플러그인·UI — 플러그인 ABI 2 + 2f 도면·AI·해석 JSON·효과·내비·로봇·건축), Linux 바이너리는 1c13954(2e 끝), macOS 바이너리는 dec84ce(2d-4) — 따라오기 전까지 그 OS 에선 2e·2f 함수(CAD_AddEventListener 다섯 인자·CAD_SaveAs 결과 코드·CAD_CreateText(CAD_GeVec3 …) 등)가 맞지 않는다.
+> 여기 `sdk/` 의 헤더·바인딩과 Windows·macOS 바이너리는 엔진 df1859a(2c 끝 + 노드 그래프 C API + 2d 보기·편집기 + CAD_CancelCommand + 2e 앱·이벤트·문서·도면층·선종류·저장·되돌리기·블록·외부 참조·플러그인·UI — 플러그인 ABI 2 + 2f 도면·AI·해석 JSON·효과·내비·로봇·건축), Linux 바이너리는 1c13954(2e 끝) — 따라오기 전까지 리눅스에선 2f 함수(CAD_CreateText(CAD_GeVec3 …) 등)가 맞지 않는다.
 > iOS 정적 라이브러리는 Releases 판이 옛 규칙이라 엔진에서 `./build_ios.sh` 로 만들어 쓴다.
 
 ```
