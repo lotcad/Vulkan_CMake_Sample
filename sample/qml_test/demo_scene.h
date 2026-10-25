@@ -50,7 +50,7 @@ public:
             uint32_t c = 0;
             CAD_CreateCircle(CAD_GeVec3{h[0], h[1], 0}, kHoleR, CAD_GeVec3{0, 0, 1}, nullptr, &c);
             if (!c) return fail("모서리 구멍 스케치를 만들지 못했습니다");
-            if (!CAD_CutExtrudeFromSketch(plate, c, 0, true))
+            if (CAD_CutExtrudeFromSketch(plate, c, 0, true) != CAD_OK)
                 return fail("모서리 구멍을 뚫지 못했습니다");
         }
 
@@ -59,7 +59,7 @@ public:
         uint32_t bossSketch = 0;
         CAD_CreateCircle(CAD_GeVec3{kPlateW / 2, kPlateD / 2, kPlateH}, kBossR, CAD_GeVec3{0, 0, 1}, nullptr, &bossSketch);
         if (!bossSketch) return fail("보스 스케치를 만들지 못했습니다");
-        if (!CAD_BossExtrudeFromSketch(plate, bossSketch, kBossH))
+        if (CAD_BossExtrudeFromSketch(plate, bossSketch, kBossH) != CAD_OK)
             return fail("보스를 쌓지 못했습니다");
 
         // ── 보스 가운데 관통 Ø20 ──
@@ -67,7 +67,7 @@ public:
         uint32_t boreSketch = 0;
         CAD_CreateCircle(CAD_GeVec3{kPlateW / 2, kPlateD / 2, 0}, kBoreR, CAD_GeVec3{0, 0, 1}, nullptr, &boreSketch);
         if (!boreSketch) return fail("관통 구멍 스케치를 만들지 못했습니다");
-        if (!CAD_CutExtrudeFromSketch(plate, boreSketch, 0, true))
+        if (CAD_CutExtrudeFromSketch(plate, boreSketch, 0, true) != CAD_OK)
             return fail("관통 구멍을 뚫지 못했습니다");
 
         CAD_RequestZoomExtents();   // 방금 만든 게 화면 밖이면 시연이 안 된다

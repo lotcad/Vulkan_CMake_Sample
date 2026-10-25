@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import ctypes as _c
-__all__ = ['CAD_CreateOptions', 'CAD_Color', 'CAD_GeVec3', 'CAD_GePlane', 'CAD_GeMatrix', 'CAD_GeArc', 'CAD_GeEllipse', 'CAD_GeIntersection', 'CAD_PostFn', 'CAD_OverlayFrameInfo', 'CAD_OverlayRenderFn', 'CAD_OverlayPointerInfo', 'CAD_OverlayInputFn', 'CAD_OsnapPoint', 'CAD_OsnapOptions', 'CAD_CommandFn', 'CAD_EdInputResult', 'CAD_EdInputFn', 'CAD_EdInputOptions', 'CAD_EdSelectOptions', 'CAD_EdCommandState', 'CAD_EventFn', 'CAD_SketchConstraintInfo', 'CAD_BRepInfo', 'CAD_BRepParameters', 'CAD_BRepFaceInfo', 'CAD_BRepCutInfo', 'CAD_BooleanCylinderCutInfo', 'CAD_InterferenceInfo', 'CAD_MeshCheckInfo', 'CAD_SimOptions', 'CAD_SimCondition', 'CAD_SimFace', 'CAD_SimState', 'CAD_SimSummary', 'CAD_SimConvergence', 'CAD_SimRunOptions', 'CAD_WindOptions', 'CAD_WindState', 'CAD_WindViewOptions', 'CAD_WindPointValue', 'CAD_WindSurfacePoint', 'CAD_WaterOptions', 'CAD_WaterState', 'CAD_WaterFloater', 'CAD_WaterPointValue', 'CAD_ClothOptions', 'CAD_ClothState', 'CAD_FloorplanOpeningDesc']
+__all__ = ['CAD_CreateOptions', 'CAD_Color', 'CAD_GeVec3', 'CAD_GePlane', 'CAD_GeMatrix', 'CAD_GeArc', 'CAD_GeEllipse', 'CAD_GeIntersection', 'CAD_PostFn', 'CAD_OverlayFrameInfo', 'CAD_OverlayRenderFn', 'CAD_OverlayPointerInfo', 'CAD_OverlayInputFn', 'CAD_OsnapPoint', 'CAD_OsnapOptions', 'CAD_CommandFn', 'CAD_EdInputResult', 'CAD_EdInputFn', 'CAD_EdInputOptions', 'CAD_EdSelectOptions', 'CAD_EdCommandState', 'CAD_EventFn', 'CAD_SketchConstraintInfo', 'CAD_BRepInfo', 'CAD_BRepFaceInfo', 'CAD_BRepCutInfo', 'CAD_BooleanCylinderCutInfo', 'CAD_InterferenceInfo', 'CAD_MeshCheckInfo', 'CAD_SimOptions', 'CAD_SimCondition', 'CAD_SimFace', 'CAD_SimState', 'CAD_SimSummary', 'CAD_SimConvergence', 'CAD_SimRunOptions', 'CAD_WindOptions', 'CAD_WindState', 'CAD_WindViewOptions', 'CAD_WindPointValue', 'CAD_WindSurfacePoint', 'CAD_WaterOptions', 'CAD_WaterState', 'CAD_WaterFloater', 'CAD_WaterPointValue', 'CAD_ClothOptions', 'CAD_ClothState', 'CAD_FloorplanOpeningDesc']
 
 
 class CAD_CreateOptions(_c.Structure):
@@ -236,6 +236,7 @@ class CAD_SketchConstraintInfo(_c.Structure):
 
 class CAD_BRepInfo(_c.Structure):
     _fields_ = [
+        ("size", _c.c_uint32),
         ("featureType", _c.c_int32),
         ("vertexCount", _c.c_uint32),
         ("edgeCount", _c.c_uint32),
@@ -244,50 +245,32 @@ class CAD_BRepInfo(_c.Structure):
         ("surfaceArea", _c.c_double),
     ]
 
-class CAD_BRepParameters(_c.Structure):
-    _fields_ = [
-        ("featureType", _c.c_int32),
-        ("dimensionsX", _c.c_float),
-        ("dimensionsY", _c.c_float),
-        ("dimensionsZ", _c.c_float),
-        ("radius", _c.c_float),
-        ("height", _c.c_float),
-        ("directionX", _c.c_float),
-        ("directionY", _c.c_float),
-        ("directionZ", _c.c_float),
-    ]
-
 class CAD_BRepFaceInfo(_c.Structure):
     _fields_ = [
+        ("size", _c.c_uint32),
         ("faceId", _c.c_uint32),
         ("surfaceType", _c.c_int32),
-        ("originX", _c.c_float),
-        ("originY", _c.c_float),
-        ("originZ", _c.c_float),
-        ("normalX", _c.c_float),
-        ("normalY", _c.c_float),
-        ("normalZ", _c.c_float),
+        ("origin", CAD_GeVec3),
+        ("normal", CAD_GeVec3),
     ]
 
 class CAD_BRepCutInfo(_c.Structure):
     _fields_ = [
+        ("size", _c.c_uint32),
         ("cutIndex", _c.c_uint32),
         ("pointCount", _c.c_uint32),
-        ("depth", _c.c_float),
+        ("depth", _c.c_double),
         ("throughAll", _c.c_bool),
     ]
 
 class CAD_BooleanCylinderCutInfo(_c.Structure):
     _fields_ = [
+        ("size", _c.c_uint32),
         ("cutIndex", _c.c_uint32),
-        ("centerX", _c.c_float),
-        ("centerY", _c.c_float),
-        ("centerZ", _c.c_float),
-        ("axisX", _c.c_float),
-        ("axisY", _c.c_float),
-        ("axisZ", _c.c_float),
-        ("radius", _c.c_float),
-        ("height", _c.c_float),
+        ("center", CAD_GeVec3),
+        ("axis", CAD_GeVec3),
+        ("radius", _c.c_double),
+        ("height", _c.c_double),
     ]
 
 class CAD_InterferenceInfo(_c.Structure):

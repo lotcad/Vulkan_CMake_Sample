@@ -9,7 +9,7 @@ from typing import Any, Callable, Sequence  # noqa: F401  (형식 힌트)
 from . import _native as _n
 from ._types import *  # noqa: F401,F403
 
-__all__ = ['CAD_MAX_BREP_PROFILE_POINTS', 'CAD_CreateBox', 'CAD_CreateWedge', 'CAD_CreatePyramid', 'CAD_CreateSphere', 'CAD_CreateCylinder', 'CAD_CreateCone', 'CAD_CreateTorus', 'CAD_CreateTube', 'CAD_CreateExtrude', 'CAD_Sweep', 'CAD_Revolve', 'CAD_Loft', 'CAD_PushPullSelectedFace', 'CAD_InsetSelectedFace', 'CAD_GetBRepInfo', 'CAD_GetBRepParameters', 'CAD_SetBRepBoxDimensions', 'CAD_SetBRepCylinderDimensions', 'CAD_SetBRepExtrudeHeight', 'CAD_GetBRepFaceInfo', 'CAD_PushPullBRepFace', 'CAD_CutExtrudeBRep', 'CAD_CutExtrudeFromSketch', 'CAD_BossExtrudeBRep', 'CAD_BossExtrudeFromSketch', 'CAD_GetBRepBossCount', 'CAD_GetBRepBossHeight', 'CAD_SetBRepBossHeight', 'CAD_GetBRepCutCount', 'CAD_GetBRepCutInfo', 'CAD_GetBRepCutProfile', 'CAD_SetBRepCut', 'CAD_SetBRepCutFromSketch', 'CAD_RemoveBRepFeatures', 'CAD_RemoveBRepCut', 'CAD_RemoveBRepBoss', 'CAD_GetBooleanCylinderCutCount', 'CAD_GetBooleanCylinderCutInfo', 'CAD_SetBooleanCylinderCut', 'CAD_RebuildBRepMesh', 'CAD_Shell', 'CAD_EdgeFillet', 'CAD_EdgeChamfer', 'CAD_AddEdgeBevel', 'CAD_GetEdgeBevelCount', 'CAD_BooleanUnion', 'CAD_BooleanIntersection', 'CAD_BooleanSubtract', 'CAD_CheckInterference', 'CAD_ExplodeView', 'CAD_SetFeatureDimensionsVisible', 'CAD_GetFeatureDimensionsVisible', 'CAD_GetFeatureDimensionCount', 'CAD_GetFeatureDimension', 'CAD_SetFeatureDimension']
+__all__ = ['CAD_MAX_BREP_PROFILE_POINTS', 'CAD_CreateBox', 'CAD_CreateWedge', 'CAD_CreatePyramid', 'CAD_CreateSphere', 'CAD_CreateCylinder', 'CAD_CreateCone', 'CAD_CreateTorus', 'CAD_CreateTube', 'CAD_CreateExtrude', 'CAD_Sweep', 'CAD_Revolve', 'CAD_Loft', 'CAD_PushPullSelectedFace', 'CAD_InsetSelectedFace', 'CAD_GetBRepInfo', 'CAD_GetBRepFaceInfo', 'CAD_PushPullBRepFace', 'CAD_CutExtrudeBRep', 'CAD_CutExtrudeFromSketch', 'CAD_BossExtrudeBRep', 'CAD_BossExtrudeFromSketch', 'CAD_GetBRepBossCount', 'CAD_GetBRepBossHeight', 'CAD_SetBRepBossHeight', 'CAD_GetBRepCutCount', 'CAD_GetBRepCutInfo', 'CAD_GetBRepCutProfile', 'CAD_SetBRepCut', 'CAD_SetBRepCutFromSketch', 'CAD_RemoveBRepFeatures', 'CAD_RemoveBRepCut', 'CAD_RemoveBRepBoss', 'CAD_GetBooleanCylinderCutCount', 'CAD_GetBooleanCylinderCutInfo', 'CAD_SetBooleanCylinderCut', 'CAD_RebuildBRepMesh', 'CAD_Shell', 'CAD_EdgeFillet', 'CAD_EdgeChamfer', 'CAD_AddEdgeBevel', 'CAD_GetEdgeBevelCount', 'CAD_BooleanUnion', 'CAD_BooleanIntersection', 'CAD_BooleanSubtract', 'CAD_CheckInterference', 'CAD_ExplodeView', 'CAD_SetFeatureDimensionsVisible', 'CAD_GetFeatureDimensionsVisible', 'CAD_GetFeatureDimensionCount', 'CAD_GetFeatureDimension', 'CAD_SetFeatureDimension']
 
 _f = _n.native
 
@@ -29,32 +29,28 @@ _n.bind("CAD_Revolve", _c.c_int32, [_c.c_uint32, CAD_GeVec3, CAD_GeVec3, _c.c_in
 _n.bind("CAD_Loft", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32, _c.POINTER(CAD_CreateOptions), _c.POINTER(_c.c_uint32)])
 _n.bind("CAD_PushPullSelectedFace", _c.c_int32, [_c.c_double])
 _n.bind("CAD_InsetSelectedFace", _c.c_int32, [_c.c_double])
-_n.bind("CAD_GetBRepInfo", _c.c_bool, [_c.c_uint32, _c.POINTER(CAD_BRepInfo)])
-_n.bind("CAD_GetBRepParameters", _c.c_bool, [_c.c_uint32, _c.POINTER(CAD_BRepParameters)])
-_n.bind("CAD_SetBRepBoxDimensions", _c.c_bool, [_c.c_uint32, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_SetBRepCylinderDimensions", _c.c_bool, [_c.c_uint32, _c.c_float, _c.c_float])
-_n.bind("CAD_SetBRepExtrudeHeight", _c.c_bool, [_c.c_uint32, _c.c_float])
-_n.bind("CAD_GetBRepFaceInfo", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.POINTER(CAD_BRepFaceInfo)])
-_n.bind("CAD_PushPullBRepFace", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.c_float])
-_n.bind("CAD_CutExtrudeBRep", _c.c_bool, [_c.c_uint32, _c.POINTER(_c.c_float), _c.c_uint32, _c.c_float, _c.c_bool])
-_n.bind("CAD_CutExtrudeFromSketch", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.c_float, _c.c_bool])
-_n.bind("CAD_BossExtrudeBRep", _c.c_bool, [_c.c_uint32, _c.POINTER(_c.c_float), _c.c_uint32, _c.c_float])
-_n.bind("CAD_BossExtrudeFromSketch", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.c_float])
-_n.bind("CAD_GetBRepBossCount", _c.c_uint32, [_c.c_uint32])
-_n.bind("CAD_GetBRepBossHeight", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.POINTER(_c.c_float)])
-_n.bind("CAD_SetBRepBossHeight", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.c_float])
-_n.bind("CAD_GetBRepCutCount", _c.c_uint32, [_c.c_uint32])
-_n.bind("CAD_GetBRepCutInfo", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.POINTER(CAD_BRepCutInfo)])
-_n.bind("CAD_GetBRepCutProfile", _c.c_uint32, [_c.c_uint32, _c.c_uint32, _c.POINTER(_c.c_float), _c.c_uint32])
-_n.bind("CAD_SetBRepCut", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.POINTER(_c.c_float), _c.c_uint32, _c.c_float, _c.c_bool])
-_n.bind("CAD_SetBRepCutFromSketch", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.c_uint32, _c.c_float, _c.c_bool])
-_n.bind("CAD_RemoveBRepFeatures", _c.c_bool, [_c.c_uint32, _c.POINTER(_c.c_uint32), _c.c_uint32, _c.POINTER(_c.c_uint32), _c.c_uint32])
-_n.bind("CAD_RemoveBRepCut", _c.c_bool, [_c.c_uint32, _c.c_uint32])
-_n.bind("CAD_RemoveBRepBoss", _c.c_bool, [_c.c_uint32, _c.c_uint32])
-_n.bind("CAD_GetBooleanCylinderCutCount", _c.c_uint32, [_c.c_uint32])
-_n.bind("CAD_GetBooleanCylinderCutInfo", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.POINTER(CAD_BooleanCylinderCutInfo)])
-_n.bind("CAD_SetBooleanCylinderCut", _c.c_bool, [_c.c_uint32, _c.c_uint32, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_RebuildBRepMesh", _c.c_bool, [_c.c_uint32, _c.c_uint32])
+_n.bind("CAD_GetBRepInfo", _c.c_int32, [_c.c_uint32, _c.POINTER(CAD_BRepInfo)])
+_n.bind("CAD_GetBRepFaceInfo", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.POINTER(CAD_BRepFaceInfo)])
+_n.bind("CAD_PushPullBRepFace", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.c_double])
+_n.bind("CAD_CutExtrudeBRep", _c.c_int32, [_c.c_uint32, _c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_double, _c.c_bool])
+_n.bind("CAD_CutExtrudeFromSketch", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.c_double, _c.c_bool])
+_n.bind("CAD_BossExtrudeBRep", _c.c_int32, [_c.c_uint32, _c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_double])
+_n.bind("CAD_BossExtrudeFromSketch", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.c_double])
+_n.bind("CAD_GetBRepBossCount", _c.c_int32, [_c.c_uint32])
+_n.bind("CAD_GetBRepBossHeight", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.POINTER(_c.c_double)])
+_n.bind("CAD_SetBRepBossHeight", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.c_double])
+_n.bind("CAD_GetBRepCutCount", _c.c_int32, [_c.c_uint32])
+_n.bind("CAD_GetBRepCutInfo", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.POINTER(CAD_BRepCutInfo)])
+_n.bind("CAD_GetBRepCutProfile", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.POINTER(CAD_GeVec3), _c.c_uint32])
+_n.bind("CAD_SetBRepCut", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_double, _c.c_bool])
+_n.bind("CAD_SetBRepCutFromSketch", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.c_uint32, _c.c_double, _c.c_bool])
+_n.bind("CAD_RemoveBRepFeatures", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_uint32), _c.c_uint32, _c.POINTER(_c.c_uint32), _c.c_uint32])
+_n.bind("CAD_RemoveBRepCut", _c.c_int32, [_c.c_uint32, _c.c_uint32])
+_n.bind("CAD_RemoveBRepBoss", _c.c_int32, [_c.c_uint32, _c.c_uint32])
+_n.bind("CAD_GetBooleanCylinderCutCount", _c.c_int32, [_c.c_uint32])
+_n.bind("CAD_GetBooleanCylinderCutInfo", _c.c_int32, [_c.c_uint32, _c.c_uint32, _c.POINTER(CAD_BooleanCylinderCutInfo)])
+_n.bind("CAD_SetBooleanCylinderCut", _c.c_int32, [_c.c_uint32, _c.c_uint32, CAD_GeVec3, CAD_GeVec3, _c.c_double, _c.c_double])
+_n.bind("CAD_RebuildBRepMesh", _c.c_int32, [_c.c_uint32, _c.c_uint32])
 _n.bind("CAD_Shell", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32, _c.c_double, _c.POINTER(_c.c_uint32), _c.c_uint32])
 _n.bind("CAD_EdgeFillet", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32, _c.c_double, _c.POINTER(_c.c_uint32), _c.c_uint32])
 _n.bind("CAD_EdgeChamfer", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32, _c.c_double, _c.POINTER(_c.c_uint32), _c.c_uint32])
@@ -282,223 +278,197 @@ def CAD_InsetSelectedFace(distance: float) -> int:
     return _f.CAD_InsetSelectedFace(distance)
 
 
-def CAD_GetBRepInfo(id: int) -> CAD_BRepInfo | None:
-    """C: bool CAD_GetBRepInfo(uint32_t id, CAD_BRepInfo* outInfo)
+def CAD_GetBRepInfo(id: int) -> tuple[int, CAD_BRepInfo]:
+    """C: CAD_Status CAD_GetBRepInfo(uint32_t id, CAD_BRepInfo* outInfo)
     """
     outInfo = CAD_BRepInfo()
-    if not _f.CAD_GetBRepInfo(id, _c.byref(outInfo)):
-        return None
-    return outInfo
+    outInfo.size = _c.sizeof(CAD_BRepInfo)   # 출력 구조체 — 엔진은 이 크기까지만 쓴다
+    _r = _f.CAD_GetBRepInfo(id, _c.byref(outInfo))
+    return (_r, outInfo)
 
 
-def CAD_GetBRepParameters(id: int) -> CAD_BRepParameters | None:
-    """C: bool CAD_GetBRepParameters(uint32_t id, CAD_BRepParameters* outParams)
-    """
-    outParams = CAD_BRepParameters()
-    if not _f.CAD_GetBRepParameters(id, _c.byref(outParams)):
-        return None
-    return outParams
-
-
-def CAD_SetBRepBoxDimensions(id: int, x: float, y: float, z: float) -> bool:
-    """C: bool CAD_SetBRepBoxDimensions(uint32_t id, float x, float y, float z)
-    """
-    return _f.CAD_SetBRepBoxDimensions(id, x, y, z)
-
-
-def CAD_SetBRepCylinderDimensions(id: int, radius: float, height: float) -> bool:
-    """C: bool CAD_SetBRepCylinderDimensions(uint32_t id, float radius, float height)
-    """
-    return _f.CAD_SetBRepCylinderDimensions(id, radius, height)
-
-
-def CAD_SetBRepExtrudeHeight(id: int, height: float) -> bool:
-    """C: bool CAD_SetBRepExtrudeHeight(uint32_t id, float height)
-    """
-    return _f.CAD_SetBRepExtrudeHeight(id, height)
-
-
-def CAD_GetBRepFaceInfo(id: int, faceId: int) -> CAD_BRepFaceInfo | None:
-    """C: bool CAD_GetBRepFaceInfo(uint32_t id, uint32_t faceId, CAD_BRepFaceInfo* outInfo)
+def CAD_GetBRepFaceInfo(id: int, faceId: int) -> tuple[int, CAD_BRepFaceInfo]:
+    """C: CAD_Status CAD_GetBRepFaceInfo(uint32_t id, uint32_t faceId, CAD_BRepFaceInfo* outInfo)
     """
     outInfo = CAD_BRepFaceInfo()
-    if not _f.CAD_GetBRepFaceInfo(id, faceId, _c.byref(outInfo)):
-        return None
-    return outInfo
+    outInfo.size = _c.sizeof(CAD_BRepFaceInfo)   # 출력 구조체 — 엔진은 이 크기까지만 쓴다
+    _r = _f.CAD_GetBRepFaceInfo(id, faceId, _c.byref(outInfo))
+    return (_r, outInfo)
 
 
-def CAD_PushPullBRepFace(id: int, faceId: int, distance: float) -> bool:
-    """C: bool CAD_PushPullBRepFace(uint32_t id, uint32_t faceId, float distance)
+def CAD_PushPullBRepFace(id: int, faceId: int, distance: float) -> int:
+    """C: CAD_Status CAD_PushPullBRepFace(uint32_t id, uint32_t faceId, double distance)
 
-    지정 면을 바깥쪽으로 이동한다. 박스 평면은 반대편 면을 고정하고,
-    원통 옆면(surfaceType=1)은 반지름을 변경하며, 돌출체 옆면은 프로파일 변을 평행 이동한다.
-    distance는 월드 단위다.
+    면 밀기 — distance(mm) 만큼 바깥으로. 상자 평면은 반대편 고정, 원통 옆면은 반지름, 돌출 옆면은 단면 변 평행 이동
     """
     return _f.CAD_PushPullBRepFace(id, faceId, distance)
 
 
-def CAD_CutExtrudeBRep(id: int, profileXYZ: Sequence | None, pointCount: int, depth: float, throughAll: bool) -> bool:
-    """C: bool CAD_CutExtrudeBRep(uint32_t id, const float* profileXYZ, uint32_t pointCount, float depth, bool throughAll)
+def CAD_CutExtrudeBRep(id: int, profile: Sequence | None, count: int, depth: float, throughAll: bool) -> int:
+    """C: CAD_Status CAD_CutExtrudeBRep(uint32_t id, const CAD_GeVec3* profile, uint32_t count, double depth, bool throughAll)
+
+    돌출 컷 — 닫힌 단면 점(월드, 3..CAD_MAX_BREP_PROFILE_POINTS)을 캡과 나란한 평면에 둔다(엔진이 아래 기준면으로 투영). throughAll = 관통(depth 무시).
+    FromSketch = 닫힌 스케치(사각형·원·닫힌 폴리선) id 로 — 피처 기록이 남아 스케치를 고치면 컷도 다시 만든다
     """
-    _a_profileXYZ = _n.array(_c.c_float, profileXYZ)
-    return _f.CAD_CutExtrudeBRep(id, _a_profileXYZ, pointCount, depth, throughAll)
+    _a_profile = _n.array(CAD_GeVec3, profile)
+    return _f.CAD_CutExtrudeBRep(id, _a_profile, count, depth, throughAll)
 
 
-def CAD_CutExtrudeFromSketch(id: int, sketchId: int, depth: float, throughAll: bool) -> bool:
-    """C: bool CAD_CutExtrudeFromSketch(uint32_t id, uint32_t sketchId, float depth, bool throughAll)
+def CAD_CutExtrudeFromSketch(id: int, sketchId: int, depth: float, throughAll: bool) -> int:
+    """C: CAD_Status CAD_CutExtrudeFromSketch(uint32_t id, uint32_t sketchId, double depth, bool throughAll)
 
-    기존 닫힌 2D 스케치를 프로파일로 사용한다. 스케치의 월드 변환을 대상 솔리드의
-    로컬 좌표로 자동 변환하므로 화면에서 그린 사각형·원·폴리선을 바로 사용할 수 있다.
+    돌출 컷 — 닫힌 단면 점(월드, 3..CAD_MAX_BREP_PROFILE_POINTS)을 캡과 나란한 평면에 둔다(엔진이 아래 기준면으로 투영). throughAll = 관통(depth 무시).
+    FromSketch = 닫힌 스케치(사각형·원·닫힌 폴리선) id 로 — 피처 기록이 남아 스케치를 고치면 컷도 다시 만든다
     """
     return _f.CAD_CutExtrudeFromSketch(id, sketchId, depth, throughAll)
 
 
-def CAD_BossExtrudeBRep(id: int, profileXYZ: Sequence | None, pointCount: int, height: float) -> bool:
-    """C: bool CAD_BossExtrudeBRep(uint32_t id, const float* profileXYZ, uint32_t pointCount, float height)
+def CAD_BossExtrudeBRep(id: int, profile: Sequence | None, count: int, height: float) -> int:
+    """C: CAD_Status CAD_BossExtrudeBRep(uint32_t id, const CAD_GeVec3* profile, uint32_t count, double height)
 
-    보스(더하는 돌출) — Extrude 솔리드의 캡 안쪽에 폐프로파일을 쌓는다(피처 기록에 남아 치수·재생성이 된다).
-    height > 0 = 위 캡에서 위로, < 0 = 아래 캡에서 아래로. 발자국이 외곽에 닿거나 같은 쪽 보스와 겹치거나
-    기존 컷 테두리를 가로지르면 false. 이미 있던 관통 컷은 보스까지 관통한다.
+    보스(더하는 돌출) — height > 0 = 위 캡에서 위로, < 0 = 아래 캡에서 아래로(월드 mm). 발자국이 외곽에 닿거나 같은 쪽 보스와 겹치면 CAD_E_FAILED.
+    FromSketch = 스케치가 가까운 캡 쪽으로 height(양수)
     """
-    _a_profileXYZ = _n.array(_c.c_float, profileXYZ)
-    return _f.CAD_BossExtrudeBRep(id, _a_profileXYZ, pointCount, height)
+    _a_profile = _n.array(CAD_GeVec3, profile)
+    return _f.CAD_BossExtrudeBRep(id, _a_profile, count, height)
 
 
-def CAD_BossExtrudeFromSketch(id: int, sketchId: int, height: float) -> bool:
-    """C: bool CAD_BossExtrudeFromSketch(uint32_t id, uint32_t sketchId, float height)
+def CAD_BossExtrudeFromSketch(id: int, sketchId: int, height: float) -> int:
+    """C: CAD_Status CAD_BossExtrudeFromSketch(uint32_t id, uint32_t sketchId, double height)
 
-    닫힌 스케치로 — 스케치가 가까운 캡(위/아래) 쪽으로 height(양수) 만큼. 스케치가 바뀌면 다시 만든다.
+    보스(더하는 돌출) — height > 0 = 위 캡에서 위로, < 0 = 아래 캡에서 아래로(월드 mm). 발자국이 외곽에 닿거나 같은 쪽 보스와 겹치면 CAD_E_FAILED.
+    FromSketch = 스케치가 가까운 캡 쪽으로 height(양수)
     """
     return _f.CAD_BossExtrudeFromSketch(id, sketchId, height)
 
 
 def CAD_GetBRepBossCount(id: int) -> int:
-    """C: uint32_t CAD_GetBRepBossCount(uint32_t id)
+    """C: int32_t CAD_GetBRepBossCount(uint32_t id)
 
-    닫힌 스케치로 — 스케치가 가까운 캡(위/아래) 쪽으로 height(양수) 만큼. 스케치가 바뀌면 다시 만든다.
+    보스(더하는 돌출) — height > 0 = 위 캡에서 위로, < 0 = 아래 캡에서 아래로(월드 mm). 발자국이 외곽에 닿거나 같은 쪽 보스와 겹치면 CAD_E_FAILED.
+    FromSketch = 스케치가 가까운 캡 쪽으로 height(양수)
     """
     return _f.CAD_GetBRepBossCount(id)
 
 
-def CAD_GetBRepBossHeight(id: int, bossIndex: int) -> float | None:
-    """C: bool CAD_GetBRepBossHeight(uint32_t id, uint32_t bossIndex, float* outHeight)
+def CAD_GetBRepBossHeight(id: int, bossIndex: int) -> tuple[int, float]:
+    """C: CAD_Status CAD_GetBRepBossHeight(uint32_t id, uint32_t bossIndex, double* outHeight)
 
-    보스 높이 읽기·바꾸기(부호 = 위/아래). 바꾸기는 undo 1.
+    부호 = 위/아래
+
+    묶음 주석: 보스(더하는 돌출) — height > 0 = 위 캡에서 위로, < 0 = 아래 캡에서 아래로(월드 mm). 발자국이 외곽에 닿거나 같은 쪽 보스와 겹치면 CAD_E_FAILED.
+    FromSketch = 스케치가 가까운 캡 쪽으로 height(양수)
     """
-    outHeight = _c.c_float()
-    if not _f.CAD_GetBRepBossHeight(id, bossIndex, _c.byref(outHeight)):
-        return None
-    return outHeight.value
+    outHeight = _c.c_double()
+    _r = _f.CAD_GetBRepBossHeight(id, bossIndex, _c.byref(outHeight))
+    return (_r, outHeight.value)
 
 
-def CAD_SetBRepBossHeight(id: int, bossIndex: int, height: float) -> bool:
-    """C: bool CAD_SetBRepBossHeight(uint32_t id, uint32_t bossIndex, float height)
+def CAD_SetBRepBossHeight(id: int, bossIndex: int, height: float) -> int:
+    """C: CAD_Status CAD_SetBRepBossHeight(uint32_t id, uint32_t bossIndex, double height)
 
-    보스 높이 읽기·바꾸기(부호 = 위/아래). 바꾸기는 undo 1.
+    보스(더하는 돌출) — height > 0 = 위 캡에서 위로, < 0 = 아래 캡에서 아래로(월드 mm). 발자국이 외곽에 닿거나 같은 쪽 보스와 겹치면 CAD_E_FAILED.
+    FromSketch = 스케치가 가까운 캡 쪽으로 height(양수)
     """
     return _f.CAD_SetBRepBossHeight(id, bossIndex, height)
 
 
 def CAD_GetBRepCutCount(id: int) -> int:
-    """C: uint32_t CAD_GetBRepCutCount(uint32_t id)
+    """C: int32_t CAD_GetBRepCutCount(uint32_t id)
     """
     return _f.CAD_GetBRepCutCount(id)
 
 
-def CAD_GetBRepCutInfo(id: int, cutIndex: int) -> CAD_BRepCutInfo | None:
-    """C: bool CAD_GetBRepCutInfo(uint32_t id, uint32_t cutIndex, CAD_BRepCutInfo* outInfo)
+def CAD_GetBRepCutInfo(id: int, cutIndex: int) -> tuple[int, CAD_BRepCutInfo]:
+    """C: CAD_Status CAD_GetBRepCutInfo(uint32_t id, uint32_t cutIndex, CAD_BRepCutInfo* outInfo)
     """
     outInfo = CAD_BRepCutInfo()
-    if not _f.CAD_GetBRepCutInfo(id, cutIndex, _c.byref(outInfo)):
-        return None
-    return outInfo
+    outInfo.size = _c.sizeof(CAD_BRepCutInfo)   # 출력 구조체 — 엔진은 이 크기까지만 쓴다
+    _r = _f.CAD_GetBRepCutInfo(id, cutIndex, _c.byref(outInfo))
+    return (_r, outInfo)
 
 
-def CAD_GetBRepCutProfile(id: int, cutIndex: int, outXYZ: Any, capacity: int) -> int:
-    """C: uint32_t CAD_GetBRepCutProfile(uint32_t id, uint32_t cutIndex, float* outXYZ, uint32_t capacity)
+def CAD_GetBRepCutProfile(id: int, cutIndex: int, outPoints: Any, capacity: int) -> int:
+    """C: int32_t CAD_GetBRepCutProfile(uint32_t id, uint32_t cutIndex, CAD_GeVec3* outPoints, uint32_t capacity)
 
-    필요한 점 개수를 반환한다. outXYZ가 null이거나 capacity가 작으면 복사하지 않는다.
+    컷 단면 점(월드) — 반환 = 점 수, capacity 만큼 채운다
     """
-    return _f.CAD_GetBRepCutProfile(id, cutIndex, outXYZ, capacity)
+    return _f.CAD_GetBRepCutProfile(id, cutIndex, outPoints, capacity)
 
 
-def CAD_SetBRepCut(id: int, cutIndex: int, profileXYZ: Sequence | None, pointCount: int, depth: float, throughAll: bool) -> bool:
-    """C: bool CAD_SetBRepCut(uint32_t id, uint32_t cutIndex, const float* profileXYZ, uint32_t pointCount, float depth, bool throughAll)
+def CAD_SetBRepCut(id: int, cutIndex: int, profile: Sequence | None, count: int, depth: float, throughAll: bool) -> int:
+    """C: CAD_Status CAD_SetBRepCut(uint32_t id, uint32_t cutIndex, const CAD_GeVec3* profile, uint32_t count, double depth, bool throughAll)
 
-    기존 컷의 프로파일과 관통/포켓 깊이를 교체한다. cutIndex는 GetBRepCutInfo의 값이다.
-    profileXYZ는 대상 솔리드의 객체 로컬 좌표이며, 임포트한 폐폴리라인 좌표도 사용할 수 있다.
+    컷 바꾸기 — 단면(월드)·깊이·관통을 통째로, 또는 닫힌 스케치로
     """
-    _a_profileXYZ = _n.array(_c.c_float, profileXYZ)
-    return _f.CAD_SetBRepCut(id, cutIndex, _a_profileXYZ, pointCount, depth, throughAll)
+    _a_profile = _n.array(CAD_GeVec3, profile)
+    return _f.CAD_SetBRepCut(id, cutIndex, _a_profile, count, depth, throughAll)
 
 
-def CAD_SetBRepCutFromSketch(id: int, cutIndex: int, sketchId: int, depth: float, throughAll: bool) -> bool:
-    """C: bool CAD_SetBRepCutFromSketch(uint32_t id, uint32_t cutIndex, uint32_t sketchId, float depth, bool throughAll)
+def CAD_SetBRepCutFromSketch(id: int, cutIndex: int, sketchId: int, depth: float, throughAll: bool) -> int:
+    """C: CAD_Status CAD_SetBRepCutFromSketch(uint32_t id, uint32_t cutIndex, uint32_t sketchId, double depth, bool throughAll)
 
-    닫힌 엔진 스케치(직접 그린 형상 또는 DXF 등에서 변환한 형상)로 기존 컷을 교체한다.
+    컷 바꾸기 — 단면(월드)·깊이·관통을 통째로, 또는 닫힌 스케치로
     """
     return _f.CAD_SetBRepCutFromSketch(id, cutIndex, sketchId, depth, throughAll)
 
 
-def CAD_RemoveBRepFeatures(id: int, cutIndices: Sequence | None, cutCount: int, bossIndices: Sequence | None, bossCount: int) -> bool:
-    """C: bool CAD_RemoveBRepFeatures(uint32_t id, const uint32_t* cutIndices, uint32_t cutCount, const uint32_t* bossIndices, uint32_t bossCount)
+def CAD_RemoveBRepFeatures(id: int, cutIndices: Sequence | None, cutCount: int, bossIndices: Sequence | None, bossCount: int) -> int:
+    """C: CAD_Status CAD_RemoveBRepFeatures(uint32_t id, const uint32_t* cutIndices, uint32_t cutCount, const uint32_t* bossIndices, uint32_t bossCount)
 
     컷·보스 지우기(솔리드웍스 피처 삭제처럼) — 여러 개를 한 번에 빼고 남은 것으로 한 번 다시 만든다. 그 피처만 쓰던 스케치도 지운다.
-    번호는 CAD_GetBRepCutInfo / 보스 순서(지우기 전 번호 — 지운 뒤엔 뒤쪽 번호가 당겨진다). 되돌리기 한 단계.
-    남은 것으로 모양을 못 만들면(보스를 지워 그 안 컷이 허공에 남음 등) 아무것도 안 바꾸고 false + CAD_GetLastError.
+    번호는 지우기 전 번호(지운 뒤엔 뒤쪽이 당겨진다). 되돌리기 1. 남은 것으로 모양을 못 만들면(보스를 지워 그 안 컷이 허공에 남음 …) CAD_E_FAILED
     """
     _a_cutIndices = _n.array(_c.c_uint32, cutIndices)
     _a_bossIndices = _n.array(_c.c_uint32, bossIndices)
     return _f.CAD_RemoveBRepFeatures(id, _a_cutIndices, cutCount, _a_bossIndices, bossCount)
 
 
-def CAD_RemoveBRepCut(id: int, cutIndex: int) -> bool:
-    """C: bool CAD_RemoveBRepCut(uint32_t id, uint32_t cutIndex)
+def CAD_RemoveBRepCut(id: int, cutIndex: int) -> int:
+    """C: CAD_Status CAD_RemoveBRepCut(uint32_t id, uint32_t cutIndex)
 
     하나만 — CAD_RemoveBRepFeatures 와 같다
 
     묶음 주석: 컷·보스 지우기(솔리드웍스 피처 삭제처럼) — 여러 개를 한 번에 빼고 남은 것으로 한 번 다시 만든다. 그 피처만 쓰던 스케치도 지운다.
-    번호는 CAD_GetBRepCutInfo / 보스 순서(지우기 전 번호 — 지운 뒤엔 뒤쪽 번호가 당겨진다). 되돌리기 한 단계.
-    남은 것으로 모양을 못 만들면(보스를 지워 그 안 컷이 허공에 남음 등) 아무것도 안 바꾸고 false + CAD_GetLastError.
+    번호는 지우기 전 번호(지운 뒤엔 뒤쪽이 당겨진다). 되돌리기 1. 남은 것으로 모양을 못 만들면(보스를 지워 그 안 컷이 허공에 남음 …) CAD_E_FAILED
     """
     return _f.CAD_RemoveBRepCut(id, cutIndex)
 
 
-def CAD_RemoveBRepBoss(id: int, bossIndex: int) -> bool:
-    """C: bool CAD_RemoveBRepBoss(uint32_t id, uint32_t bossIndex)
+def CAD_RemoveBRepBoss(id: int, bossIndex: int) -> int:
+    """C: CAD_Status CAD_RemoveBRepBoss(uint32_t id, uint32_t bossIndex)
 
     컷·보스 지우기(솔리드웍스 피처 삭제처럼) — 여러 개를 한 번에 빼고 남은 것으로 한 번 다시 만든다. 그 피처만 쓰던 스케치도 지운다.
-    번호는 CAD_GetBRepCutInfo / 보스 순서(지우기 전 번호 — 지운 뒤엔 뒤쪽 번호가 당겨진다). 되돌리기 한 단계.
-    남은 것으로 모양을 못 만들면(보스를 지워 그 안 컷이 허공에 남음 등) 아무것도 안 바꾸고 false + CAD_GetLastError.
+    번호는 지우기 전 번호(지운 뒤엔 뒤쪽이 당겨진다). 되돌리기 1. 남은 것으로 모양을 못 만들면(보스를 지워 그 안 컷이 허공에 남음 …) CAD_E_FAILED
     """
     return _f.CAD_RemoveBRepBoss(id, bossIndex)
 
 
 def CAD_GetBooleanCylinderCutCount(id: int) -> int:
-    """C: uint32_t CAD_GetBooleanCylinderCutCount(uint32_t id)
+    """C: int32_t CAD_GetBooleanCylinderCutCount(uint32_t id)
     """
     return _f.CAD_GetBooleanCylinderCutCount(id)
 
 
-def CAD_GetBooleanCylinderCutInfo(id: int, cutIndex: int) -> CAD_BooleanCylinderCutInfo | None:
-    """C: bool CAD_GetBooleanCylinderCutInfo(uint32_t id, uint32_t cutIndex, CAD_BooleanCylinderCutInfo* outInfo)
+def CAD_GetBooleanCylinderCutInfo(id: int, cutIndex: int) -> tuple[int, CAD_BooleanCylinderCutInfo]:
+    """C: CAD_Status CAD_GetBooleanCylinderCutInfo(uint32_t id, uint32_t cutIndex, CAD_BooleanCylinderCutInfo* outInfo)
     """
     outInfo = CAD_BooleanCylinderCutInfo()
-    if not _f.CAD_GetBooleanCylinderCutInfo(id, cutIndex, _c.byref(outInfo)):
-        return None
-    return outInfo
+    outInfo.size = _c.sizeof(CAD_BooleanCylinderCutInfo)   # 출력 구조체 — 엔진은 이 크기까지만 쓴다
+    _r = _f.CAD_GetBooleanCylinderCutInfo(id, cutIndex, _c.byref(outInfo))
+    return (_r, outInfo)
 
 
-def CAD_SetBooleanCylinderCut(id: int, cutIndex: int, centerX: float, centerY: float, centerZ: float, axisX: float, axisY: float, axisZ: float, radius: float, height: float) -> bool:
-    """C: bool CAD_SetBooleanCylinderCut(uint32_t id, uint32_t cutIndex, float centerX, float centerY, float centerZ, float axisX, float axisY, float axisZ, float radius, float height)
+def CAD_SetBooleanCylinderCut(id: int, cutIndex: int, center: CAD_GeVec3, axis: CAD_GeVec3, radius: float, height: float) -> int:
+    """C: CAD_Status CAD_SetBooleanCylinderCut(uint32_t id, uint32_t cutIndex, CAD_GeVec3 center, CAD_GeVec3 axis, double radius, double height)
     """
-    return _f.CAD_SetBooleanCylinderCut(id, cutIndex, centerX, centerY, centerZ, axisX, axisY, axisZ, radius, height)
+    return _f.CAD_SetBooleanCylinderCut(id, cutIndex, center, axis, radius, height)
 
 
-def CAD_RebuildBRepMesh(id: int, curvedSegments: int) -> bool:
-    """C: bool CAD_RebuildBRepMesh(uint32_t id, uint32_t curvedSegments)
+def CAD_RebuildBRepMesh(id: int, curvedSegments: int) -> int:
+    """C: CAD_Status CAD_RebuildBRepMesh(uint32_t id, uint32_t curvedSegments)
 
-    B-Rep 정의로 렌더 메시 캐시를 강제 재생성한다. 곡면 분할은 3~512로 제한된다.
+    화면 메시를 B-Rep 정의로 다시 — 곡면 분할 3..512(밖이면 그 끝으로)
     """
     return _f.CAD_RebuildBRepMesh(id, curvedSegments)
 

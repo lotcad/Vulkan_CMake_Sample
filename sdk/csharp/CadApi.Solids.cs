@@ -9,6 +9,9 @@ namespace LotCAD
     [StructLayout(LayoutKind.Sequential)]
     public struct CAD_BRepInfo
     {
+        /// <summary>size 를 sizeof 로 채운 새 값(나머지 0).</summary>
+        public static CAD_BRepInfo Create() { return new CAD_BRepInfo { size = (uint)Marshal.SizeOf(typeof(CAD_BRepInfo)) }; }
+        public uint size;
         public int featureType;
         public uint vertexCount;
         public uint edgeCount;
@@ -18,53 +21,40 @@ namespace LotCAD
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct CAD_BRepParameters
-    {
-        public int featureType;
-        public float dimensionsX;
-        public float dimensionsY;
-        public float dimensionsZ;
-        public float radius;
-        public float height;
-        public float directionX;
-        public float directionY;
-        public float directionZ;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
     public struct CAD_BRepFaceInfo
     {
+        /// <summary>size 를 sizeof 로 채운 새 값(나머지 0).</summary>
+        public static CAD_BRepFaceInfo Create() { return new CAD_BRepFaceInfo { size = (uint)Marshal.SizeOf(typeof(CAD_BRepFaceInfo)) }; }
+        public uint size;
         public uint faceId;
         public int surfaceType;
-        public float originX;
-        public float originY;
-        public float originZ;
-        public float normalX;
-        public float normalY;
-        public float normalZ;
+        public CAD_GeVec3 origin;
+        public CAD_GeVec3 normal;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct CAD_BRepCutInfo
     {
+        /// <summary>size 를 sizeof 로 채운 새 값(나머지 0).</summary>
+        public static CAD_BRepCutInfo Create() { return new CAD_BRepCutInfo { size = (uint)Marshal.SizeOf(typeof(CAD_BRepCutInfo)) }; }
+        public uint size;
         public uint cutIndex;
         public uint pointCount;
-        public float depth;
+        public double depth;
         [MarshalAs(UnmanagedType.I1)] public bool throughAll;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct CAD_BooleanCylinderCutInfo
     {
+        /// <summary>size 를 sizeof 로 채운 새 값(나머지 0).</summary>
+        public static CAD_BooleanCylinderCutInfo Create() { return new CAD_BooleanCylinderCutInfo { size = (uint)Marshal.SizeOf(typeof(CAD_BooleanCylinderCutInfo)) }; }
+        public uint size;
         public uint cutIndex;
-        public float centerX;
-        public float centerY;
-        public float centerZ;
-        public float axisX;
-        public float axisY;
-        public float axisZ;
-        public float radius;
-        public float height;
+        public CAD_GeVec3 center;
+        public CAD_GeVec3 axis;
+        public double radius;
+        public double height;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -267,104 +257,70 @@ namespace LotCAD
         public static extern int CAD_InsetSelectedFace(double distance);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetBRepInfo(uint id, out CAD_BRepInfo outInfo);
+        public static extern int CAD_GetBRepInfo(uint id, ref CAD_BRepInfo outInfo);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetBRepParameters(uint id, out CAD_BRepParameters outParams);
+        public static extern int CAD_GetBRepFaceInfo(uint id, uint faceId, ref CAD_BRepFaceInfo outInfo);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetBRepBoxDimensions(uint id, float x, float y, float z);
+        public static extern int CAD_PushPullBRepFace(uint id, uint faceId, double distance);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetBRepCylinderDimensions(uint id, float radius, float height);
+        public static extern int CAD_CutExtrudeBRep(uint id, CAD_GeVec3[] profile, uint count, double depth, [MarshalAs(UnmanagedType.I1)] bool throughAll);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetBRepExtrudeHeight(uint id, float height);
+        public static extern int CAD_CutExtrudeFromSketch(uint id, uint sketchId, double depth, [MarshalAs(UnmanagedType.I1)] bool throughAll);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetBRepFaceInfo(uint id, uint faceId, out CAD_BRepFaceInfo outInfo);
+        public static extern int CAD_BossExtrudeBRep(uint id, CAD_GeVec3[] profile, uint count, double height);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_PushPullBRepFace(uint id, uint faceId, float distance);
+        public static extern int CAD_BossExtrudeFromSketch(uint id, uint sketchId, double height);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_CutExtrudeBRep(uint id, float[] profileXYZ, uint pointCount, float depth, [MarshalAs(UnmanagedType.I1)] bool throughAll);
+        public static extern int CAD_GetBRepBossCount(uint id);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_CutExtrudeFromSketch(uint id, uint sketchId, float depth, [MarshalAs(UnmanagedType.I1)] bool throughAll);
+        public static extern int CAD_GetBRepBossHeight(uint id, uint bossIndex, out double outHeight);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_BossExtrudeBRep(uint id, float[] profileXYZ, uint pointCount, float height);
+        public static extern int CAD_SetBRepBossHeight(uint id, uint bossIndex, double height);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_BossExtrudeFromSketch(uint id, uint sketchId, float height);
+        public static extern int CAD_GetBRepCutCount(uint id);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetBRepBossCount(uint id);
+        public static extern int CAD_GetBRepCutInfo(uint id, uint cutIndex, ref CAD_BRepCutInfo outInfo);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetBRepBossHeight(uint id, uint bossIndex, out float outHeight);
+        public static extern int CAD_GetBRepCutProfile(uint id, uint cutIndex, [Out] CAD_GeVec3[] outPoints, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetBRepBossHeight(uint id, uint bossIndex, float height);
+        public static extern int CAD_SetBRepCut(uint id, uint cutIndex, CAD_GeVec3[] profile, uint count, double depth, [MarshalAs(UnmanagedType.I1)] bool throughAll);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetBRepCutCount(uint id);
+        public static extern int CAD_SetBRepCutFromSketch(uint id, uint cutIndex, uint sketchId, double depth, [MarshalAs(UnmanagedType.I1)] bool throughAll);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetBRepCutInfo(uint id, uint cutIndex, out CAD_BRepCutInfo outInfo);
+        public static extern int CAD_RemoveBRepFeatures(uint id, uint[] cutIndices, uint cutCount, uint[] bossIndices, uint bossCount);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetBRepCutProfile(uint id, uint cutIndex, float[] outXYZ, uint capacity);
+        public static extern int CAD_RemoveBRepCut(uint id, uint cutIndex);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetBRepCut(uint id, uint cutIndex, float[] profileXYZ, uint pointCount, float depth, [MarshalAs(UnmanagedType.I1)] bool throughAll);
+        public static extern int CAD_RemoveBRepBoss(uint id, uint bossIndex);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetBRepCutFromSketch(uint id, uint cutIndex, uint sketchId, float depth, [MarshalAs(UnmanagedType.I1)] bool throughAll);
+        public static extern int CAD_GetBooleanCylinderCutCount(uint id);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_RemoveBRepFeatures(uint id, uint[] cutIndices, uint cutCount, uint[] bossIndices, uint bossCount);
+        public static extern int CAD_GetBooleanCylinderCutInfo(uint id, uint cutIndex, ref CAD_BooleanCylinderCutInfo outInfo);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_RemoveBRepCut(uint id, uint cutIndex);
+        public static extern int CAD_SetBooleanCylinderCut(uint id, uint cutIndex, CAD_GeVec3 center, CAD_GeVec3 axis, double radius, double height);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_RemoveBRepBoss(uint id, uint bossIndex);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetBooleanCylinderCutCount(uint id);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetBooleanCylinderCutInfo(uint id, uint cutIndex, out CAD_BooleanCylinderCutInfo outInfo);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetBooleanCylinderCut(uint id, uint cutIndex, float centerX, float centerY, float centerZ, float axisX, float axisY, float axisZ, float radius, float height);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_RebuildBRepMesh(uint id, uint curvedSegments);
+        public static extern int CAD_RebuildBRepMesh(uint id, uint curvedSegments);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_Shell(uint[] ids, uint count, double thickness, uint[] outIds, uint capacity);

@@ -41,12 +41,16 @@ CAD_API CAD_Status CAD_Loft(const uint32_t* sectionIds, uint32_t count, const CA
 CAD_API CAD_Status CAD_PushPullSelectedFace(double distance);
 CAD_API CAD_Status CAD_InsetSelectedFace(double distance);
 
-// 자체 Mini B-Rep 정보. featureType: 0=Box, 1=Cylinder, 2=Extrude, 3=Sphere, 4=Cone, 5=Torus.
-// 파라미터(CAD_GetBRepParameters/Set…): Sphere = radius · Cone = radius(밑면)·height · Torus = radius(큰)·height 자리에 관 반지름.
-// volume/surfaceArea는 객체의 현재 축척·회전을 반영한 월드 값이다.
-// 임포트 메시나 아직 B-Rep으로 복원하지 않은 Boolean 결과는 false.
-// 원통 차집합 결과의 타공 편집 가능 여부는 CAD_GetBooleanCylinderCutCount로 조회한다.
+/* ── B-Rep 솔리드 — 정보·면·돌출 컷·보스 (AcDb3dSolid · AcBr) ─────────────────────────────
+ * 상자·원기둥·돌출·구·원뿔·토러스·회전체·스윕은 B-Rep 정의를 들고 있다(가져온 메시·불리언 결과는 아님 = CAD_E_WRONG_TYPE).
+ * 크기를 읽고 고치는 것은 피처 치수(CAD_Get/SetFeatureDimension — 월드 mm). 좌표·길이는 늘 **월드** mm(객체의 이동·회전·축척이 걸린 자리) —
+ * 엔진이 객체 로컬로 옮겨 넣는다. 바꾸는 함수는 되돌리기 1, 모양을 못 만들면(외곽에 닿는 컷 …) CAD_E_FAILED 이고 아무것도 안 바뀐다.
+ * 컷·보스는 돌출(featureType 2) 솔리드에만. 번호(cutIndex·bossIndex) 밖 = CAD_E_OUT_OF_RANGE. */
+enum { CAD_MAX_BREP_PROFILE_POINTS = 2048 };   /* 컷·보스 단면 점 수 상한 */
+/* featureType: 0=상자 1=원기둥 2=돌출 3=구 4=원뿔 5=토러스 6=회전체 7=스윕 8=본체만(STEP). 부피·넓이 = 월드(mm³·mm²).
+ * 출력 구조체 — 부르는 쪽이 size = sizeof 를 채운다(엔진은 그 크기까지만 쓴다) */
 typedef struct CAD_BRepInfo {
+    uint32_t size;
     int32_t featureType;
     uint32_t vertexCount;
     uint32_t edgeCount;
@@ -54,113 +58,65 @@ typedef struct CAD_BRepInfo {
     double volume;
     double surfaceArea;
 } CAD_BRepInfo;
-CAD_API bool     CAD_GetBRepInfo(uint32_t id, CAD_BRepInfo* outInfo);
-
-// B-Rep 생성 파라미터. 사용하지 않는 필드는 0이다.
-// dimensions는 객체 transform.scale과 별개인 로컬 원본 치수다.
-typedef struct CAD_BRepParameters {
-    int32_t featureType;
-    float dimensionsX;
-    float dimensionsY;
-    float dimensionsZ;
-    float radius;
-    float height;
-    float directionX;
-    float directionY;
-    float directionZ;
-} CAD_BRepParameters;
-CAD_API bool     CAD_GetBRepParameters(uint32_t id, CAD_BRepParameters* outParams);
-CAD_API bool     CAD_SetBRepBoxDimensions(uint32_t id, float x, float y, float z);
-CAD_API bool     CAD_SetBRepCylinderDimensions(uint32_t id, float radius, float height);
-CAD_API bool     CAD_SetBRepExtrudeHeight(uint32_t id, float height);
-// 안정적인 B-Rep face id 조회. surfaceType: 0=Plane, 1=Cylinder. 원점/법선은 월드 좌표.
+CAD_API CAD_Status CAD_GetBRepInfo(uint32_t id, CAD_BRepInfo* outInfo);
+/* 면 하나(안정된 면 번호 — 밀어도 번호가 그대로). surfaceType 0 = 평면, 1 = 원통. origin·normal = 월드. 출력 구조체(첫 칸 size) */
 typedef struct CAD_BRepFaceInfo {
+    uint32_t size;
     uint32_t faceId;
     int32_t surfaceType;
-    float originX, originY, originZ;
-    float normalX, normalY, normalZ;
+    CAD_GeVec3 origin;
+    CAD_GeVec3 normal;
 } CAD_BRepFaceInfo;
-CAD_API bool     CAD_GetBRepFaceInfo(uint32_t id, uint32_t faceId, CAD_BRepFaceInfo* outInfo);
-// 지정 면을 바깥쪽으로 이동한다. 박스 평면은 반대편 면을 고정하고,
-// 원통 옆면(surfaceType=1)은 반지름을 변경하며, 돌출체 옆면은 프로파일 변을 평행 이동한다.
-// distance는 월드 단위다.
-CAD_API bool     CAD_PushPullBRepFace(uint32_t id, uint32_t faceId, float distance);
-// Extrude 솔리드에 편집 가능한 포켓/관통 컷을 추가한다.
-// profileXYZ는 객체 로컬 좌표의 폐프로파일(pointCount*3)이며 캡과 평행한 평면에 둔다.
-// 엔진이 아래 기준면으로 투영한다. throughAll=true이면 depth를 무시한다.
-// 외곽에 닿거나 다른 컷과 겹치는 프로파일은 false를 반환한다.
-enum { CAD_MAX_BREP_PROFILE_POINTS = 2048 };
-CAD_API bool     CAD_CutExtrudeBRep(uint32_t id,
-                                    const float* profileXYZ,
-                                    uint32_t pointCount,
-                                    float depth,
-                                    bool throughAll);
-// 기존 닫힌 2D 스케치를 프로파일로 사용한다. 스케치의 월드 변환을 대상 솔리드의
-// 로컬 좌표로 자동 변환하므로 화면에서 그린 사각형·원·폴리선을 바로 사용할 수 있다.
-CAD_API bool     CAD_CutExtrudeFromSketch(uint32_t id,
-                                          uint32_t sketchId,
-                                          float depth,
-                                          bool throughAll);
-// 보스(더하는 돌출) — Extrude 솔리드의 캡 안쪽에 폐프로파일을 쌓는다(피처 기록에 남아 치수·재생성이 된다).
-// height > 0 = 위 캡에서 위로, < 0 = 아래 캡에서 아래로. 발자국이 외곽에 닿거나 같은 쪽 보스와 겹치거나
-// 기존 컷 테두리를 가로지르면 false. 이미 있던 관통 컷은 보스까지 관통한다.
-CAD_API bool     CAD_BossExtrudeBRep(uint32_t id,
-                                     const float* profileXYZ,
-                                     uint32_t pointCount,
-                                     float height);
-// 닫힌 스케치로 — 스케치가 가까운 캡(위/아래) 쪽으로 height(양수) 만큼. 스케치가 바뀌면 다시 만든다.
-CAD_API bool     CAD_BossExtrudeFromSketch(uint32_t id,
-                                           uint32_t sketchId,
-                                           float height);
-CAD_API uint32_t CAD_GetBRepBossCount(uint32_t id);
-// 보스 높이 읽기·바꾸기(부호 = 위/아래). 바꾸기는 undo 1.
-CAD_API bool     CAD_GetBRepBossHeight(uint32_t id, uint32_t bossIndex, float* outHeight);
-CAD_API bool     CAD_SetBRepBossHeight(uint32_t id, uint32_t bossIndex, float height);
+CAD_API CAD_Status CAD_GetBRepFaceInfo(uint32_t id, uint32_t faceId, CAD_BRepFaceInfo* outInfo);
+/* 면 밀기 — distance(mm) 만큼 바깥으로. 상자 평면은 반대편 고정, 원통 옆면은 반지름, 돌출 옆면은 단면 변 평행 이동 */
+CAD_API CAD_Status CAD_PushPullBRepFace(uint32_t id, uint32_t faceId, double distance);
+/* 돌출 컷 — 닫힌 단면 점(월드, 3..CAD_MAX_BREP_PROFILE_POINTS)을 캡과 나란한 평면에 둔다(엔진이 아래 기준면으로 투영). throughAll = 관통(depth 무시).
+ * FromSketch = 닫힌 스케치(사각형·원·닫힌 폴리선) id 로 — 피처 기록이 남아 스케치를 고치면 컷도 다시 만든다 */
+CAD_API CAD_Status CAD_CutExtrudeBRep(uint32_t id, const CAD_GeVec3* profile, uint32_t count, double depth, bool throughAll);
+CAD_API CAD_Status CAD_CutExtrudeFromSketch(uint32_t id, uint32_t sketchId, double depth, bool throughAll);
+/* 보스(더하는 돌출) — height > 0 = 위 캡에서 위로, < 0 = 아래 캡에서 아래로(월드 mm). 발자국이 외곽에 닿거나 같은 쪽 보스와 겹치면 CAD_E_FAILED.
+ * FromSketch = 스케치가 가까운 캡 쪽으로 height(양수) */
+CAD_API CAD_Status CAD_BossExtrudeBRep(uint32_t id, const CAD_GeVec3* profile, uint32_t count, double height);
+CAD_API CAD_Status CAD_BossExtrudeFromSketch(uint32_t id, uint32_t sketchId, double height);
+CAD_API int32_t    CAD_GetBRepBossCount(uint32_t id);
+CAD_API CAD_Status CAD_GetBRepBossHeight(uint32_t id, uint32_t bossIndex, double* outHeight);   /* 부호 = 위/아래 */
+CAD_API CAD_Status CAD_SetBRepBossHeight(uint32_t id, uint32_t bossIndex, double height);
+/* 컷 하나 — depth = 월드 mm(관통이면 의미 없음), pointCount = 단면 점 수. 출력 구조체(첫 칸 size) */
 typedef struct CAD_BRepCutInfo {
+    uint32_t size;
     uint32_t cutIndex;
     uint32_t pointCount;
-    float depth;
+    double depth;
     bool throughAll;
 } CAD_BRepCutInfo;
-CAD_API uint32_t CAD_GetBRepCutCount(uint32_t id);
-CAD_API bool     CAD_GetBRepCutInfo(uint32_t id, uint32_t cutIndex, CAD_BRepCutInfo* outInfo);
-// 필요한 점 개수를 반환한다. outXYZ가 null이거나 capacity가 작으면 복사하지 않는다.
-CAD_API uint32_t CAD_GetBRepCutProfile(uint32_t id, uint32_t cutIndex,
-                                       float* outXYZ, uint32_t capacity);
-// 기존 컷의 프로파일과 관통/포켓 깊이를 교체한다. cutIndex는 GetBRepCutInfo의 값이다.
-// profileXYZ는 대상 솔리드의 객체 로컬 좌표이며, 임포트한 폐폴리라인 좌표도 사용할 수 있다.
-CAD_API bool     CAD_SetBRepCut(uint32_t id, uint32_t cutIndex,
-                                const float* profileXYZ, uint32_t pointCount,
-                                float depth, bool throughAll);
-// 닫힌 엔진 스케치(직접 그린 형상 또는 DXF 등에서 변환한 형상)로 기존 컷을 교체한다.
-CAD_API bool     CAD_SetBRepCutFromSketch(uint32_t id, uint32_t cutIndex,
-                                          uint32_t sketchId,
-                                          float depth, bool throughAll);
-// 컷·보스 지우기(솔리드웍스 피처 삭제처럼) — 여러 개를 한 번에 빼고 남은 것으로 한 번 다시 만든다. 그 피처만 쓰던 스케치도 지운다.
-// 번호는 CAD_GetBRepCutInfo / 보스 순서(지우기 전 번호 — 지운 뒤엔 뒤쪽 번호가 당겨진다). 되돌리기 한 단계.
-// 남은 것으로 모양을 못 만들면(보스를 지워 그 안 컷이 허공에 남음 등) 아무것도 안 바꾸고 false + CAD_GetLastError.
-CAD_API bool     CAD_RemoveBRepFeatures(uint32_t id, const uint32_t* cutIndices, uint32_t cutCount,
-                                        const uint32_t* bossIndices, uint32_t bossCount);
-CAD_API bool     CAD_RemoveBRepCut(uint32_t id, uint32_t cutIndex);     // 하나만 — CAD_RemoveBRepFeatures 와 같다
-CAD_API bool     CAD_RemoveBRepBoss(uint32_t id, uint32_t bossIndex);
-// 일반 Boolean 차집합이 B-Rep 기준체와 원통 커터로 만들어졌으면 타공 기록을 보존한다.
-// 중심·방향은 결과 객체 로컬 좌표, radius/height는 같은 좌표계의 수치다.
+CAD_API int32_t    CAD_GetBRepCutCount(uint32_t id);
+CAD_API CAD_Status CAD_GetBRepCutInfo(uint32_t id, uint32_t cutIndex, CAD_BRepCutInfo* outInfo);
+/* 컷 단면 점(월드) — 반환 = 점 수, capacity 만큼 채운다 */
+CAD_API int32_t    CAD_GetBRepCutProfile(uint32_t id, uint32_t cutIndex, CAD_GeVec3* outPoints, uint32_t capacity);
+/* 컷 바꾸기 — 단면(월드)·깊이·관통을 통째로, 또는 닫힌 스케치로 */
+CAD_API CAD_Status CAD_SetBRepCut(uint32_t id, uint32_t cutIndex, const CAD_GeVec3* profile, uint32_t count, double depth, bool throughAll);
+CAD_API CAD_Status CAD_SetBRepCutFromSketch(uint32_t id, uint32_t cutIndex, uint32_t sketchId, double depth, bool throughAll);
+/* 컷·보스 지우기(솔리드웍스 피처 삭제처럼) — 여러 개를 한 번에 빼고 남은 것으로 한 번 다시 만든다. 그 피처만 쓰던 스케치도 지운다.
+ * 번호는 지우기 전 번호(지운 뒤엔 뒤쪽이 당겨진다). 되돌리기 1. 남은 것으로 모양을 못 만들면(보스를 지워 그 안 컷이 허공에 남음 …) CAD_E_FAILED */
+CAD_API CAD_Status CAD_RemoveBRepFeatures(uint32_t id, const uint32_t* cutIndices, uint32_t cutCount, const uint32_t* bossIndices,
+                                          uint32_t bossCount);
+CAD_API CAD_Status CAD_RemoveBRepCut(uint32_t id, uint32_t cutIndex);     /* 하나만 — CAD_RemoveBRepFeatures 와 같다 */
+CAD_API CAD_Status CAD_RemoveBRepBoss(uint32_t id, uint32_t bossIndex);
+/* 원통 타공 기록 — B-Rep 기준체에서 원통 커터를 뺀 차집합 결과가 남긴 구멍. center·axis = 월드, radius·height = 월드 mm.
+ * 축에 수직한 두 방향 축척이 다른 객체의 Set = CAD_E_NOT_SUPPORTED(반지름이 하나로 안 정해짐). 출력 구조체(첫 칸 size) */
 typedef struct CAD_BooleanCylinderCutInfo {
+    uint32_t size;
     uint32_t cutIndex;
-    float centerX, centerY, centerZ;
-    float axisX, axisY, axisZ;
-    float radius;
-    float height;
+    CAD_GeVec3 center;
+    CAD_GeVec3 axis;
+    double radius;
+    double height;
 } CAD_BooleanCylinderCutInfo;
-CAD_API uint32_t CAD_GetBooleanCylinderCutCount(uint32_t id);
-CAD_API bool     CAD_GetBooleanCylinderCutInfo(uint32_t id, uint32_t cutIndex,
-                                               CAD_BooleanCylinderCutInfo* outInfo);
-CAD_API bool     CAD_SetBooleanCylinderCut(uint32_t id, uint32_t cutIndex,
-                                           float centerX, float centerY, float centerZ,
-                                           float axisX, float axisY, float axisZ,
-                                           float radius, float height);
-// B-Rep 정의로 렌더 메시 캐시를 강제 재생성한다. 곡면 분할은 3~512로 제한된다.
-CAD_API bool     CAD_RebuildBRepMesh(uint32_t id, uint32_t curvedSegments);
+CAD_API int32_t    CAD_GetBooleanCylinderCutCount(uint32_t id);
+CAD_API CAD_Status CAD_GetBooleanCylinderCutInfo(uint32_t id, uint32_t cutIndex, CAD_BooleanCylinderCutInfo* outInfo);
+CAD_API CAD_Status CAD_SetBooleanCylinderCut(uint32_t id, uint32_t cutIndex, CAD_GeVec3 center, CAD_GeVec3 axis, double radius, double height);
+/* 화면 메시를 B-Rep 정의로 다시 — 곡면 분할 3..512(밖이면 그 끝으로) */
+CAD_API CAD_Status CAD_RebuildBRepMesh(uint32_t id, uint32_t curvedSegments);
 
 /* ── 솔리드 가공 — 대상 id 배열(AcDb3dSolid shell · filletEdges · chamferEdges) ──
  * 입력을 먼저 전부 본다 — 없는 id·잠긴 도면층·솔리드(메시) 아님·같은 id 두 번이 하나라도 있으면, 또 하나라도 가공이 안 먹으면 **아무것도 바꾸지 않는다**.
