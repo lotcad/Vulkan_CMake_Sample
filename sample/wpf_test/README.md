@@ -49,5 +49,7 @@ CAD_OnMouse* / CAD_OnKeyDownVK   // 입력 (VK 코드는 내부에서 GLFW 로 �
 
 ## 미구현 / 다음 단계
 
-- **엔진 → WPF 콜백** (`CAD_SetOnSelectionChanged` 등) 없음 → 속성패널 양방향 연동 시 추가 필요.
+- **엔진 → WPF 알림** 은 아직 연결 안 함 → 속성패널 양방향 연동 시 `CAD_AddEventListener(kinds, fn, user, 0, out handle)`
+  하나로 듣는다(kind 1 생성 · 2 삭제 · 4 선택 변경 · 8 문서 변경, `CadApi.cs` 에 선언만 있음 — 델리게이트는 필드로 붙들어 둘 것).
+  예전 한 칸짜리 `CAD_SetOnSelectionChanged`·`ObjectCreated`·`ObjectDeleted`·`DocumentDirty` 는 엔진에서 지워졌다.
 - 마우스 modifiers(Ctrl/Shift) 전달은 현재 0 고정 — 다중선택 등 필요 시 비트 채우기.

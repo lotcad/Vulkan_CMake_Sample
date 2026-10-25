@@ -23,7 +23,7 @@ namespace LotCadWpf
             // 셰이더는 라이브러리에 SPIR-V 로 내장돼 폴더가 아예 없다. CWD 는 실행 방식마다
             // 달라지므로(F5 / Ctrl+F5 / 더블클릭) 조건 없이 항상 설정한다. 엔진 생성 전이어야 함.
             string assets = AppDomain.CurrentDomain.BaseDirectory;
-            bool assetsOk = CadApi.CAD_SetRuntimeAssetPath(CadApi.Utf8(assets));
+            bool assetsOk = CadApi.CAD_SetRuntimeAssetPath(CadApi.Utf8(assets)) == 0;   // 0 = CAD_OK
 
             // HwndHost 를 렌더 영역에 얹음 → BuildWindowCore 에서 엔진 생성.
             // 크기 동기화는 host.Tick() 안의 SyncSize() 가 실제 HWND 픽셀로 매 프레임 처리.

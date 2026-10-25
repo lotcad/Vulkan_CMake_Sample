@@ -18,7 +18,7 @@ final class LotCADEngine {
     private var demoObjectIds: [UInt32] = []
 
     func setRuntimeAssetPath(_ path: String) -> Bool {
-        CAD_SetRuntimeAssetPath(path)
+        CAD_SetRuntimeAssetPath(path) == 0   // 결과 코드 — 0 = CAD_OK
     }
 
     @MainActor func attach(to view: NSView) {
@@ -75,34 +75,52 @@ final class LotCADEngine {
     //    ⚠️ C 함수 포인터는 @convention(c) 라 액터에 속할 수 없다. 그런데 보관소는
     //    @MainActor 다 — 그래서 안에서 assumeIsolated 로 "여기는 메인" 임을 알린다.
     //    거짓말이 아니라 사실이다: 이 콜백들은 전부 CAD_Tick 안에서 불린다.
+    //    객체·선택·문서 알림은 CAD_AddEventListener 하나(엔진 2e-1 — 한 칸짜리 CAD_SetOnXxx 는 지워졌다).
+    //    리스너 하나를 걸고 kind 로 갈라 보관소의 처리기를 부른다. 엔진이 있어야 걸린다(create 뒤).
+    private var eventListenerHandle: UInt32 = 0
+
+    @MainActor
+    private func refreshEventListener() {
+        guard isCreated else { return }
+        if eventListenerHandle != 0 {
+            _ = CAD_RemoveEventListener(eventListenerHandle)
+            eventListenerHandle = 0
+        }
+        var kinds: UInt32 = 0
+        if LotCADEngineCallbacks.objectCreated != nil { kinds |= UInt32(CAD_EVENT_OBJECT_CREATED) }
+        if LotCADEngineCallbacks.objectDeleted != nil { kinds |= UInt32(CAD_EVENT_OBJECT_DELETED) }
+        if LotCADEngineCallbacks.selectionChanged != nil { kinds |= UInt32(CAD_EVENT_SELECTION_CHANGED) }
+        if LotCADEngineCallbacks.documentDirty != nil { kinds |= UInt32(CAD_EVENT_DOCUMENT_DIRTY) }
+        guard kinds != 0 else { return }
+        var handle: UInt32 = 0
+        let status = CAD_AddEventListener(kinds, { kind, id, _ in
+            MainActor.assumeIsolated { LotCADEngineCallbacks.dispatch(kind: kind, id: id) }
+        }, nil, 0, &handle)
+        if status == 0 { eventListenerHandle = handle }   // 0 = CAD_OK
+    }
+
     @MainActor
     func onSelectionChanged(_ handler: (() -> Void)?) {
         LotCADEngineCallbacks.selectionChanged = handler
-        CAD_SetOnSelectionChanged(handler == nil ? nil : {
-            MainActor.assumeIsolated { LotCADEngineCallbacks.selectionChanged?() }
-        })
+        refreshEventListener()
     }
 
     @MainActor
     func onObjectCreated(_ handler: ((UInt32) -> Void)?) {
         LotCADEngineCallbacks.objectCreated = handler
-        CAD_SetOnObjectCreated(handler == nil ? nil : { id in
-            MainActor.assumeIsolated { LotCADEngineCallbacks.objectCreated?(id) }
-        })
+        refreshEventListener()
     }
 
     @MainActor
     func onObjectDeleted(_ handler: ((UInt32) -> Void)?) {
         LotCADEngineCallbacks.objectDeleted = handler
-        CAD_SetOnObjectDeleted(handler == nil ? nil : { id in
-            MainActor.assumeIsolated { LotCADEngineCallbacks.objectDeleted?(id) }
-        })
+        refreshEventListener()
     }
 
     @MainActor
     func onPrompt(_ handler: ((String) -> Void)?) {
         LotCADEngineCallbacks.prompt = handler
-        CAD_SetOnPrompt(handler == nil ? nil : { text in
+        _ = CAD_SetOnPrompt(handler == nil ? nil : { text in
             let s = text.map { String(cString: $0) } ?? ""
             MainActor.assumeIsolated { LotCADEngineCallbacks.prompt?(s) }
         })
@@ -468,9 +486,7 @@ final class LotCADEngine {
     @MainActor
     func onDocumentDirty(_ handler: ((Bool) -> Void)?) {
         LotCADEngineCallbacks.documentDirty = handler
-        CAD_SetOnDocumentDirty(handler == nil ? nil : { dirty in
-            MainActor.assumeIsolated { LotCADEngineCallbacks.documentDirty?(dirty) }
-        })
+        refreshEventListener()
     }
 
     /// C API 의 "(buf, bufLen) → 길이" 문자열 조회 관례를 Swift String 으로.
@@ -519,7 +535,8 @@ final class LotCADEngine {
         }
         demoObjectIds.removeAll()
         if isCreated {
-            CAD_DestroyEngine()
+            _ = CAD_DestroyEngine()   // 구독도 엔진과 같이 사라진다
+            eventListenerHandle = 0
             isCreated = false
         }
     }
@@ -546,4 +563,15 @@ enum LotCADEngineCallbacks {
     static var objectDeleted: ((UInt32) -> Void)?
     static var prompt: ((String) -> Void)?
     static var documentDirty: ((Bool) -> Void)?
+
+    /// CAD_AddEventListener 콜백 — kind 로 갈라 위 처리기를 부른다(문서 변경 id = dirty ? 1 : 0, 선택 변경 id = 0).
+    static func dispatch(kind: Int32, id: UInt32) {
+        switch kind {
+        case Int32(CAD_EVENT_OBJECT_CREATED):    objectCreated?(id)
+        case Int32(CAD_EVENT_OBJECT_DELETED):    objectDeleted?(id)
+        case Int32(CAD_EVENT_SELECTION_CHANGED): selectionChanged?()
+        case Int32(CAD_EVENT_DOCUMENT_DIRTY):    documentDirty?(id != 0)
+        default: break
+        }
+    }
 }

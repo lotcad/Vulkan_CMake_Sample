@@ -18,7 +18,7 @@ WPF 와 다른 점은 하나 — WinForms 컨트롤은 처음부터 자기 HWND 
 ## 핵심 계약 (엔진 측)
 
 ```
-CAD_SetRuntimeAssetPath(exe 폴더)   // 엔진 생성 전
+CAD_SetRuntimeAssetPath(exe 폴더)   // 엔진 생성 전 (0 = CAD_OK)
 CAD_AttachView(hwnd, w, h)          // 렌더할 HWND 를 먼저 등록
 CAD_CreateEngine()                  // 그 HWND 에 Vulkan 렌더
 CAD_Tick()                          // 매 프레임 1회 (Application.Idle + PeekMessage 루프)
@@ -48,5 +48,6 @@ post-build 이 `../../sdk` 의 `LotCADCore.dll` + `models/ textures/ fonts/` 를
 
 ## 미구현 / 다음 단계 (wpf_test 와 같음)
 
-- 엔진 → UI 콜백(`CAD_SetOnSelectionChanged` 등)은 `CadApi.cs` 에 선언만 있고 연결 안 함.
+- 엔진 → UI 알림(`CAD_AddEventListener` — kind 1 생성 · 2 삭제 · 4 선택 변경 · 8 문서 변경)은 `CadApi.cs` 에 선언만 있고 연결 안 함.
+  예전 한 칸짜리 `CAD_SetOnSelectionChanged` 등은 엔진에서 지워졌다.
 - 마우스 modifiers(Ctrl/Shift) 는 0 고정 — 다중선택 등 필요 시 비트 채우기.

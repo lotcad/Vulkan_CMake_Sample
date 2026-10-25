@@ -10,18 +10,6 @@ namespace LotCAD
     public delegate void CAD_EventFn(int kind, uint id, IntPtr user);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void CAD_SetOnSelectionChanged_cb();
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void CAD_SetOnObjectCreated_cb(uint id);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void CAD_SetOnObjectDeleted_cb(uint id);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void CAD_SetOnDocumentDirty_cb([MarshalAs(UnmanagedType.I1)] bool dirty);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void CAD_SetOnPrompt_cb(IntPtr text);
 
     public static partial class CadApi
@@ -35,25 +23,12 @@ namespace LotCAD
         public const int CAD_EVENT_COMMAND_CANCELLED = 64;
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_AddEventListener(int kinds, CAD_EventFn fn, IntPtr user, uint pluginId);
+        public static extern int CAD_AddEventListener(uint kinds, CAD_EventFn fn, IntPtr user, uint pluginId, out uint outHandle);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_RemoveEventListener(uint handle);
+        public static extern int CAD_RemoveEventListener(uint handle);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetOnSelectionChanged(CAD_SetOnSelectionChanged_cb cb);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetOnObjectCreated(CAD_SetOnObjectCreated_cb cb);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetOnObjectDeleted(CAD_SetOnObjectDeleted_cb cb);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetOnDocumentDirty(CAD_SetOnDocumentDirty_cb cb);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetOnPrompt(CAD_SetOnPrompt_cb cb);
+        public static extern int CAD_SetOnPrompt(CAD_SetOnPrompt_cb cb);
     }
 }

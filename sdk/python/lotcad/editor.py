@@ -181,7 +181,8 @@ def CAD_ExecuteCommand(text: str | None) -> int:
 
     글은 하단 명령행에 치는 것과 **똑같다**(영문·짧은 별칭·한글, 진행 중인 도구가 있으면 값 입력) — 명령행과 같은 길.
     모르는 명령은 AI 로 보내지 않는다(자연어는 CAD_AiSubmit). 반환: CAD_OK · 모르는 명령 CAD_E_NOT_FOUND ·
-    기다리는 도구가 없는데 빈 Enter CAD_E_NOT_READY.
+    기다리는 도구가 없는데 빈 Enter CAD_E_NOT_READY · 진행 중인 도구가 받지 않는 입력(선 그리는 중 "circle" 같은 새 명령 이름) CAD_E_BUSY
+    — 도구를 바꾸려면 CAD_CancelCommand 먼저.
     """
     return _f.CAD_ExecuteCommand(_n.text(text))
 

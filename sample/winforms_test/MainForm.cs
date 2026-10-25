@@ -38,7 +38,7 @@ namespace LotCadWinForms
             // 런타임 에셋(models/textures/fonts) 경로 지정 — exe 폴더 기준.
             // 셰이더는 라이브러리에 SPIR-V 로 내장돼 폴더가 아예 없다. CWD 는 실행 방식마다
             // 달라지므로(F5 / Ctrl+F5 / 더블클릭) 조건 없이 항상 설정한다. 엔진 생성(= 렌더 영역 핸들 생성) 전이어야 함.
-            bool assetsOk = CadApi.CAD_SetRuntimeAssetPath(CadApi.Utf8(AppDomain.CurrentDomain.BaseDirectory));
+            bool assetsOk = CadApi.CAD_SetRuntimeAssetPath(CadApi.Utf8(AppDomain.CurrentDomain.BaseDirectory)) == 0;   // 0 = CAD_OK
 
             // 도킹은 나중에 넣은 것부터 자리를 잡는다 → 채움(렌더)을 먼저, 메뉴를 마지막에.
             Controls.Add(_render);

@@ -29,12 +29,20 @@ Windows · macOS(Apple Silicon) · Ubuntu 에서 같은 코드로 돈다.
 import sys; sys.path.insert(0, "<샘플 레포>/sdk/python")
 import lotcad
 
-lotcad.CAD_SetRuntimeAssetPath(lotcad.SDK_DIR)   # models·fonts·textures 위치
-lotcad.CAD_CreateEngine()                         # 창을 붙이지 않으면 엔진이 자기 창을 연다
-box = lotcad.CAD_CreateBox(0, 0, 0.5, 1, 1, 1)
-x, y, z = lotcad.CAD_GetPosition(box)             # 출력 인자는 반환값으로 (실패 = None)
+if lotcad.CAD_SetRuntimeAssetPath(lotcad.SDK_DIR) != lotcad.CAD_OK:   # models·fonts·textures 위치 (0 = CAD_OK)
+    print(lotcad.CAD_GetLastError())
+lotcad.CAD_CreateEngine()                         # 창을 붙이지 않으면 엔진이 자기 창을 연다 (루프 함수라 bool)
+st, box = lotcad.CAD_CreateBox(lotcad.CAD_GeVec3(0, 0, 0.5), lotcad.CAD_GeVec3(1, 1, 1))   # 결과 코드 + 새 id
+st, p = lotcad.CAD_GetPosition(box)               # 출력 인자는 (결과 코드, 값) 으로
 print(lotcad.CAD_GetObjectJson(box))              # 문자열 버퍼는 str 로
 lotcad.CAD_SetOnPrompt(lambda text: print(text))  # 콜백은 파이썬 함수 그대로 — 바인딩이 붙잡아 둔다
+
+def on_event(kind, id, user):                     # 객체·선택·문서 알림은 이것 하나(kind 로 가른다)
+    if kind == lotcad.CAD_EVENT_SELECTION_CHANGED: print("선택 바뀜")
+    elif kind == lotcad.CAD_EVENT_DOCUMENT_DIRTY:  print("문서 변경", bool(id))
+st, handle = lotcad.CAD_AddEventListener(
+    lotcad.CAD_EVENT_SELECTION_CHANGED | lotcad.CAD_EVENT_DOCUMENT_DIRTY, on_event, None, 0)   # 0 = 호스트
+# 끊을 때: lotcad.CAD_RemoveEventListener(handle)
 while not lotcad.CAD_ShouldClose() and lotcad.CAD_Tick():
     pass
 lotcad.CAD_DestroyEngine()

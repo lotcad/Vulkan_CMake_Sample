@@ -20,7 +20,7 @@ final class LotCADEngine {
     private var demoObjectIds: [UInt32] = []
 
     func setRuntimeAssetPath(_ path: String) -> Bool {
-        CAD_SetRuntimeAssetPath(path)
+        CAD_SetRuntimeAssetPath(path) == 0   // 결과 코드 — 0 = CAD_OK
     }
 
     @MainActor func attach(to view: UIView) {
@@ -380,7 +380,8 @@ final class LotCADEngine {
     // (x,y) 에 기즈모 핸들이 있는지 — 1손가락 드래그를 기즈모 조작 vs 궤도회전으로 라우팅.
     func gizmoHitTest(x: Double, y: Double) -> Bool {
         guard isCreated else { return false }
-        return CAD_GizmoHitTest(x, y) != 0
+        var hit = false   // 결과 코드(0 = CAD_OK) + 맞았는지는 out 인자
+        return CAD_GizmoHitTest(x, y, &hit) == 0 && hit
     }
 
     func setGizmoTouchMode(_ enabled: Bool) {

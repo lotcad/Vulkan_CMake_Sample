@@ -19,7 +19,7 @@ let projectRoot = sourceFile
 // 런타임 에셋(models/ textures/ fonts/)은 sdk/ 바로 아래 — 라이브러리와 같은 층.
 let runtimeDirectory = projectRoot.appendingPathComponent("sdk")
 
-guard CAD_SetRuntimeAssetPath(runtimeDirectory.path) else {
+guard CAD_SetRuntimeAssetPath(runtimeDirectory.path) == 0 else {   // 결과 코드 — 0 = CAD_OK
     fputs("[swift_api_test] failed to set runtime asset path to \(runtimeDirectory.path)\n", stderr)
     exit(1)
 }

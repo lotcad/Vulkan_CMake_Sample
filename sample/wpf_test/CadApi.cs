@@ -11,16 +11,17 @@ namespace LotCadWpf
         const string DLL = "LotCADCore.dll";
 
         // ── 생명주기 / 뷰 ──
+        // 루프 세 함수(CreateEngine·Tick·ShouldClose)는 bool, 나머지는 결과 코드(0 = CAD_OK, 이유는 CAD_GetLastError)
         [DllImport(DLL)] public static extern bool CAD_CreateEngine();
-        [DllImport(DLL)] public static extern void CAD_DestroyEngine();
+        [DllImport(DLL)] public static extern int CAD_DestroyEngine();
         [DllImport(DLL)] public static extern bool CAD_Tick();
         [DllImport(DLL)] public static extern bool CAD_ShouldClose();
-        [DllImport(DLL)] public static extern void CAD_SetIgnoreCloseRequest(bool ignore);
-        // CharSet.Ansi 는 한글 경로를 깨뜨린다(엔진은 UTF-8 을 기대). byte[] 로 넘긴다.
-        [DllImport(DLL)] public static extern bool CAD_SetRuntimeAssetPath(byte[] pathUtf8);
-        [DllImport(DLL)] public static extern void CAD_AttachView(IntPtr nativeHandle, int width, int height);
-        [DllImport(DLL)] public static extern void CAD_ResizeView(int width, int height);
-        [DllImport(DLL)] public static extern void CAD_DetachView();
+        [DllImport(DLL)] public static extern int CAD_SetIgnoreCloseRequest([MarshalAs(UnmanagedType.I1)] bool ignore);
+        // CharSet.Ansi 는 한글 경로를 깨뜨린다(엔진은 UTF-8 을 기대). byte[] 로 넘긴다. 0 = CAD_OK
+        [DllImport(DLL)] public static extern int CAD_SetRuntimeAssetPath(byte[] pathUtf8);
+        [DllImport(DLL)] public static extern int CAD_AttachView(IntPtr nativeHandle, int width, int height);
+        [DllImport(DLL)] public static extern int CAD_ResizeView(int width, int height);
+        [DllImport(DLL)] public static extern int CAD_DetachView();
 
         // ── 입력 ──
         [DllImport(DLL)] public static extern void CAD_OnMouseDown(int button, double x, double y, int modifiers);
@@ -51,16 +52,20 @@ namespace LotCadWpf
         // ⚠️ 델리게이트를 **필드로 붙들어 둬야** 한다. 지역 변수로 넘기면 GC 가 걷어가
         //    엔진이 이미 사라진 함수를 부른다(그 순간 프로세스가 죽는다).
         //    호출은 CAD_Tick 안 = UI 스레드이므로 콜백에서 화면을 바로 고쳐도 된다.
-        public delegate void VoidCb();
-        public delegate void IdCb(uint id);
-        public delegate void BoolCb([MarshalAs(UnmanagedType.I1)] bool value);
+        //    이벤트는 CAD_AddEventListener 하나로 듣는다(kind 로 갈라 처리) — 예전 한 칸짜리
+        //    CAD_SetOnSelectionChanged·ObjectCreated·ObjectDeleted·DocumentDirty 는 지워졌다.
+        //    kind: 1 객체 생성(id) · 2 객체 삭제(id) · 4 선택 변경(id 0) · 8 문서 변경(id = dirty ? 1 : 0)
+        public const uint CAD_EVENT_OBJECT_CREATED    = 1;
+        public const uint CAD_EVENT_OBJECT_DELETED    = 2;
+        public const uint CAD_EVENT_SELECTION_CHANGED = 4;
+        public const uint CAD_EVENT_DOCUMENT_DIRTY    = 8;
+        public delegate void EventCb(int kind, uint id, IntPtr user);
         public delegate void TextCb(IntPtr utf8);
 
-        [DllImport(DLL)] public static extern void CAD_SetOnSelectionChanged(VoidCb cb);
-        [DllImport(DLL)] public static extern void CAD_SetOnObjectCreated(IdCb cb);
-        [DllImport(DLL)] public static extern void CAD_SetOnObjectDeleted(IdCb cb);
-        [DllImport(DLL)] public static extern void CAD_SetOnDocumentDirty(BoolCb cb);
-        [DllImport(DLL)] public static extern void CAD_SetOnPrompt(TextCb cb);
+        // 0 = CAD_OK, 핸들은 outHandle. pluginId 는 호스트면 0
+        [DllImport(DLL)] public static extern int CAD_AddEventListener(uint kinds, EventCb fn, IntPtr user, uint pluginId, out uint outHandle);
+        [DllImport(DLL)] public static extern int CAD_RemoveEventListener(uint handle);
+        [DllImport(DLL)] public static extern int CAD_SetOnPrompt(TextCb cb);
 
         // ── 측정 ── 상태바에 "길이 3,600" / "면적 12.5" 를 띄울 때. 월드 좌표 기준.
         // 반환 = 결과 코드(0 = 성공, 음수 = 이유 코드 — 글은 LastError())

@@ -60,21 +60,20 @@ namespace LotCAD
         public const uint CAD_OVERLAY_CAPTURE_KEYBOARD = 2;
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetVersion(byte[] buf, int bufLen);
+        public static extern int CAD_GetVersion(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetUserDataPath([MarshalAs(UnmanagedType.LPUTF8Str)] string pathUtf8);
+        public static extern int CAD_SetUserDataPath([MarshalAs(UnmanagedType.LPUTF8Str)] string pathUtf8);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetUserDataPath(byte[] buf, int bufLen);
+        public static extern int CAD_GetUserDataPath(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool CAD_CreateEngine();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_DestroyEngine();
+        public static extern int CAD_DestroyEngine();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.I1)]
@@ -91,20 +90,19 @@ namespace LotCAD
         public static extern bool CAD_ShouldClose();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetIgnoreCloseRequest([MarshalAs(UnmanagedType.I1)] bool ignore);
+        public static extern int CAD_SetIgnoreCloseRequest([MarshalAs(UnmanagedType.I1)] bool ignore);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetRuntimeAssetPath([MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+        public static extern int CAD_SetRuntimeAssetPath([MarshalAs(UnmanagedType.LPUTF8Str)] string path);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_AttachView(IntPtr nativeHandle, int width, int height);
+        public static extern int CAD_AttachView(IntPtr nativeHandle, int width, int height);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_ResizeView(int width, int height);
+        public static extern int CAD_ResizeView(int width, int height);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_DetachView();
+        public static extern int CAD_DetachView();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void CAD_OnMouseDown(int button, double x, double y, int modifiers);
@@ -125,10 +123,10 @@ namespace LotCAD
         public static extern void CAD_OnKeyUp(int key, int modifiers);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetOverlayRenderCallback(CAD_OverlayRenderFn callback, IntPtr user);
+        public static extern int CAD_SetOverlayRenderCallback(CAD_OverlayRenderFn callback, IntPtr user);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetOverlayInputCallback(CAD_OverlayInputFn callback, IntPtr user);
+        public static extern int CAD_SetOverlayInputCallback(CAD_OverlayInputFn callback, IntPtr user);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void CAD_OnKeyDownVK(int vkCode);
@@ -137,21 +135,21 @@ namespace LotCAD
         public static extern void CAD_OnKeyUpVK(int vkCode);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GizmoHitTest(double x, double y);
+        public static extern int CAD_GizmoHitTest(double x, double y, [MarshalAs(UnmanagedType.I1)] out bool outHit);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetGizmoTouchMode([MarshalAs(UnmanagedType.I1)] bool enabled);
+        public static extern int CAD_SetGizmoTouchMode([MarshalAs(UnmanagedType.I1)] bool enabled);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetSnapTouchMode([MarshalAs(UnmanagedType.I1)] bool enabled);
+        public static extern int CAD_SetSnapTouchMode([MarshalAs(UnmanagedType.I1)] bool enabled);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetOnCopyText(CAD_SetOnCopyText_cb cb);
+        public static extern int CAD_SetOnCopyText(CAD_SetOnCopyText_cb cb);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void CAD_PasteText([MarshalAs(UnmanagedType.LPUTF8Str)] string utf8);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_ShowMessage([MarshalAs(UnmanagedType.LPUTF8Str)] string textUtf8, float seconds);
+        public static extern int CAD_ShowMessage([MarshalAs(UnmanagedType.LPUTF8Str)] string textUtf8, double seconds);
     }
 }
