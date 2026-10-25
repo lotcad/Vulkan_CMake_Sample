@@ -331,7 +331,7 @@ ApplicationWindow {
                                     Layout.fillWidth: true
                                     text: "화면에서 고르기 (3D 뷰에서 클릭)"
                                     // 엔진 도구를 띄워 3D 뷰에서 직접 클릭하게 한다 — 숫자 입력의 대안.
-                                    onClicked: CadCommands.executeCommand("viewsection")
+                                    onClicked: CadCommands.startCommand("viewsection")
                                 }
                             }
                         }

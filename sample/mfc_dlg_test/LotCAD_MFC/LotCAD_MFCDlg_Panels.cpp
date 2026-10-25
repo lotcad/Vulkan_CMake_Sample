@@ -80,9 +80,11 @@ namespace {
 
 	// ── 점 하나 묻기 (오토캐드 acedGetPoint 자리) ──
 	// 엔진 명령행에 안내를 띄우고 바로 돌아온다 — 답(클릭·좌표 입력·ESC)은 onTick 에서 PollPickPoint 로 본다.
-	// 다른 질문이나 엔진 명령(선·이동 …)이 값을 기다리는 중이면 CAD_E_BUSY. 반환 = 못 시작한 이유(빈 글 = 시작함).
+	// 버튼이 부르므로 진행 중인 명령(선·이동 …)·앞의 질문(같은 버튼 두 번 누름 포함)을 먼저 끝낸다 — CAD_CancelCommand, 선택은 그대로.
+	// 반환 = 못 시작한 이유(빈 글 = 시작함).
 	std::wstring BeginPickPoint(const char* promptUtf8)
 	{
+		CAD_CancelCommand();
 		const CAD_Status s = CAD_EdGetPoint(promptUtf8, nullptr);   // NULL = 선택 없음(기준점·기본값·키워드 없이)
 		if (s == CAD_OK) return L"";
 		const std::wstring why = CadLastError();
@@ -228,7 +230,7 @@ void CLotCADMFCDlg::OpenSectionPanel()
 		m_panel.SetStatus(n > 0 ? L"2D 윤곽 " + std::to_wstring(n) + L"개를 모델 오른쪽 XY 평면에 만들었습니다"
 		                        : L"만든 윤곽 없음 — 방식이 '평면' 이고 솔리드를 지나야 합니다\n" + CadLastError());
 	});
-	p.AddButton(L"슬라이스 — 단면으로 솔리드를 둘로", [] { CAD_ExecuteCommand("sl"); });
+	p.AddButton(L"슬라이스 — 단면으로 솔리드를 둘로", [] { CadStartCommand("sl"); });
 	p.AddButton(L"범위 다시 읽기 (장면을 바꾼 뒤)", [this, readBounds, boundsText] {
 		readBounds();
 		m_panel.SetStatus(boundsText());
@@ -283,7 +285,6 @@ void CLotCADMFCDlg::OpenNavPanel()
 	p.AddSection(L"3. 주행");
 	p.AddButton(L"목적지 찍기 — 3D 뷰 클릭", [this, st] {
 		// 엔진에 점 하나를 받아 달라고 하고, 결과는 onTick 에서 확인한다 (안내문은 명령행에 뜬다)
-		if (st->picking) CAD_EdCancelInput();   // 두 번 누름 — 앞의 질문을 끝내고 새로 묻는다
 		const std::wstring why = BeginPickPoint(u8"내비 목적지: 바닥을 클릭  (ESC 취소)");   // u8 — 엔진은 UTF-8 을 받는다
 		st->picking = why.empty();
 		st->msg = st->picking ? L"3D 뷰에서 목적지를 클릭하세요" : L"목적지 찍기 실패: " + why;
@@ -387,7 +388,6 @@ void CLotCADMFCDlg::OpenParticlePanel()
 	p.AddChoice(L"장면 단위", { L"m  (1 m = 1)", L"mm  (1 m = 1000)" }, 0,
 	            [st](int i) { st->unitsPerMeter = i == 0 ? 1.0f : 1000.0f; });
 	p.AddButton(L"위치 찍어 만들기 — 3D 뷰 클릭", [this, st] {
-		if (st->picking) CAD_EdCancelInput();   // 두 번 누름 — 앞의 질문을 끝내고 새로 묻는다
 		const std::wstring why = BeginPickPoint(u8"파티클 위치: 클릭  (ESC 취소)");
 		st->picking = why.empty();
 		st->msg = st->picking ? L"3D 뷰에서 위치를 클릭하세요" : L"위치 찍기 실패: " + why;

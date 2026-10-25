@@ -34,6 +34,14 @@ CAD_API int32_t    CAD_GetTransientMessage(char* buf, uint32_t capacity);
  */
 CAD_API CAD_Status CAD_ExecuteCommand(const char* text);
 
+/* 진행 중인 명령·도구·묻기(CAD_EdGetXxx)·Jig·문자 고쳐 쓰기를 **그 자리에서** 전부 끝낸다 — 사람이 ESC 를 누른 것과 같은 정리
+ * (끄던 것은 끌기 전으로, 미리보기는 지움), 단 객체 선택은 그대로. 진행 중인 것이 없으면 아무 일 없이 CAD_OK.
+ * 도구 막대 버튼은 이것 다음 CAD_ExecuteCommand — 오토캐드 도구 막대 매크로 ^C^C 와 같다:
+ *   CAD_CancelCommand(); CAD_ExecuteCommand("rect");     // 선 그리던 중이어도 사각형으로
+ * (CAD_ExecuteCommand 는 명령행에 친 것과 같아서, 도구가 진행 중이면 새 명령 이름을 받지 않는다.)
+ * 명령 알림(이벤트)은 '취소됨'. 작업 스레드가 끝나야 하는 일(OCR 인식 등)이 남으면 CAD_E_BUSY. 엔진 스레드에서만 */
+CAD_API CAD_Status CAD_CancelCommand(void);
+
 /* ── 명령 등록 (플러그인) ─────────────────────────────────
  *
  * 플러그인이 **콘솔 명령을 추가**한다. 명령행이 이 엔진의 모든 기능 진입점이라,

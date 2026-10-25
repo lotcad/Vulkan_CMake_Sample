@@ -33,6 +33,15 @@ inline std::wstring CadLastError()
 	return Utf8ToWide(buf);
 }
 
+// 메뉴·리본·패널 버튼이 명령을 시작할 때 — 진행 중인 명령·도구를 먼저 끝내고(선택은 그대로) 실행한다(오토캐드 ^C^C).
+// CAD_ExecuteCommand 는 명령행에 친 것과 같아서, 선 그리던 중 "rect" 만 보내면 값으로 먹혀 도구가 안 바뀐다.
+// 명령행 입력란·진행 중 도구에 값을 넣을 때는 CAD_ExecuteCommand 그대로.
+inline CAD_Status CadStartCommand(const char* name)
+{
+	CAD_CancelCommand();
+	return CAD_ExecuteCommand(name);
+}
+
 // JSON 을 넘겨 JSON 을 받는 함수(해석 CAD_WindTunnel · CAD_Water · CAD_StructuralAnalysis 등) — 2회 호출 규약.
 // out=NULL 로 길이를 물을 때 **한 번 실행**하고, 같은 인자로 버퍼를 주면 다시 실행하지 않고 그 결과를 준다.
 // 고정 버퍼로 먼저 불렀다 모자라 다시 부르면 start·run 이 두 번 들어간다("이미 도는 중") — 반드시 이 순서로.

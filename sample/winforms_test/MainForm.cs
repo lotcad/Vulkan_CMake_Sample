@@ -90,8 +90,8 @@ namespace LotCadWinForms
                 Item("실행 취소 (Undo)", (s, e) => CadApi.CAD_Undo()),
                 Item("다시 실행 (Redo)", (s, e) => CadApi.CAD_Redo()),
                 null,
-                Item("전체 선택", (s, e) => CadApi.CAD_ExecuteCommand("selectall")),
-                Item("선택 삭제", (s, e) => CadApi.CAD_ExecuteCommand("delete"))));
+                Item("전체 선택", (s, e) => CadApi.StartCommand("selectall")),
+                Item("선택 삭제", (s, e) => CadApi.StartCommand("delete"))));
             menu.Items.Add(Menu("뷰(&V)",
                 Item("정면", (s, e) => CadApi.CAD_SetView(0)),
                 Item("평면", (s, e) => CadApi.CAD_SetView(1)),
@@ -124,17 +124,18 @@ namespace LotCadWinForms
                 Dock = DockStyle.Top, Height = 44, BackColor = BarBg, WrapContents = false,
                 Padding = new Padding(8, 7, 8, 0),
             };
+            // 명령 버튼은 CadApi.StartCommand = 진행 중인 도구를 먼저 끝내고 시작(선 그리던 중 사각형 버튼도 바로 바뀜)
             bar.Controls.Add(GroupLabel("그리기"));
             bar.Controls.Add(ToolButton("큐브", (s, e) => CadApi.CAD_CreateBox(new CadApi.GeVec3(0, 0, 0), new CadApi.GeVec3(1, 1, 1), IntPtr.Zero, out _), accent: true));
-            bar.Controls.Add(ToolButton("선", (s, e) => CadApi.CAD_ExecuteCommand("line")));
-            bar.Controls.Add(ToolButton("사각형", (s, e) => CadApi.CAD_ExecuteCommand("rect")));
-            bar.Controls.Add(ToolButton("원", (s, e) => CadApi.CAD_ExecuteCommand("circle")));
-            bar.Controls.Add(ToolButton("폴리라인", (s, e) => CadApi.CAD_ExecuteCommand("polyline")));
+            bar.Controls.Add(ToolButton("선", (s, e) => CadApi.StartCommand("line")));
+            bar.Controls.Add(ToolButton("사각형", (s, e) => CadApi.StartCommand("rect")));
+            bar.Controls.Add(ToolButton("원", (s, e) => CadApi.StartCommand("circle")));
+            bar.Controls.Add(ToolButton("폴리라인", (s, e) => CadApi.StartCommand("polyline")));
 
             bar.Controls.Add(Separator());
             bar.Controls.Add(GroupLabel("편집"));
-            bar.Controls.Add(ToolButton("전체선택", (s, e) => CadApi.CAD_ExecuteCommand("selectall")));
-            bar.Controls.Add(ToolButton("삭제", (s, e) => CadApi.CAD_ExecuteCommand("delete")));
+            bar.Controls.Add(ToolButton("전체선택", (s, e) => CadApi.StartCommand("selectall")));
+            bar.Controls.Add(ToolButton("삭제", (s, e) => CadApi.StartCommand("delete")));
             bar.Controls.Add(ToolButton("↶ Undo", (s, e) => CadApi.CAD_Undo()));
             bar.Controls.Add(ToolButton("↷ Redo", (s, e) => CadApi.CAD_Redo()));
 

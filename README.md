@@ -11,7 +11,7 @@ macOS 라이브러리에는 MoltenVK 가 들어 있습니다(아래 [플랫폼�
 안드로이드는 엔진 `.so` 를 iOS 처럼 Releases 에서 받습니다.)
 
 > **`capi-v2` 브랜치** — C API 2단계(옛 함수를 새 규칙 `CAD_Status`·`CAD_GeVec3`·글자 길이로 바꾸기)를 따라가는 샘플. 영역마다 쌓고 끝나면 main 에 합친다.
-> 여기 `sdk/` 의 헤더·바인딩과 Windows 바이너리는 엔진 01069dc(2c 끝 + 노드 그래프 C API + 2d-1 보기 + 2d-2 선택·스냅·명령 + 2d-3 Jig·문자 고쳐 쓰기·하위 객체), Linux 는 7494d23(2d-2), macOS 는 e9f1296(2c-2) — 따라오기 전까지 그 OS 샘플은 새 함수가 맞지 않는다.
+> 여기 `sdk/` 의 헤더·바인딩과 Windows 바이너리는 엔진 dec84ce(2c 끝 + 노드 그래프 C API + 2d-1 보기 + 2d-2 선택·스냅·명령 + 2d-3 Jig·문자 고쳐 쓰기·하위 객체 + 2d-4 CAD_CancelCommand), Linux 는 7494d23(2d-2), macOS 는 e9f1296(2c-2) — 따라오기 전까지 그 OS 샘플은 새 함수가 맞지 않는다.
 > iOS 정적 라이브러리는 Releases 판이 옛 규칙이라 엔진에서 `./build_ios.sh` 로 만들어 쓴다.
 
 ```
@@ -49,6 +49,10 @@ CAD_AttachView(hwnd, w, h);   // 호스트 창을 엔진에 넘긴다
 CAD_CreateEngine();           // Vulkan 초기화
 CAD_Tick();                   // 매 프레임
 CAD_ExecuteCommand("box");    // 명령행과 같은 입구 — 명령 200개 이상
+
+// 도구 막대 버튼은 먼저 취소(오토캐드 ^C^C) — ExecuteCommand 는 진행 중인 도구엔 값으로 들어간다
+CAD_CancelCommand();          // 진행 중인 명령·도구를 끝냄(선택은 그대로)
+CAD_ExecuteCommand("rect");   // 선 그리던 중이어도 사각형으로
 ```
 
 ## 빌드

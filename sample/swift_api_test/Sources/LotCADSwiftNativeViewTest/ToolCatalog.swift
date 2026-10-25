@@ -296,10 +296,11 @@ final class ToolCatalog {
     // MARK: - 정의 도우미
 
     /// 엔진 명령행 별칭을 그대로 부르는 도구. id 가 곧 명령 이름이다.
+    /// startCommand — 진행 중인 도구를 먼저 끝내고 시작한다(선 그리던 중 사각형 버튼도 바로 바뀜).
     private func cmd(_ id: String, _ title: String, _ symbol: String, _ tip: String,
                      scale: CGFloat = 1.0) -> CADTool {
         register(CADTool(id: id, title: title, symbol: symbol, tip: tip, iconScale: scale) { app in
-            app.engine.execute(id)
+            app.engine.startCommand(id)
         })
     }
 

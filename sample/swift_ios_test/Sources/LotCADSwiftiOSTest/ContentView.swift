@@ -120,7 +120,7 @@ struct ContentView: View {
                 toolButton("Front") { controller.engine.setView(0); showViewMenu = false }
                 toolButton("Right") { controller.engine.setView(2); showViewMenu = false }
                 toolButton("Iso")   { controller.engine.setView(3); showViewMenu = false }
-                toolButton("투영")  { controller.engine.executeCommand("proj"); showViewMenu = false }  // 직교 ↔ 원근
+                toolButton("투영")  { controller.engine.toggleProjection(); showViewMenu = false }  // 직교 ↔ 원근(그리는 중에도)
                 toolButton("✕")     { showViewMenu = false }
             }
             .padding(.horizontal, 4)
@@ -162,13 +162,13 @@ struct ContentView: View {
                 // ── 3D — 전부 클릭+값 방식이라 2D 와 같은 커서·숫자패드 흐름 ──
                 //   박스: 코너 → 반대 코너(또는 가로,세로) → 높이   돌출: 닫힌 2D 선택 후 높이
                 //   밀당: 면 클릭 → 거리.  구·원기둥·원뿔·토러스는 즉시 생성(커서 도구 아님).
-                toolButton("박스")   { startTool { controller.engine.executeCommand("box") } }
-                toolButton("돌출")   { startTool { controller.engine.executeCommand("x") } }
-                toolButton("밀당")   { startTool { controller.engine.executeCommand("pp") } }
-                toolButton("구")     { controller.engine.executeCommand("sphere");   showDrawMenu = false }
-                toolButton("원기둥") { controller.engine.executeCommand("cylinder"); showDrawMenu = false }
-                toolButton("원뿔")   { controller.engine.executeCommand("cone");     showDrawMenu = false }
-                toolButton("토러스") { controller.engine.executeCommand("torus");    showDrawMenu = false }
+                toolButton("박스")   { startTool { controller.engine.startCommand("box") } }
+                toolButton("돌출")   { startTool { controller.engine.startCommand("x") } }
+                toolButton("밀당")   { startTool { controller.engine.startCommand("pp") } }
+                toolButton("구")     { controller.engine.startCommand("sphere");   showDrawMenu = false }
+                toolButton("원기둥") { controller.engine.startCommand("cylinder"); showDrawMenu = false }
+                toolButton("원뿔")   { controller.engine.startCommand("cone");     showDrawMenu = false }
+                toolButton("토러스") { controller.engine.startCommand("torus");    showDrawMenu = false }
                 toolButton("✕")     { showDrawMenu = false }
             }
             .padding(.horizontal, 4)
@@ -352,7 +352,7 @@ final class LotCADController: ObservableObject {
         cursorToolActive = false
         cursorStep = 0
         metalView?.setCursorMode(false)
-        engine.executeCommand("esc")   // 진행 중이던 도구 취소
+        engine.cancelCommand()   // 진행 중이던 도구 취소(그 자리에서)
     }
 
     func commitCursorPoint() {

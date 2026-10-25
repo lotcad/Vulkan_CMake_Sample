@@ -9,8 +9,9 @@ import LotCadQml
 // 세로 구분선, 활성 탭 밑줄, 탭 더블클릭으로 접기, 툴팁 "이름  (명령)\n설명", 강조 파랑.
 // 치수도 엔진 상수를 그대로 쓴다(폰트 14px 기준 ≈121px).
 //
-// 버튼은 전부 CAD_ExecuteCommand 로 간다 — 엔진 리본이 ToolAction 으로 하는 일을 호스트에선
-// 명령행과 같은 입구로 하는 것이라 결과가 같다. 단축키만 있는 항목(실행취소 등)은 전용 API 로.
+// 버튼은 전부 CAD_CancelCommand → CAD_ExecuteCommand 로 간다(오토캐드 ^C^C — 진행 중인 도구를 끝내고 시작).
+// 엔진 리본이 ToolAction 으로 하는 일을 호스트에선 명령행과 같은 입구로 하는 것이라 결과가 같다.
+// 단축키만 있는 항목(실행취소 등)은 전용 API 로.
 //
 // 3D 뷰가 네이티브 자식 창이라 리본 자체는 그 바깥(header)에 있어야 한다. 드롭다운이 필요하면
 // QML Popup 이 아니라 Platform.Menu 로 띄워야 뷰 뒤로 숨지 않는다.
@@ -157,7 +158,7 @@ Item {
             return
         }
         if (item.mode !== undefined) root.gizmoMode = item.mode
-        CadCommands.executeCommand(item.cmd)
+        CadCommands.startCommand(item.cmd)   // 진행 중인 도구를 먼저 끝내고 시작
     }
 
     // ── 바탕 — 탭 줄은 메뉴바 색, 본문은 창 색. 맨 아래 1px 선. ──

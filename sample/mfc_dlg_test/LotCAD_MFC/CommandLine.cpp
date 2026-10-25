@@ -247,7 +247,7 @@ void CCommandLine::Cancel()
 	m_input.SetWindowText(L"");
 	m_historyPos = -1;
 	if (EngineToolActive()) AppendLog(L"*취소*");
-	CAD_ExecuteCommand("esc");   // 엔진이 ESC 키로 바꿔 진행 중 도구를 끝낸다
+	CAD_CancelCommand();   // 진행 중 도구·묻기를 ESC 처럼 그 자리에서 끝낸다(선택은 그대로)
 }
 
 void CCommandLine::Run(const std::wstring& text)

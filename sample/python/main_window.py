@@ -1,6 +1,7 @@
 """메인 창 — 리본(위) · 3D 뷰 · 명령행 · 상태바(아래)를 묶고, 리본 버튼에 엔진 명령을 단다.
 
-대부분의 버튼은 엔진 명령행 이름으로 부른다(CAD_ExecuteCommand — 명령행에 그대로 쳐도 같은 동작).
+대부분의 버튼은 엔진 명령행 이름으로 부른다(CAD_ExecuteCommand — 명령행에 그대로 쳐도 같은 동작,
+앞에 CAD_CancelCommand 로 진행 중인 도구를 끝낸다 — start_command).
 엔진 명령이 수백 개라 버튼마다 C API 를 따로 두는 대신 이 길을 쓴다. 결과가 필요한 건 C API 를 직접(차집합 등).
 
 ⚠️ 엔진 명령 중 **자체 패널·대화상자를 여는 것**(array, dp, section, nav, particle …)은 호스트 창 안에서는
@@ -20,9 +21,18 @@ from ribbon import Ribbon
 from status_bar import CadStatusBar
 
 
+def start_command(name):
+    """진행 중인 명령·도구를 먼저 끝내고(선택은 그대로) 새 명령을 시작한다 — 오토캐드 도구 막대 ^C^C.
+
+    CAD_ExecuteCommand 는 명령행에 친 것과 같아서, 선 그리던 중 "rec" 만 보내면 값으로 먹혀 도구가 안 바뀐다.
+    """
+    lotcad.CAD_CancelCommand()
+    return lotcad.CAD_ExecuteCommand(name)
+
+
 def command(name):
     """엔진 명령행 이름으로 부르는 버튼 동작."""
-    return lambda: lotcad.CAD_ExecuteCommand(name)
+    return lambda: start_command(name)
 
 
 def selected_ids():

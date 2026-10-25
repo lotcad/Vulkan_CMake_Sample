@@ -9,7 +9,7 @@ from typing import Any, Callable, Sequence  # noqa: F401  (형식 힌트)
 from . import _native as _n
 from ._types import *  # noqa: F401,F403
 
-__all__ = ['CAD_JIG_MOVE', 'CAD_JIG_ROTATE', 'CAD_JIG_SCALE', 'CAD_JIG_COPY', 'CAD_JIG_IDLE', 'CAD_JIG_DRAGGING', 'CAD_JIG_COMMITTED', 'CAD_JIG_CANCELLED', 'CAD_SELECT_REPLACE', 'CAD_SELECT_ADD', 'CAD_SELECT_REMOVE', 'CAD_SUBOBJECT_OBJECT', 'CAD_SUBOBJECT_FACE', 'CAD_SUBOBJECT_EDGE', 'CAD_ED_KIND_POINT', 'CAD_ED_KIND_CORNER', 'CAD_ED_KIND_DISTANCE', 'CAD_ED_KIND_ANGLE', 'CAD_ED_KIND_INTEGER', 'CAD_ED_KIND_REAL', 'CAD_ED_KIND_STRING', 'CAD_ED_KIND_KEYWORD', 'CAD_ED_KIND_ENTITY', 'CAD_ED_KIND_SELECTION', 'CAD_ED_RESULT_PENDING', 'CAD_ED_RESULT_NORMAL', 'CAD_ED_RESULT_NONE', 'CAD_ED_RESULT_KEYWORD', 'CAD_ED_RESULT_CANCEL', 'CAD_ED_NO_NULL', 'CAD_ED_NO_ZERO', 'CAD_ED_NO_NEGATIVE', 'CAD_ED_ARBITRARY', 'CAD_ED_ALLOW_SPACES', 'CAD_ED_PICKFIRST', 'CAD_ED_SINGLE', 'CAD_GetDimensionPointCount', 'CAD_GetPrompt', 'CAD_GetTransientMessage', 'CAD_ExecuteCommand', 'CAD_RegisterCommand', 'CAD_UnregisterCommand', 'CAD_UnregisterCommandsByOwner', 'CAD_GetRegisteredCommandCount', 'CAD_GetRegisteredCommandName', 'CAD_GetRegisteredCommandTitle', 'CAD_OpenFileDialog', 'CAD_ClearAll', 'CAD_CycleMaterial', 'CAD_RemoveMaterial', 'CAD_JigBegin', 'CAD_JigBeginOne', 'CAD_JigGetState', 'CAD_JigCancel', 'CAD_JigMoveTo', 'CAD_JigCommit', 'CAD_JigSetBasePoint', 'CAD_JigGetDelta', 'CAD_JigBeginVariants', 'CAD_JigNextVariant', 'CAD_JigGetVariant', 'CAD_BeginTextEdit', 'CAD_GetTextEditId', 'CAD_TextEditInsert', 'CAD_TextEditBackspace', 'CAD_TextEditDelete', 'CAD_TextEditMoveCaret', 'CAD_TextEditCommit', 'CAD_TextEditCancel', 'CAD_GetSelectionContext', 'CAD_GetSelection', 'CAD_SetSelection', 'CAD_SetOSnapEnabled', 'CAD_GetOSnapEnabled', 'CAD_SetOSnapModes', 'CAD_GetOSnapModes', 'CAD_SetOrthoEnabled', 'CAD_GetOrthoEnabled', 'CAD_SetPolarTracking', 'CAD_GetPolarTracking', 'CAD_SnapNearPoint', 'CAD_SetSubobjectSelectionMode', 'CAD_GetSubobjectSelectionMode', 'CAD_PickSubobject', 'CAD_GetSubobjectSelection', 'CAD_GetSelectedFaceTriangles', 'CAD_EdGetPoint', 'CAD_EdGetCorner', 'CAD_EdGetDistance', 'CAD_EdGetAngle', 'CAD_EdGetInteger', 'CAD_EdGetReal', 'CAD_EdGetString', 'CAD_EdGetKeyword', 'CAD_EdEntSel', 'CAD_EdSSGet', 'CAD_EdGetInputResult', 'CAD_EdGetInputText', 'CAD_EdGetInputIds', 'CAD_EdCancelInput', 'CAD_EdSelectWindow', 'CAD_EdWorldToPixel', 'CAD_EdPixelToWorld', 'CAD_EdGetCommandState', 'CAD_EdGetCommandName']
+__all__ = ['CAD_JIG_MOVE', 'CAD_JIG_ROTATE', 'CAD_JIG_SCALE', 'CAD_JIG_COPY', 'CAD_JIG_IDLE', 'CAD_JIG_DRAGGING', 'CAD_JIG_COMMITTED', 'CAD_JIG_CANCELLED', 'CAD_SELECT_REPLACE', 'CAD_SELECT_ADD', 'CAD_SELECT_REMOVE', 'CAD_SUBOBJECT_OBJECT', 'CAD_SUBOBJECT_FACE', 'CAD_SUBOBJECT_EDGE', 'CAD_ED_KIND_POINT', 'CAD_ED_KIND_CORNER', 'CAD_ED_KIND_DISTANCE', 'CAD_ED_KIND_ANGLE', 'CAD_ED_KIND_INTEGER', 'CAD_ED_KIND_REAL', 'CAD_ED_KIND_STRING', 'CAD_ED_KIND_KEYWORD', 'CAD_ED_KIND_ENTITY', 'CAD_ED_KIND_SELECTION', 'CAD_ED_RESULT_PENDING', 'CAD_ED_RESULT_NORMAL', 'CAD_ED_RESULT_NONE', 'CAD_ED_RESULT_KEYWORD', 'CAD_ED_RESULT_CANCEL', 'CAD_ED_NO_NULL', 'CAD_ED_NO_ZERO', 'CAD_ED_NO_NEGATIVE', 'CAD_ED_ARBITRARY', 'CAD_ED_ALLOW_SPACES', 'CAD_ED_PICKFIRST', 'CAD_ED_SINGLE', 'CAD_GetDimensionPointCount', 'CAD_GetPrompt', 'CAD_GetTransientMessage', 'CAD_ExecuteCommand', 'CAD_CancelCommand', 'CAD_RegisterCommand', 'CAD_UnregisterCommand', 'CAD_UnregisterCommandsByOwner', 'CAD_GetRegisteredCommandCount', 'CAD_GetRegisteredCommandName', 'CAD_GetRegisteredCommandTitle', 'CAD_OpenFileDialog', 'CAD_ClearAll', 'CAD_CycleMaterial', 'CAD_RemoveMaterial', 'CAD_JigBegin', 'CAD_JigBeginOne', 'CAD_JigGetState', 'CAD_JigCancel', 'CAD_JigMoveTo', 'CAD_JigCommit', 'CAD_JigSetBasePoint', 'CAD_JigGetDelta', 'CAD_JigBeginVariants', 'CAD_JigNextVariant', 'CAD_JigGetVariant', 'CAD_BeginTextEdit', 'CAD_GetTextEditId', 'CAD_TextEditInsert', 'CAD_TextEditBackspace', 'CAD_TextEditDelete', 'CAD_TextEditMoveCaret', 'CAD_TextEditCommit', 'CAD_TextEditCancel', 'CAD_GetSelectionContext', 'CAD_GetSelection', 'CAD_SetSelection', 'CAD_SetOSnapEnabled', 'CAD_GetOSnapEnabled', 'CAD_SetOSnapModes', 'CAD_GetOSnapModes', 'CAD_SetOrthoEnabled', 'CAD_GetOrthoEnabled', 'CAD_SetPolarTracking', 'CAD_GetPolarTracking', 'CAD_SnapNearPoint', 'CAD_SetSubobjectSelectionMode', 'CAD_GetSubobjectSelectionMode', 'CAD_PickSubobject', 'CAD_GetSubobjectSelection', 'CAD_GetSelectedFaceTriangles', 'CAD_EdGetPoint', 'CAD_EdGetCorner', 'CAD_EdGetDistance', 'CAD_EdGetAngle', 'CAD_EdGetInteger', 'CAD_EdGetReal', 'CAD_EdGetString', 'CAD_EdGetKeyword', 'CAD_EdEntSel', 'CAD_EdSSGet', 'CAD_EdGetInputResult', 'CAD_EdGetInputText', 'CAD_EdGetInputIds', 'CAD_EdCancelInput', 'CAD_EdSelectWindow', 'CAD_EdWorldToPixel', 'CAD_EdPixelToWorld', 'CAD_EdGetCommandState', 'CAD_EdGetCommandName']
 
 _f = _n.native
 
@@ -54,6 +54,7 @@ _n.bind("CAD_GetDimensionPointCount", _c.c_int32, [])
 _n.bind("CAD_GetPrompt", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32])
 _n.bind("CAD_GetTransientMessage", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32])
 _n.bind("CAD_ExecuteCommand", _c.c_int32, [_c.c_char_p])
+_n.bind("CAD_CancelCommand", _c.c_int32, [])
 _n.bind("CAD_RegisterCommand", _c.c_int32, [_c.c_char_p, _c.c_char_p, CAD_CommandFn, _c.c_void_p, _c.c_uint32])
 _n.bind("CAD_UnregisterCommand", _c.c_int32, [_c.c_char_p])
 _n.bind("CAD_UnregisterCommandsByOwner", _c.c_int32, [_c.c_uint32])
@@ -183,6 +184,19 @@ def CAD_ExecuteCommand(text: str | None) -> int:
     기다리는 도구가 없는데 빈 Enter CAD_E_NOT_READY.
     """
     return _f.CAD_ExecuteCommand(_n.text(text))
+
+
+def CAD_CancelCommand() -> int:
+    """C: CAD_Status CAD_CancelCommand(void)
+
+    진행 중인 명령·도구·묻기(CAD_EdGetXxx)·Jig·문자 고쳐 쓰기를 **그 자리에서** 전부 끝낸다 — 사람이 ESC 를 누른 것과 같은 정리
+    (끄던 것은 끌기 전으로, 미리보기는 지움), 단 객체 선택은 그대로. 진행 중인 것이 없으면 아무 일 없이 CAD_OK.
+    도구 막대 버튼은 이것 다음 CAD_ExecuteCommand — 오토캐드 도구 막대 매크로 ^C^C 와 같다:
+      CAD_CancelCommand(); CAD_ExecuteCommand("rect");     // 선 그리던 중이어도 사각형으로
+    (CAD_ExecuteCommand 는 명령행에 친 것과 같아서, 도구가 진행 중이면 새 명령 이름을 받지 않는다.)
+    명령 알림(이벤트)은 '취소됨'. 작업 스레드가 끝나야 하는 일(OCR 인식 등)이 남으면 CAD_E_BUSY. 엔진 스레드에서만
+    """
+    return _f.CAD_CancelCommand()
 
 
 def CAD_RegisterCommand(name: str | None, title: str | None, fn: Callable | None, user: int | None, owner: int) -> int:

@@ -67,12 +67,15 @@ swift run RobotArmMac                      # 로봇 팔 (ROBOT_AUTOPLAY=1 이면
 
 ```
 NSMenuItem / NSButton  ──▶  AppDelegate.runTool(_:)  ──▶  ToolCatalog.byId[id].run(app)
-                                                            ├─ cmd(...)  → CAD_ExecuteCommand("line")
+                                                            ├─ cmd(...)  → CAD_CancelCommand() + CAD_ExecuteCommand("line")
                                                             └─ api(...)  → CAD_Undo(), NSOpenPanel + CAD_OpenDocument() …
 ```
 
 - **엔진 명령으로 되는 것**은 `CAD_ExecuteCommand` 하나로 부릅니다(명령 200개 이상). 새 버튼을 달 때
   API 를 늘릴 필요가 없습니다.
+- 버튼은 그 앞에 **`CAD_CancelCommand()`** 를 먼저 부릅니다(`LotCADEngine.startCommand`, 오토캐드 도구 막대 `^C^C`).
+  `CAD_ExecuteCommand` 는 명령행에 친 것과 같아서, 선을 그리는 중에 `"rec"` 만 보내면 값으로 먹혀 도구가 안 바뀝니다.
+  취소는 선택을 남기므로 "고르고 → 이동 버튼" 도 그대로 됩니다. 명령행 입력란·진행 중 도구에 값을 넣을 때는 `execute` 그대로.
 - **대화상자가 필요한 것**(열기·저장)은 엔진 명령 `open`/`save` 가 ImGui 대화상자라 임베드에선 못 쓰므로
   `NSOpenPanel`/`NSSavePanel` 을 띄우고 `CAD_OpenDocument` / `CAD_OpenFile` / `CAD_SaveAs` 를 부릅니다.
 - **Undo 가능 여부, 격자 켜짐, 도킹 위치** 같은 메뉴 상태는 `validateMenuItem` 이 열 때마다 계산합니다.

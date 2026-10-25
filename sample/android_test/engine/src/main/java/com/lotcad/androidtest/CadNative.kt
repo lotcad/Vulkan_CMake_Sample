@@ -35,6 +35,18 @@ object CadNative {
      *  위 external fun 들은 자주 쓰는 것만 뽑아 둔 것이고 엔진엔 명령이 200개가 넘는다.
      *  없는 기능은 이걸로 부른다: nativeExecuteCommand("trim") */
     external fun nativeExecuteCommand(name: String): Boolean
+    /** 진행 중인 명령·도구·묻기를 ESC 처럼 끝낸다(선택은 그대로). */
+    external fun nativeCancelCommand(): Boolean
+    /** 직교 ↔ 원근 — 그리는 중에도(명령 "proj" 는 그땐 값으로 먹힌다). */
+    external fun nativeToggleProjection()
+
+    /** 버튼용 — 진행 중인 도구를 먼저 끝내고 새 명령을 시작한다(오토캐드 ^C^C).
+     *  nativeExecuteCommand 만 부르면 선 그리던 중 "rec" 가 값으로 먹혀 도구가 안 바뀐다.
+     *  숫자패드 값·진행 중 도구의 선택지는 nativeExecuteCommand 그대로. */
+    fun startCommand(name: String): Boolean {
+        nativeCancelCommand()
+        return nativeExecuteCommand(name)
+    }
 
     // 측정 — 선택만 하면 값이 나온다. 잴 수 없는 종류(메시·문자)는 0.
     external fun nativeSelectedCount(): Int

@@ -21,9 +21,10 @@
 namespace {
 	// 대부분의 버튼은 엔진 명령행 이름으로 부른다(명령행에 그대로 쳐도 같은 동작).
 	// 엔진 명령이 200개가 넘어 하나씩 C API 를 뚫는 대신 CAD_ExecuteCommand 로 가는 것이 이 샘플의 방침이다.
+	// 버튼이므로 진행 중인 도구를 먼저 끝내고 시작한다(CadStartCommand — 선 그리던 중 사각형 버튼도 바로 바뀜).
 	CRibbonBar::Action Command(const char* name)
 	{
-		return [name] { CAD_ExecuteCommand(name); };
+		return [name] { CadStartCommand(name); };
 	}
 }
 

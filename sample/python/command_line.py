@@ -113,7 +113,7 @@ class CommandLine(QWidget):
         self._history_pos = -1
         if tool_active():
             self.append("*취소*")
-        lotcad.CAD_ExecuteCommand("esc")   # 엔진이 ESC 키로 바꿔 진행 중 도구를 끝낸다
+        lotcad.CAD_CancelCommand()   # 진행 중 도구·묻기를 ESC 처럼 그 자리에서 끝낸다(선택은 그대로)
 
     def _recall(self, step):
         if not self._history:

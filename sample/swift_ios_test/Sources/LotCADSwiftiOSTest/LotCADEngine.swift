@@ -181,9 +181,9 @@ final class LotCADEngine {
     // ─── 툴바 버튼 (Android MainActivity 미러링) ───
     // 큐브 추가/전체선택/삭제/전체삭제/줌은 appCommands_ 큐를 거쳐 iOS render-on-demand 에서도
     // 자동으로 한 프레임 렌더됨. Undo/Redo 는 즉시 실행이라 C++ 측에서 markInputDirty 처리.
-    func addCube()          { executeCommand("cube") }
-    func selectAll()        { executeCommand("selectall") }
-    func deleteSelected()   { executeCommand("delete") }
+    func addCube()          { startCommand("cube") }
+    func selectAll()        { startCommand("selectall") }
+    func deleteSelected()   { startCommand("delete") }
     func clearAll()         { guard isCreated else { return }; _ = CAD_ClearAll() }
     func zoomExtents()      { guard isCreated else { return }; CAD_ZoomExtents() }
 
@@ -194,6 +194,25 @@ final class LotCADEngine {
     func executeCommand(_ name: String) -> Bool {
         guard isCreated else { return false }
         return CAD_ExecuteCommand(name) == 0   // 0 = CAD_OK, 모르는 명령 = CAD_E_NOT_FOUND(음수)
+    }
+
+    /// 버튼용 — 진행 중인 명령·도구를 먼저 끝내고(선택은 그대로) 새 명령을 시작한다(오토캐드 ^C^C).
+    /// executeCommand 만 부르면 선 그리던 중 "rect" 가 값으로 먹혀 도구가 안 바뀐다.
+    @discardableResult
+    func startCommand(_ name: String) -> Bool {
+        guard isCreated else { return false }
+        _ = CAD_CancelCommand()
+        return CAD_ExecuteCommand(name) == 0
+    }
+
+    /// 진행 중인 명령·도구를 ESC 처럼 그 자리에서 끝낸다(선택은 그대로)
+    func cancelCommand() { guard isCreated else { return }; _ = CAD_CancelCommand() }
+
+    /// 직교 ↔ 원근 — 명령("proj")으로 보내면 그리는 중엔 값으로 먹혀 안 바뀐다, 보기 함수로 바로
+    func toggleProjection() {
+        guard isCreated else { return }
+        var ortho = false
+        if CAD_GetProjection(&ortho) == 0 { _ = CAD_SetProjection(!ortho) }   // 0 = CAD_OK
     }
 
     // ─── 측정 — 선택만 하면 값이 나온다 ───
@@ -219,12 +238,12 @@ final class LotCADEngine {
     }
 
     // ─── 그리기 (전부 점 찍기 → 커서로 데스크톱과 동일하게 동작) ───
-    func drawLine()      { executeCommand("line") }
-    func drawRectangle() { executeCommand("rec") }
-    func drawCircle()    { executeCommand("c") }
-    func drawArc()       { executeCommand("a") }
-    func drawPolyline()  { executeCommand("pl") }
-    func drawPolygon()   { executeCommand("pol") }
+    func drawLine()      { startCommand("line") }
+    func drawRectangle() { startCommand("rec") }
+    func drawCircle()    { startCommand("c") }
+    func drawArc()       { startCommand("a") }
+    func drawPolyline()  { startCommand("pl") }
+    func drawPolygon()   { startCommand("pol") }
     func selectionLength() -> Float {
         var v = 0.0
         if isCreated { _ = CAD_GetSelectionLength(&v) }
@@ -237,11 +256,11 @@ final class LotCADEngine {
     }
 
     // ─── 치수 (전부 "점 찍기" 방식 — 대화상자 불필요라 모바일에서 그대로 동작) ───
-    func dimAligned()  { executeCommand("dim") }   // 정렬 치수
-    func dimLinear()   { executeCommand("dli") }   // 수평·수직
-    func dimAngular()  { executeCommand("dan") }   // 각도
-    func dimRadius()   { executeCommand("dra") }   // 반지름
-    func dimDiameter() { executeCommand("ddi") }   // 지름
+    func dimAligned()  { startCommand("dim") }   // 정렬 치수
+    func dimLinear()   { startCommand("dli") }   // 수평·수직
+    func dimAngular()  { startCommand("dan") }   // 각도
+    func dimRadius()   { startCommand("dra") }   // 반지름
+    func dimDiameter() { startCommand("ddi") }   // 지름
 
     /// 경로의 모델/도면을 씬에 연다. 지원: .lot .obj .stl .dxf .ply .gltf .glb
     /// - 주의: `.gltf`(분리형)는 `.bin`·텍스처가 같은 폴더에 있어야 한다.
@@ -259,16 +278,17 @@ final class LotCADEngine {
 
     // ─── 명령 요청 (SwiftUI 버튼/패널용) ───
     // 도구 시작·선택지 — 엔진 명령 이름으로(명령행에 치는 것과 같은 길)
-    func startLineSketch() { executeCommand("line") }
-    func startRectangleSketch() { executeCommand("rect") }
-    func startCircleSketch() { executeCommand("circle") }
-    func startPolygonSketch() { executeCommand("polygon") }
+    // 시작은 startCommand(앞 도구를 끝내고), 진행 중 도구의 선택지(sides·arcmode)는 executeCommand(값으로 들어감)
+    func startLineSketch() { startCommand("line") }
+    func startRectangleSketch() { startCommand("rect") }
+    func startCircleSketch() { startCommand("circle") }
+    func startPolygonSketch() { startCommand("polygon") }
     func cyclePolygonSides() { executeCommand("sides") }
-    func startExtrude() { executeCommand("extrude") }
-    func startArcSketch() { executeCommand("arc") }
+    func startExtrude() { startCommand("extrude") }
+    func startArcSketch() { startCommand("arc") }
     func cycleArcMode() { executeCommand("arcmode") }
-    func startPolylineSketch() { executeCommand("polyline") }
-    func startLightPlacement() { executeCommand("light") }
+    func startPolylineSketch() { startCommand("polyline") }
+    func startLightPlacement() { startCommand("light") }
     func cycleMaterial() { guard isCreated else { return }; _ = CAD_CycleMaterial() }
     func removeMaterial() { guard isCreated else { return }; _ = CAD_RemoveMaterial() }
     func adjustTextureScale(_ delta: Float) {

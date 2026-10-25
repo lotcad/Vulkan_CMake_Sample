@@ -48,12 +48,13 @@ namespace LotCadWpf
 
         // ── 툴바 핸들러 ──
         void OnAddCube(object s, RoutedEventArgs e)   => CadApi.CAD_CreateBox(new CadApi.GeVec3(0, 0, 0), new CadApi.GeVec3(1, 1, 1), IntPtr.Zero, out _);
-        void OnLine(object s, RoutedEventArgs e)       => CadApi.CAD_ExecuteCommand("line");
-        void OnRect(object s, RoutedEventArgs e)       => CadApi.CAD_ExecuteCommand("rect");
-        void OnCircle(object s, RoutedEventArgs e)     => CadApi.CAD_ExecuteCommand("circle");
-        void OnPolyline(object s, RoutedEventArgs e)   => CadApi.CAD_ExecuteCommand("polyline");
-        void OnSelectAll(object s, RoutedEventArgs e)  => CadApi.CAD_ExecuteCommand("selectall");
-        void OnDelete(object s, RoutedEventArgs e)     => CadApi.CAD_ExecuteCommand("delete");
+        // 명령 버튼은 StartCommand = 진행 중인 도구를 먼저 끝내고 시작(선 그리던 중 사각형 버튼도 바로 바뀜)
+        void OnLine(object s, RoutedEventArgs e)       => CadApi.StartCommand("line");
+        void OnRect(object s, RoutedEventArgs e)       => CadApi.StartCommand("rect");
+        void OnCircle(object s, RoutedEventArgs e)     => CadApi.StartCommand("circle");
+        void OnPolyline(object s, RoutedEventArgs e)   => CadApi.StartCommand("polyline");
+        void OnSelectAll(object s, RoutedEventArgs e)  => CadApi.StartCommand("selectall");
+        void OnDelete(object s, RoutedEventArgs e)     => CadApi.StartCommand("delete");
         void OnClearAll(object s, RoutedEventArgs e)   => CadApi.CAD_ClearAll();
         void OnUndo(object s, RoutedEventArgs e)       => CadApi.CAD_Undo();
         void OnRedo(object s, RoutedEventArgs e)       => CadApi.CAD_Redo();

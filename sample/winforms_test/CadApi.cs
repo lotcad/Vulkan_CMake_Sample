@@ -42,6 +42,10 @@ namespace LotCadWinForms
         // 반환 0 = CAD_OK, 모르는 명령 CAD_E_NOT_FOUND(음수). 글은 UTF-8 로(한글 별칭도 된다).
         [DllImport(DLL)]
         public static extern int CAD_ExecuteCommand([MarshalAs(UnmanagedType.LPUTF8Str)] string text);
+        // 진행 중인 명령·도구·묻기를 ESC 처럼 끝낸다(선택은 그대로). 0 = CAD_OK
+        [DllImport(DLL)] public static extern int CAD_CancelCommand();
+        // 도구 막대 버튼용 — 취소 후 새 명령(오토캐드 ^C^C). ExecuteCommand 만 부르면 선 그리던 중 "rect" 가 값으로 먹힌다.
+        public static int StartCommand(string name) { CAD_CancelCommand(); return CAD_ExecuteCommand(name); }
 
         // ── 알림(콜백) ──
         // ⚠️ 델리게이트를 **필드로 붙들어 둬야** 한다. 지역 변수로 넘기면 GC 가 걷어가

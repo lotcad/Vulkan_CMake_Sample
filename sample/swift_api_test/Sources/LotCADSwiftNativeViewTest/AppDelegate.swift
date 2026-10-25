@@ -253,8 +253,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         guard let id else { return }
 
         if id.hasPrefix("cmd:") {
-            // 플러그인 항목 — 명령 이름만 들고 있다
-            engine.execute(String(id.dropFirst(4)))
+            // 플러그인 항목 — 명령 이름만 들고 있다(버튼이므로 진행 중인 도구를 먼저 끝내고)
+            engine.startCommand(String(id.dropFirst(4)))
         } else if id.hasPrefix("tb:") {
             // 도구모음 켜고 끄기 (뷰 > 도구모음, 띠 우클릭 메뉴)
             toggleToolbar(String(id.dropFirst(3)))
@@ -708,7 +708,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
                        title: item.title.isEmpty ? command : item.title,
                        symbol: "",                                   // 아이콘은 글자로 (icon 필드 또는 첫 글자)
                        tip: item.icon.isEmpty ? command : "\(item.icon)  \(command)") { app in
-            app.engine.execute(command)
+            app.engine.startCommand(command)
         }
     }
 

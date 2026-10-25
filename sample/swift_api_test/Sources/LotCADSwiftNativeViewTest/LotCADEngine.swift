@@ -59,6 +59,15 @@ final class LotCADEngine {
         return CAD_ExecuteCommand(command) == 0   // 0 = CAD_OK, 모르는 명령 = CAD_E_NOT_FOUND(음수)
     }
 
+    /// 도구 막대·메뉴 버튼용 — 진행 중인 명령·도구를 먼저 끝내고(선택은 그대로) 새 명령을 시작한다(오토캐드 ^C^C).
+    /// execute 만 부르면 선 그리던 중 "rec" 가 값으로 먹혀 도구가 안 바뀐다.
+    @discardableResult
+    func startCommand(_ command: String) -> Bool {
+        guard isCreated else { return false }
+        _ = CAD_CancelCommand()
+        return CAD_ExecuteCommand(command) == 0
+    }
+
     // ── 알림(콜백) ──
     // ⚠️ Swift 클로저를 그대로 넘길 수 없다(C 함수 포인터는 문맥을 못 가진다).
     //    전역에 보관해 두고 C 함수에서 꺼내 쓴다.

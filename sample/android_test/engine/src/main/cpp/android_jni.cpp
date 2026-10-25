@@ -48,6 +48,13 @@ namespace {
             }
         }).detach();
     }
+
+    // 버튼이 명령을 시작할 때 — 진행 중인 명령·도구를 먼저 끝내고(선택은 그대로) 실행한다(오토캐드 ^C^C).
+    // CAD_ExecuteCommand 는 명령행에 친 것과 같아서, 선 그리던 중 "cube" 만 보내면 값으로 먹힌다.
+    CAD_Status startCommand(const char* name) {
+        CAD_CancelCommand();
+        return CAD_ExecuteCommand(name);
+    }
 }
 
 extern "C" {
@@ -140,10 +147,10 @@ JNI(void, nativeScroll)(JNIEnv*, jobject, jfloat x, jfloat y, jfloat dy) {
 }
 
 // ── 툴바 명령 ──
-JNI(void, nativeAddCube)(JNIEnv*, jobject)      { CAD_ExecuteCommand("cube"); }
+JNI(void, nativeAddCube)(JNIEnv*, jobject)      { startCommand("cube"); }
 JNI(void, nativeCreateBox)(JNIEnv*, jobject)    { uint32_t id = 0; CAD_CreateBox(CAD_GeVec3{0, 0, 0}, CAD_GeVec3{1, 1, 1}, nullptr, &id); }
-JNI(void, nativeSelectAll)(JNIEnv*, jobject)    { CAD_ExecuteCommand("selectall"); }
-JNI(void, nativeDeleteSelected)(JNIEnv*, jobject){ CAD_ExecuteCommand("delete"); }
+JNI(void, nativeSelectAll)(JNIEnv*, jobject)    { startCommand("selectall"); }
+JNI(void, nativeDeleteSelected)(JNIEnv*, jobject){ startCommand("delete"); }
 JNI(void, nativeClearAll)(JNIEnv*, jobject)     { CAD_ClearAll(); }
 JNI(void, nativeZoomExtents)(JNIEnv*, jobject)  { CAD_ZoomExtents(); }
 JNI(void, nativeSetView)(JNIEnv*, jobject, jint v) { CAD_SetView(v); }
@@ -159,6 +166,18 @@ JNI(jboolean, nativeExecuteCommand)(JNIEnv* env, jobject, jstring name) {
     const bool ok = s && CAD_ExecuteCommand(s) == CAD_OK;   // 결과 코드 — 0 = 성공
     if (s) env->ReleaseStringUTFChars(name, s);
     return ok ? JNI_TRUE : JNI_FALSE;
+}
+
+// 진행 중인 명령·도구·묻기를 ESC 처럼 끝낸다(선택은 그대로). 버튼은 이것 다음 nativeExecuteCommand
+// — Kotlin CadNative.startCommand 가 둘을 묶는다.
+JNI(jboolean, nativeCancelCommand)(JNIEnv*, jobject) {
+    return CAD_CancelCommand() == CAD_OK ? JNI_TRUE : JNI_FALSE;
+}
+
+// 직교 ↔ 원근 — 명령("proj")으로 보내면 그리는 중엔 값으로 먹혀 안 바뀐다, 보기 함수로 바로
+JNI(void, nativeToggleProjection)(JNIEnv*, jobject) {
+    bool ortho = false;
+    if (CAD_GetProjection(&ortho) == CAD_OK) CAD_SetProjection(!ortho);
 }
 
 // ── 측정 ──

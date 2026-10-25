@@ -10,6 +10,7 @@
 #include "DarkTheme.h"
 
 #include "../../../sdk/include/LotCAD_API.h"
+#include "CadText.h"   // CadStartCommand
 
 #include <string>
 
@@ -405,8 +406,8 @@ void CLotCADMFCDlg::OnCadExit() { EndDialog(IDCANCEL); }
 // ── 편집 ────────────────────────────────────────────────────────────────
 void CLotCADMFCDlg::OnCadUndo()      { CAD_Undo(); }
 void CLotCADMFCDlg::OnCadRedo()      { CAD_Redo(); }
-void CLotCADMFCDlg::OnCadSelectAll() { CAD_ExecuteCommand("selectall"); }
-void CLotCADMFCDlg::OnCadDelete()    { CAD_ExecuteCommand("delete"); }
+void CLotCADMFCDlg::OnCadSelectAll() { CadStartCommand("selectall"); }
+void CLotCADMFCDlg::OnCadDelete()    { CadStartCommand("delete"); }
 void CLotCADMFCDlg::OnCadClearAll()  { CAD_ClearAll(); }
 
 // ── 보기 ────────────────────────────────────────────────────────────────
@@ -431,7 +432,8 @@ void CLotCADMFCDlg::SetOrtho(bool ortho)
 // ── 만들기 ──────────────────────────────────────────────────────────────
 // 전부 명령 이름으로 부른다 — 엔진 명령이 200개가 넘어
 // 하나씩 C API 를 뚫는 대신 CAD_ExecuteCommand 로 가는 것이 이 샘플의 방침이다.
-void CLotCADMFCDlg::OnCadCube()     { CAD_ExecuteCommand("cube"); }
-void CLotCADMFCDlg::OnCadSphere()   { CAD_ExecuteCommand("sphere"); }
-void CLotCADMFCDlg::OnCadCylinder() { CAD_ExecuteCommand("cylinder"); }
-void CLotCADMFCDlg::OnCadCone()     { CAD_ExecuteCommand("cone"); }
+// 버튼이므로 CadStartCommand(CadText.h) — 진행 중인 도구를 먼저 끝내고 시작한다.
+void CLotCADMFCDlg::OnCadCube()     { CadStartCommand("cube"); }
+void CLotCADMFCDlg::OnCadSphere()   { CadStartCommand("sphere"); }
+void CLotCADMFCDlg::OnCadCylinder() { CadStartCommand("cylinder"); }
+void CLotCADMFCDlg::OnCadCone()     { CadStartCommand("cone"); }

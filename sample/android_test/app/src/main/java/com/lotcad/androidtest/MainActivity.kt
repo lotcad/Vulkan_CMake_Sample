@@ -101,7 +101,7 @@ class MainActivity : Activity() {
             dimBar.addView(Button(this).apply {
                 text = label
                 setOnClickListener {
-                    CadNative.nativeExecuteCommand(cmd)
+                    CadNative.startCommand(cmd)   // 진행 중인 도구를 먼저 끝내고 시작
                     dimBar.visibility = View.GONE   // 도구 활성 후엔 3D 뷰를 봐야 한다
                     beginCursorTool()
                 }
@@ -128,7 +128,7 @@ class MainActivity : Activity() {
             drawBar.addView(Button(this).apply {
                 text = label
                 setOnClickListener {
-                    CadNative.nativeExecuteCommand(cmd)
+                    CadNative.startCommand(cmd)   // 진행 중인 도구를 먼저 끝내고 시작
                     drawBar.visibility = View.GONE   // 도구 활성 후엔 3D 뷰를 봐야 한다
                     if (cursorTool) beginCursorTool()
                 }
@@ -161,7 +161,7 @@ class MainActivity : Activity() {
         addViewBtn("Front") { CadNative.nativeSetView(0) }
         addViewBtn("Right") { CadNative.nativeSetView(2) }
         addViewBtn("Iso")   { CadNative.nativeSetView(3) }
-        addViewBtn("투영")  { CadNative.nativeExecuteCommand("proj") }   // 직교 ↔ 원근
+        addViewBtn("투영")  { CadNative.nativeToggleProjection() }   // 직교 ↔ 원근(그리는 중에도)
         viewBar.addView(Button(this).apply {
             text = "✕"; setOnClickListener { viewBar.visibility = View.GONE }
         })
@@ -271,7 +271,7 @@ class MainActivity : Activity() {
         cursorBar.addView(cursorPickBtn)
         cursorBar.addView(Button(this).apply {
             text = "취소"
-            setOnClickListener { CadNative.nativeExecuteCommand("esc"); endCursorTool() }
+            setOnClickListener { CadNative.nativeCancelCommand(); endCursorTool() }
         })
         root.addView(cursorBar, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
