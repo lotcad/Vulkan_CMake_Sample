@@ -8,122 +8,133 @@ namespace LotCAD
 {
     public static partial class CadApi
     {
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetDimensionTextScreenFixed([MarshalAs(UnmanagedType.I1)] bool enabled);
+        public const int CAD_VIEW_FRONT = 0;
+        public const int CAD_VIEW_TOP = 1;
+        public const int CAD_VIEW_RIGHT = 2;
+        public const int CAD_VIEW_ISOMETRIC = 3;
+        public const int CAD_VIEW_LEFT = 4;
+        public const int CAD_VIEW_BOTTOM = 5;
+        public const int CAD_VIEW_BACK = 6;
+        public const int CAD_SECTION_OFF = 0;
+        public const int CAD_SECTION_PLANE = 1;
+        public const int CAD_SECTION_SLICE = 2;
+        public const int CAD_SECTION_BOX = 3;
+        public const int CAD_LAYOUT_SINGLE = 0;
+        public const int CAD_LAYOUT_DUAL = 1;
+        public const int CAD_LAYOUT_TRIPLE = 2;
+        public const int CAD_LAYOUT_QUAD = 3;
+        public const int CAD_STYLE_SHADED = 0;
+        public const int CAD_STYLE_SHADED_EDGE = 1;
+        public const int CAD_STYLE_WIREFRAME = 2;
+        public const int CAD_STYLE_WIREFRAME_EDGE = 3;
+        public const int CAD_STYLE_HIDDEN_LINE = 4;
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetDimensionTextScreenFixed();
+        public static extern int CAD_ZoomExtents();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestZoomExtents();
+        public static extern int CAD_FocusSelected();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestFocusSelected();
+        public static extern int CAD_SetView(int viewType);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestToggleProjection();
+        public static extern int CAD_SetProjection([MarshalAs(UnmanagedType.I1)] bool ortho);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestToggleDemoLighting();
+        public static extern int CAD_GetProjection([MarshalAs(UnmanagedType.I1)] out bool outOrtho);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestAdjustTextureScale(float delta);
+        public static extern int CAD_SetViewDirection(CAD_GeVec3 direction);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestAdjustLineWidth(float deltaPx);
+        public static extern int CAD_SetViewPivot(CAD_GeVec3 point, int axis);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestSetView(int viewType);
+        public static extern int CAD_ClearViewPivot();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestSetProjection([MarshalAs(UnmanagedType.I1)] bool ortho);
+        public static extern int CAD_GetViewPivot(out CAD_GeVec3 outPoint, out int outAxis);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestSetViewDirection(float dirX, float dirY, float dirZ);
+        public static extern int CAD_OrbitCamera(CAD_GeVec3 axis, double angle);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestSetViewPivot(float x, float y, float z, int axis);
+        public static extern int CAD_SetSection(int mode, int axis, double position, [MarshalAs(UnmanagedType.I1)] bool flip, double thickness);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestClearViewPivot();
+        public static extern int CAD_SetSectionBox(CAD_GeVec3 min, CAD_GeVec3 max);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetViewPivot(out float x, out float y, out float z, out int axis);
+        public static extern int CAD_SetSectionOptions([MarshalAs(UnmanagedType.I1)] bool showArrows, [MarshalAs(UnmanagedType.I1)] bool selectedOnly);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetSection(int mode, int axis, float pos, [MarshalAs(UnmanagedType.I1)] bool flip, float thickness);
+        public static extern int CAD_GetSectionStateJson(byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_SetSectionBox(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
+        public static extern int CAD_ExtractSectionTo2D([MarshalAs(UnmanagedType.I1)] bool includeBehind, uint[] outIds, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetSectionOptions([MarshalAs(UnmanagedType.I1)] bool showArrows, [MarshalAs(UnmanagedType.I1)] bool selectedOnly);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int CAD_GetSectionStateJson(byte[] @out, int cap);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_ExtractSectionTo2D([MarshalAs(UnmanagedType.I1)] bool includeBehind);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetViewportLayout(int layout);
+        public static extern int CAD_SetViewportLayout(int layout);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_GetViewportLayout();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetActiveViewport(int index);
+        public static extern int CAD_SetActiveViewport(int index);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_GetActiveViewport();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetGridEnabled([MarshalAs(UnmanagedType.I1)] bool enabled);
+        public static extern int CAD_SetGridEnabled([MarshalAs(UnmanagedType.I1)] bool enabled);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetDemoLighting([MarshalAs(UnmanagedType.I1)] bool enabled);
+        public static extern int CAD_SetDemoLighting([MarshalAs(UnmanagedType.I1)] bool enabled);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetVisualStyle(int style);
+        public static extern int CAD_SetVisualStyle(int style);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetSelectionStyle(int style);
+        public static extern int CAD_SetSelectionStyle(int style);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_GetSelectionStyle();
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetHoverHighlight([MarshalAs(UnmanagedType.I1)] bool enabled);
+        public static extern int CAD_SetSelectionLineWidth(double width);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetHoverHighlight();
+        public static extern int CAD_SetHoverHighlight([MarshalAs(UnmanagedType.I1)] bool enabled);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_GetHoveredObject();
+        public static extern int CAD_GetHoverHighlight([MarshalAs(UnmanagedType.I1)] out bool outEnabled);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetHoverStyle(float r, float g, float b, float width);
+        public static extern int CAD_SetHoverStyle(CAD_Color color, double width);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetSelectionLineWidth(float width);
+        public static extern int CAD_GetHoveredObject(out uint outId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_SetCollisionEnabled([MarshalAs(UnmanagedType.I1)] bool enabled);
+        public static extern int CAD_SetDimensionTextScreenFixed([MarshalAs(UnmanagedType.I1)] bool enabled);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_GetCollisionEnabled();
+        public static extern int CAD_GetDimensionTextScreenFixed([MarshalAs(UnmanagedType.I1)] out bool outEnabled);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_CaptureViewport([MarshalAs(UnmanagedType.LPUTF8Str)] string pathUtf8, [MarshalAs(UnmanagedType.I1)] bool clean);
+        public static extern int CAD_AdjustTextureScale(double delta);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_OrbitCamera(float ax, float ay, float az, float angleDeg);
+        public static extern int CAD_AdjustLineWidth(double deltaPx);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_SetCollisionEnabled([MarshalAs(UnmanagedType.I1)] bool enabled);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_GetCollisionEnabled([MarshalAs(UnmanagedType.I1)] out bool outEnabled);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_CaptureViewport([MarshalAs(UnmanagedType.LPUTF8Str)] string pathUtf8, [MarshalAs(UnmanagedType.I1)] bool clean);
     }
 }

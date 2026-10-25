@@ -113,8 +113,8 @@ bool RobotDemo_Load(void) {
     if (g_robot == 0) return false;
     buildControls();
     CAD_ClearSelection();         // 불러온 링크가 선택 강조색으로 보이지 않게
-    CAD_RequestSetView(3);        // Iso
-    CAD_RequestZoomExtents();
+    CAD_SetView(3);        // Iso
+    CAD_ZoomExtents();
     return true;
 }
 

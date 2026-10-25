@@ -33,8 +33,8 @@ public:
     const char* summary() const override { return "말로 시키면 장면을 만든다 — LLM 서버 연결, 또는 서버 없이 액션 JSON 바로 실행"; }
 
     void setup() override {
-        CAD_RequestSetView(3);
-        CAD_RequestZoomExtents();
+        CAD_SetView(3);
+        CAD_ZoomExtents();
     }
 
     void update(double) override {

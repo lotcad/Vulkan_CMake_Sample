@@ -57,15 +57,15 @@ void CLotCADMFCDlg::BuildRibbon()
 	r.AddLarge(L"다시실행", I::Redo, [] { CAD_Redo(); });
 
 	r.AddGroup(L"뷰");
-	r.AddLarge(L"전체보기", I::ZoomExtents, [] { CAD_RequestZoomExtents(); });
-	r.AddSmall(L"선택 맞춤", I::Focus,      [] { CAD_RequestFocusSelected(); });
+	r.AddLarge(L"전체보기", I::ZoomExtents, [] { CAD_ZoomExtents(); });
+	r.AddSmall(L"선택 맞춤", I::Focus,      [] { CAD_FocusSelected(); });
 	// 토글 — 상태바 Persp/Ortho 버튼과 같은 상태를 본다(켜짐 = 직교 투영).
 	// 상태바의 '직교(F8)' 는 그리기 방향 고정(직교 추적)이라 다른 기능 — 이름을 구분한다.
 	r.AddSmall(L"직교 투영", I::Projection, [this] { OnCadProjection(); }, [this] { return m_ortho; });
-	r.AddSmall(L"아이소",    I::ViewIso,    [] { CAD_RequestSetView(3); });   // 0=Front 1=Top 2=Right 3=Iso
-	r.AddSmall(L"평면",      I::ViewTop,    [] { CAD_RequestSetView(1); });
-	r.AddSmall(L"정면",      I::ViewFront,  [] { CAD_RequestSetView(0); });
-	r.AddSmall(L"우측면",    I::ViewRight,  [] { CAD_RequestSetView(2); });
+	r.AddSmall(L"아이소",    I::ViewIso,    [] { CAD_SetView(3); });   // 0=Front 1=Top 2=Right 3=Iso
+	r.AddSmall(L"평면",      I::ViewTop,    [] { CAD_SetView(1); });
+	r.AddSmall(L"정면",      I::ViewFront,  [] { CAD_SetView(0); });
+	r.AddSmall(L"우측면",    I::ViewRight,  [] { CAD_SetView(2); });
 
 	// ── 2D ──────────────────────────────────────────────────────────────
 	r.AddTab(L"2D");

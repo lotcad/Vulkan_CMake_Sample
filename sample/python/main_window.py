@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
     # ── 엔진 준비·종료 ──
     def _engine_ready(self):
         # 상태바·리본이 보여 주는 값과 엔진을 처음에 한 번 맞춘다
-        lotcad.CAD_RequestSetProjection(self.ortho)
+        lotcad.CAD_SetProjection(self.ortho)
         self.status.apply_initial()
         self.status.refresh()
         self.ribbon.refresh()
@@ -100,7 +100,7 @@ class MainWindow(QMainWindow):
     # ── 투영 — 메뉴·리본·상태바가 같은 상태를 본다 ──
     def set_ortho(self, ortho):
         self.ortho = ortho
-        lotcad.CAD_RequestSetProjection(ortho)   # True=직교(Ortho) False=원근(Persp)
+        lotcad.CAD_SetProjection(ortho)   # True=직교(Ortho) False=원근(Persp)
         self.ribbon.refresh()
         self.status.refresh()
 
@@ -146,7 +146,7 @@ class MainWindow(QMainWindow):
         if not path:
             return
         if lotcad.CAD_OpenFile(path):
-            lotcad.CAD_RequestZoomExtents()   # 연 것이 화면 밖일 수 있다
+            lotcad.CAD_ZoomExtents()   # 연 것이 화면 밖일 수 있다
         else:
             self._report("열기 실패")
 
@@ -213,13 +213,13 @@ class MainWindow(QMainWindow):
         g.add("실행취소", lotcad.CAD_Undo)
         g.add("다시실행", lotcad.CAD_Redo)
         g = home.add_group("뷰")
-        g.add("전체보기", lotcad.CAD_RequestZoomExtents)
-        g.add("선택 맞춤", lotcad.CAD_RequestFocusSelected)
+        g.add("전체보기", lotcad.CAD_ZoomExtents)
+        g.add("선택 맞춤", lotcad.CAD_FocusSelected)
         g.add("직교 투영", lambda: self.set_ortho(not self.ortho), is_on=lambda: self.ortho)
-        g.add("아이소", lambda: lotcad.CAD_RequestSetView(3))   # 0=정면 1=평면 2=우측 3=아이소
-        g.add("평면", lambda: lotcad.CAD_RequestSetView(1))
-        g.add("정면", lambda: lotcad.CAD_RequestSetView(0))
-        g.add("우측면", lambda: lotcad.CAD_RequestSetView(2))
+        g.add("아이소", lambda: lotcad.CAD_SetView(3))   # 0=정면 1=평면 2=우측 3=아이소
+        g.add("평면", lambda: lotcad.CAD_SetView(1))
+        g.add("정면", lambda: lotcad.CAD_SetView(0))
+        g.add("우측면", lambda: lotcad.CAD_SetView(2))
 
         two_d = r.add_tab("2D")
         g = two_d.add_group("그리기")

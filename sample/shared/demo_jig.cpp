@@ -40,8 +40,8 @@ public:
         x_ = 0; y_ = 0;
         lastState_ = "대기";
         CAD_ClearSelection();
-        CAD_RequestSetView(3);
-        CAD_RequestZoomExtents();
+        CAD_SetView(3);
+        CAD_ZoomExtents();
     }
 
     void update(double) override {

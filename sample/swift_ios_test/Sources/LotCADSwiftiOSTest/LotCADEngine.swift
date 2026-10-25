@@ -94,7 +94,7 @@ final class LotCADEngine {
             ],
             closed: false)
 
-        CAD_RequestZoomExtents()
+        CAD_ZoomExtents()
     }
 
     @discardableResult
@@ -185,7 +185,7 @@ final class LotCADEngine {
     func selectAll()        { guard isCreated else { return }; CAD_RequestSelectAll() }
     func deleteSelected()   { guard isCreated else { return }; CAD_RequestDeleteSelected() }
     func clearAll()         { guard isCreated else { return }; CAD_RequestClearAll() }
-    func zoomExtents()      { guard isCreated else { return }; CAD_RequestZoomExtents() }
+    func zoomExtents()      { guard isCreated else { return }; CAD_ZoomExtents() }
 
     // ─── 명령 실행 ───
     // 데스크톱 명령행과 같은 이름을 그대로 쓴다. 진행 중인 도구에 좌표/값도 넘길 수 있다
@@ -247,7 +247,7 @@ final class LotCADEngine {
         return CAD_OpenFile(path)
     }
     // viewType: 0=Front 1=Top 2=Right 3=Iso
-    func setView(_ viewType: Int32) { guard isCreated else { return }; CAD_RequestSetView(viewType) }
+    func setView(_ viewType: Int32) { guard isCreated else { return }; CAD_SetView(viewType) }
     func undo()             { guard isCreated else { return }; CAD_Undo() }
     func redo()             { guard isCreated else { return }; CAD_Redo() }
     func objectCount() -> UInt32 { isCreated ? UInt32(max(0, CAD_GetObjectCount())) : 0 }
@@ -267,11 +267,11 @@ final class LotCADEngine {
     func removeMaterial() { guard isCreated else { return }; CAD_RequestRemoveMaterial() }
     func adjustTextureScale(_ delta: Float) {
         guard isCreated else { return }
-        CAD_RequestAdjustTextureScale(delta)
+        CAD_AdjustTextureScale(delta)
     }
     func adjustLineWidth(_ deltaPx: Float) {
         guard isCreated else { return }
-        CAD_RequestAdjustLineWidth(deltaPx)
+        CAD_AdjustLineWidth(deltaPx)
     }
     // 옮기기·돌리기·축척·복사·색 — C API 는 대상 id 를 받는다(CAD_Entity*). 돌리기·축척 기준점 = 고른 것 전체 경계 상자 가운데
     private var selectedIds: [UInt32] {
@@ -390,7 +390,7 @@ final class LotCADEngine {
             guard json.contains("\"text\":\"\(want)\"") else { continue }
             if nth > 0 { nth -= 1; continue }
             _ = CAD_SelectObject(id, false)
-            CAD_RequestFocusSelected()
+            CAD_FocusSelected()
             print("[test] focus text id \(id)")
             return
         }

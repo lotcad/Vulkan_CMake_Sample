@@ -29,7 +29,7 @@ protected:
         header("동작");
         toggle("자동 재생", [] { return RobotDemo_IsPlaying(); }, [](bool on) { RobotDemo_SetPlaying(on); });
         button("홈 자세", [] { RobotDemo_Home(); });
-        button("화면 맞춤", [] { CAD_RequestZoomExtents(); });
+        button("화면 맞춤", [] { CAD_ZoomExtents(); });
 
         header("관절");
         for (int i = 0; i < RobotDemo_ControlCount(); ++i) {

@@ -112,7 +112,7 @@ protected:
         if (body_) CAD_DeleteObject(body_);
         body_ = id;
         CAD_ClearSelection();   // 만든 객체가 선택돼 기즈모가 뜨지 않게
-        CAD_RequestZoomExtents();
+        CAD_ZoomExtents();
     }
 
     std::string state_, error_;
@@ -128,7 +128,7 @@ public:
     const char* title() const override { return "해석 — 바람 터널"; }
     const char* summary() const override { return "솔리드 둘레에 바람(+X)을 불어 속도·압력·소용돌이·연기와 항력 계수를 본다"; }
 
-    void setup() override { makeBody(); CAD_RequestSetView(3); }
+    void setup() override { makeBody(); CAD_SetView(3); }
     void teardown() override { call("{\"op\":\"stop\"}"); }
 
 protected:
@@ -203,7 +203,7 @@ public:
     const char* title() const override { return "해석 — 물"; }
     const char* summary() const override { return "닫힌 솔리드(그릇)에 물을 채우고 기울이기·흔들기(공진)로 출렁임을 본다"; }
 
-    void setup() override { makeContainer(); CAD_RequestSetView(3); }
+    void setup() override { makeContainer(); CAD_SetView(3); }
     void teardown() override { call("{\"op\":\"stop\"}"); }
 
 protected:
@@ -272,7 +272,7 @@ public:
         return "솔리드를 열고 면에 고정·하중을 걸어 응력·변위·안전율(또는 열·진동·좌굴)을 푼다. 예제: 외팔보";
     }
 
-    void setup() override { makeBeam(); CAD_RequestSetView(3); }
+    void setup() override { makeBeam(); CAD_SetView(3); }
     void teardown() override { call("{\"op\":\"close\"}"); }
 
 protected:

@@ -31,7 +31,7 @@ int main() {
     CAD_SetScale(boxId, CAD_GeVec3{0.8, 0.8, 0.8});
     CAD_SetRotationAxisAngle(boxId, CAD_GeVec3{0.0, 0.0, 1.0}, 0.7853982);
     CAD_SelectObject(boxId, false);
-    CAD_RequestZoomExtents();
+    CAD_ZoomExtents();
 
     CAD_GeVec3 p{};
     if (CAD_GetPosition(boxId, &p) == CAD_OK) {
@@ -67,7 +67,7 @@ int main() {
             std::cout << "[cpp_api_test] after undo: " << CAD_GetObjectCount() << std::endl;
         }
     }
-    CAD_RequestZoomExtents();
+    CAD_ZoomExtents();
 
     while (!CAD_ShouldClose()) {
         if (!CAD_Tick()) break;

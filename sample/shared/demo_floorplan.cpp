@@ -94,8 +94,8 @@ private:
                                                            height_, 0.15f, op, 4, ids, 64);
         note_ = n ? fmt("벽 %u개 — 문 2 · 창 2", n) : "실패: " + lastError();
         CAD_ClearSelection();
-        CAD_RequestSetView(3);
-        CAD_RequestZoomExtents();
+        CAD_SetView(3);
+        CAD_ZoomExtents();
     }
 
     void buildFromImage() {
@@ -117,8 +117,8 @@ private:
         const uint32_t n = CAD_CreateFloorplanFromImage(path.c_str(), 0, height_, true, ids, 256);
         note_ = n ? fmt("벽 %u개 (축척은 문 폭 900mm 로 추정)", n) : "실패: " + lastError();
         CAD_ClearSelection();
-        CAD_RequestSetView(3);
-        CAD_RequestZoomExtents();
+        CAD_SetView(3);
+        CAD_ZoomExtents();
     }
 
     // 추출 JSON(mm) → [x1,y1,x2,y2,두께] (m) → CAD_CreateWallGraph
@@ -141,8 +141,8 @@ private:
         note_ = n ? fmt("벽 선분 %u개 → 벽 %u개 · %s", count, n, jsonString(json, "summary").c_str())
                   : "실패: " + lastError();
         CAD_ClearSelection();
-        CAD_RequestSetView(3);
-        CAD_RequestZoomExtents();
+        CAD_SetView(3);
+        CAD_ZoomExtents();
     }
 
     float wA_ = 5, wB_ = 3.5f, depth_ = 4, height_ = 2.6f;

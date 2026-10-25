@@ -40,8 +40,8 @@ public:
         speed_ = 2.0f; rays_ = true; grid_ = false;
         agent_ = 0;
         buildMap();
-        CAD_RequestSetView(3);
-        CAD_RequestZoomExtents();
+        CAD_SetView(3);
+        CAD_ZoomExtents();
     }
 
     void update(double) override {

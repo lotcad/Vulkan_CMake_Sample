@@ -15,6 +15,8 @@
 #include <QString>
 #include <QtQml/qqmlregistration.h>
 
+#include <vector>
+
 class SectionApi : public QObject {
     Q_OBJECT
     QML_ELEMENT
@@ -46,7 +48,7 @@ public:
 
     // thickness 0 이하를 넘기면 엔진이 지금 값을 유지한다(슬라이스가 아닌 모드에서 쓰는 길).
     Q_INVOKABLE bool setSection(int mode, int axis, double pos, bool flip, double thickness) {
-        const bool ok = CAD_SetSection(mode, axis, float(pos), flip, float(thickness));
+        const bool ok = CAD_SetSection(mode, axis, pos, flip, thickness) == CAD_OK;
         finish(!ok);
         return ok;
     }
@@ -54,8 +56,7 @@ public:
     // 상자 값만 바꾼다 — 켜는 건 setSection(3, …).
     Q_INVOKABLE bool setBox(double minX, double minY, double minZ,
                             double maxX, double maxY, double maxZ) {
-        const bool ok = CAD_SetSectionBox(float(minX), float(minY), float(minZ),
-                                          float(maxX), float(maxY), float(maxZ));
+        const bool ok = CAD_SetSectionBox(CAD_GeVec3{minX, minY, minZ}, CAD_GeVec3{maxX, maxY, maxZ}) == CAD_OK;
         finish(!ok);
         return ok;
     }
@@ -67,9 +68,12 @@ public:
 
     // 지금 평면 단면을 편집 가능한 2D 폴리선으로 뽑는다(모델 오른쪽 XY 평면). undo 1.
     Q_INVOKABLE int extractTo2D(bool includeBehind) {
-        const uint32_t n = CAD_ExtractSectionTo2D(includeBehind);
-        finish(n == 0);
-        return int(n);
+        // 새 객체를 주는 함수 = 개수를 묻고(아무것도 안 만듦) 그만큼 칸을 줘서 만든다
+        const int32_t want = CAD_ExtractSectionTo2D(includeBehind, nullptr, 0);
+        std::vector<uint32_t> ids(want > 0 ? size_t(want) : 0);
+        const int32_t n = want > 0 ? CAD_ExtractSectionTo2D(includeBehind, ids.data(), uint32_t(ids.size())) : want;
+        finish(n <= 0);
+        return n > 0 ? int(n) : 0;
     }
 
     Q_INVOKABLE void refresh() {

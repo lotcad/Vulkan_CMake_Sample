@@ -93,12 +93,12 @@ namespace LotCadWinForms
                 Item("전체 선택", (s, e) => CadApi.CAD_RequestSelectAll()),
                 Item("선택 삭제", (s, e) => CadApi.CAD_RequestDeleteSelected())));
             menu.Items.Add(Menu("뷰(&V)",
-                Item("정면", (s, e) => CadApi.CAD_RequestSetView(0)),
-                Item("평면", (s, e) => CadApi.CAD_RequestSetView(1)),
-                Item("Isometric", (s, e) => CadApi.CAD_RequestSetView(3)),
+                Item("정면", (s, e) => CadApi.CAD_SetView(0)),
+                Item("평면", (s, e) => CadApi.CAD_SetView(1)),
+                Item("Isometric", (s, e) => CadApi.CAD_SetView(3)),
                 null,
-                Item("줌 맞춤", (s, e) => CadApi.CAD_RequestZoomExtents()),
-                Item("투영 전환 (Ortho/Persp)", (s, e) => CadApi.CAD_RequestToggleProjection())));
+                Item("줌 맞춤", (s, e) => CadApi.CAD_ZoomExtents()),
+                Item("투영 전환 (Ortho/Persp)", (s, e) => CadApi.ToggleProjection())));
             menu.Items.Add(Menu("해석(&A)",
                 Item("바람 터널", (s, e) => _analysis.ShowPage(0)),
                 Item("물", (s, e) => _analysis.ShowPage(1)),
@@ -140,11 +140,11 @@ namespace LotCadWinForms
 
             bar.Controls.Add(Separator());
             bar.Controls.Add(GroupLabel("뷰"));
-            bar.Controls.Add(ToolButton("정면", (s, e) => CadApi.CAD_RequestSetView(0)));
-            bar.Controls.Add(ToolButton("평면", (s, e) => CadApi.CAD_RequestSetView(1)));
-            bar.Controls.Add(ToolButton("Iso", (s, e) => CadApi.CAD_RequestSetView(3)));
-            bar.Controls.Add(ToolButton("줌맞춤", (s, e) => CadApi.CAD_RequestZoomExtents()));
-            bar.Controls.Add(ToolButton("투영", (s, e) => CadApi.CAD_RequestToggleProjection()));
+            bar.Controls.Add(ToolButton("정면", (s, e) => CadApi.CAD_SetView(0)));
+            bar.Controls.Add(ToolButton("평면", (s, e) => CadApi.CAD_SetView(1)));
+            bar.Controls.Add(ToolButton("Iso", (s, e) => CadApi.CAD_SetView(3)));
+            bar.Controls.Add(ToolButton("줌맞춤", (s, e) => CadApi.CAD_ZoomExtents()));
+            bar.Controls.Add(ToolButton("투영", (s, e) => CadApi.ToggleProjection()));
 
             bar.Controls.Add(Separator());
             bar.Controls.Add(GroupLabel("해석"));

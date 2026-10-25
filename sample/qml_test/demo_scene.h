@@ -70,7 +70,7 @@ public:
         if (CAD_CutExtrudeFromSketch(plate, boreSketch, 0, true) != CAD_OK)
             return fail("관통 구멍을 뚫지 못했습니다");
 
-        CAD_RequestZoomExtents();   // 방금 만든 게 화면 밖이면 시연이 안 된다
+        CAD_ZoomExtents();   // 방금 만든 게 화면 밖이면 시연이 안 된다
         return int(plate);
     }
 

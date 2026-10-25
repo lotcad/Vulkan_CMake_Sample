@@ -9,197 +9,180 @@ from typing import Any, Callable, Sequence  # noqa: F401  (형식 힌트)
 from . import _native as _n
 from ._types import *  # noqa: F401,F403
 
-__all__ = ['CAD_SetDimensionTextScreenFixed', 'CAD_GetDimensionTextScreenFixed', 'CAD_RequestZoomExtents', 'CAD_RequestFocusSelected', 'CAD_RequestToggleProjection', 'CAD_RequestToggleDemoLighting', 'CAD_RequestAdjustTextureScale', 'CAD_RequestAdjustLineWidth', 'CAD_RequestSetView', 'CAD_RequestSetProjection', 'CAD_RequestSetViewDirection', 'CAD_RequestSetViewPivot', 'CAD_RequestClearViewPivot', 'CAD_GetViewPivot', 'CAD_SetSection', 'CAD_SetSectionBox', 'CAD_SetSectionOptions', 'CAD_GetSectionStateJson', 'CAD_ExtractSectionTo2D', 'CAD_SetViewportLayout', 'CAD_GetViewportLayout', 'CAD_SetActiveViewport', 'CAD_GetActiveViewport', 'CAD_SetGridEnabled', 'CAD_SetDemoLighting', 'CAD_SetVisualStyle', 'CAD_SetSelectionStyle', 'CAD_GetSelectionStyle', 'CAD_SetHoverHighlight', 'CAD_GetHoverHighlight', 'CAD_GetHoveredObject', 'CAD_SetHoverStyle', 'CAD_SetSelectionLineWidth', 'CAD_SetCollisionEnabled', 'CAD_GetCollisionEnabled', 'CAD_CaptureViewport', 'CAD_OrbitCamera']
+__all__ = ['CAD_VIEW_FRONT', 'CAD_VIEW_TOP', 'CAD_VIEW_RIGHT', 'CAD_VIEW_ISOMETRIC', 'CAD_VIEW_LEFT', 'CAD_VIEW_BOTTOM', 'CAD_VIEW_BACK', 'CAD_SECTION_OFF', 'CAD_SECTION_PLANE', 'CAD_SECTION_SLICE', 'CAD_SECTION_BOX', 'CAD_LAYOUT_SINGLE', 'CAD_LAYOUT_DUAL', 'CAD_LAYOUT_TRIPLE', 'CAD_LAYOUT_QUAD', 'CAD_STYLE_SHADED', 'CAD_STYLE_SHADED_EDGE', 'CAD_STYLE_WIREFRAME', 'CAD_STYLE_WIREFRAME_EDGE', 'CAD_STYLE_HIDDEN_LINE', 'CAD_ZoomExtents', 'CAD_FocusSelected', 'CAD_SetView', 'CAD_SetProjection', 'CAD_GetProjection', 'CAD_SetViewDirection', 'CAD_SetViewPivot', 'CAD_ClearViewPivot', 'CAD_GetViewPivot', 'CAD_OrbitCamera', 'CAD_SetSection', 'CAD_SetSectionBox', 'CAD_SetSectionOptions', 'CAD_GetSectionStateJson', 'CAD_ExtractSectionTo2D', 'CAD_SetViewportLayout', 'CAD_GetViewportLayout', 'CAD_SetActiveViewport', 'CAD_GetActiveViewport', 'CAD_SetGridEnabled', 'CAD_SetDemoLighting', 'CAD_SetVisualStyle', 'CAD_SetSelectionStyle', 'CAD_GetSelectionStyle', 'CAD_SetSelectionLineWidth', 'CAD_SetHoverHighlight', 'CAD_GetHoverHighlight', 'CAD_SetHoverStyle', 'CAD_GetHoveredObject', 'CAD_SetDimensionTextScreenFixed', 'CAD_GetDimensionTextScreenFixed', 'CAD_AdjustTextureScale', 'CAD_AdjustLineWidth', 'CAD_SetCollisionEnabled', 'CAD_GetCollisionEnabled', 'CAD_CaptureViewport']
 
 _f = _n.native
 
-_n.bind("CAD_SetDimensionTextScreenFixed", None, [_c.c_bool])
-_n.bind("CAD_GetDimensionTextScreenFixed", _c.c_bool, [])
-_n.bind("CAD_RequestZoomExtents", None, [])
-_n.bind("CAD_RequestFocusSelected", None, [])
-_n.bind("CAD_RequestToggleProjection", None, [])
-_n.bind("CAD_RequestToggleDemoLighting", None, [])
-_n.bind("CAD_RequestAdjustTextureScale", None, [_c.c_float])
-_n.bind("CAD_RequestAdjustLineWidth", None, [_c.c_float])
-_n.bind("CAD_RequestSetView", None, [_c.c_int])
-_n.bind("CAD_RequestSetProjection", None, [_c.c_bool])
-_n.bind("CAD_RequestSetViewDirection", None, [_c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_RequestSetViewPivot", None, [_c.c_float, _c.c_float, _c.c_float, _c.c_int])
-_n.bind("CAD_RequestClearViewPivot", None, [])
-_n.bind("CAD_GetViewPivot", _c.c_bool, [_c.POINTER(_c.c_float), _c.POINTER(_c.c_float), _c.POINTER(_c.c_float), _c.POINTER(_c.c_int)])
-_n.bind("CAD_SetSection", _c.c_bool, [_c.c_int, _c.c_int, _c.c_float, _c.c_bool, _c.c_float])
-_n.bind("CAD_SetSectionBox", _c.c_bool, [_c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_SetSectionOptions", None, [_c.c_bool, _c.c_bool])
-_n.bind("CAD_GetSectionStateJson", _c.c_int, [_c.POINTER(_c.c_char), _c.c_int])
-_n.bind("CAD_ExtractSectionTo2D", _c.c_uint32, [_c.c_bool])
-_n.bind("CAD_SetViewportLayout", None, [_c.c_int])
-_n.bind("CAD_GetViewportLayout", _c.c_int, [])
-_n.bind("CAD_SetActiveViewport", None, [_c.c_int])
-_n.bind("CAD_GetActiveViewport", _c.c_int, [])
-_n.bind("CAD_SetGridEnabled", None, [_c.c_bool])
-_n.bind("CAD_SetDemoLighting", None, [_c.c_bool])
-_n.bind("CAD_SetVisualStyle", None, [_c.c_int])
-_n.bind("CAD_SetSelectionStyle", None, [_c.c_int])
-_n.bind("CAD_GetSelectionStyle", _c.c_int, [])
-_n.bind("CAD_SetHoverHighlight", None, [_c.c_bool])
-_n.bind("CAD_GetHoverHighlight", _c.c_bool, [])
-_n.bind("CAD_GetHoveredObject", _c.c_uint, [])
-_n.bind("CAD_SetHoverStyle", None, [_c.c_float, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_SetSelectionLineWidth", None, [_c.c_float])
-_n.bind("CAD_SetCollisionEnabled", None, [_c.c_bool])
-_n.bind("CAD_GetCollisionEnabled", _c.c_bool, [])
-_n.bind("CAD_CaptureViewport", _c.c_bool, [_c.c_char_p, _c.c_bool])
-_n.bind("CAD_OrbitCamera", None, [_c.c_float, _c.c_float, _c.c_float, _c.c_float])
+CAD_VIEW_FRONT = 0
+CAD_VIEW_TOP = 1
+CAD_VIEW_RIGHT = 2
+CAD_VIEW_ISOMETRIC = 3
+CAD_VIEW_LEFT = 4
+CAD_VIEW_BOTTOM = 5
+CAD_VIEW_BACK = 6
+CAD_SECTION_OFF = 0
+CAD_SECTION_PLANE = 1
+CAD_SECTION_SLICE = 2
+CAD_SECTION_BOX = 3
+CAD_LAYOUT_SINGLE = 0
+CAD_LAYOUT_DUAL = 1
+CAD_LAYOUT_TRIPLE = 2
+CAD_LAYOUT_QUAD = 3
+CAD_STYLE_SHADED = 0
+CAD_STYLE_SHADED_EDGE = 1
+CAD_STYLE_WIREFRAME = 2
+CAD_STYLE_WIREFRAME_EDGE = 3
+CAD_STYLE_HIDDEN_LINE = 4
+
+_n.bind("CAD_ZoomExtents", _c.c_int32, [])
+_n.bind("CAD_FocusSelected", _c.c_int32, [])
+_n.bind("CAD_SetView", _c.c_int32, [_c.c_int32])
+_n.bind("CAD_SetProjection", _c.c_int32, [_c.c_bool])
+_n.bind("CAD_GetProjection", _c.c_int32, [_c.POINTER(_c.c_bool)])
+_n.bind("CAD_SetViewDirection", _c.c_int32, [CAD_GeVec3])
+_n.bind("CAD_SetViewPivot", _c.c_int32, [CAD_GeVec3, _c.c_int32])
+_n.bind("CAD_ClearViewPivot", _c.c_int32, [])
+_n.bind("CAD_GetViewPivot", _c.c_int32, [_c.POINTER(CAD_GeVec3), _c.POINTER(_c.c_int32)])
+_n.bind("CAD_OrbitCamera", _c.c_int32, [CAD_GeVec3, _c.c_double])
+_n.bind("CAD_SetSection", _c.c_int32, [_c.c_int32, _c.c_int32, _c.c_double, _c.c_bool, _c.c_double])
+_n.bind("CAD_SetSectionBox", _c.c_int32, [CAD_GeVec3, CAD_GeVec3])
+_n.bind("CAD_SetSectionOptions", _c.c_int32, [_c.c_bool, _c.c_bool])
+_n.bind("CAD_GetSectionStateJson", _c.c_int32, [_c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_ExtractSectionTo2D", _c.c_int32, [_c.c_bool, _c.POINTER(_c.c_uint32), _c.c_uint32])
+_n.bind("CAD_SetViewportLayout", _c.c_int32, [_c.c_int32])
+_n.bind("CAD_GetViewportLayout", _c.c_int32, [])
+_n.bind("CAD_SetActiveViewport", _c.c_int32, [_c.c_int32])
+_n.bind("CAD_GetActiveViewport", _c.c_int32, [])
+_n.bind("CAD_SetGridEnabled", _c.c_int32, [_c.c_bool])
+_n.bind("CAD_SetDemoLighting", _c.c_int32, [_c.c_bool])
+_n.bind("CAD_SetVisualStyle", _c.c_int32, [_c.c_int32])
+_n.bind("CAD_SetSelectionStyle", _c.c_int32, [_c.c_int32])
+_n.bind("CAD_GetSelectionStyle", _c.c_int32, [])
+_n.bind("CAD_SetSelectionLineWidth", _c.c_int32, [_c.c_double])
+_n.bind("CAD_SetHoverHighlight", _c.c_int32, [_c.c_bool])
+_n.bind("CAD_GetHoverHighlight", _c.c_int32, [_c.POINTER(_c.c_bool)])
+_n.bind("CAD_SetHoverStyle", _c.c_int32, [CAD_Color, _c.c_double])
+_n.bind("CAD_GetHoveredObject", _c.c_int32, [_c.POINTER(_c.c_uint32)])
+_n.bind("CAD_SetDimensionTextScreenFixed", _c.c_int32, [_c.c_bool])
+_n.bind("CAD_GetDimensionTextScreenFixed", _c.c_int32, [_c.POINTER(_c.c_bool)])
+_n.bind("CAD_AdjustTextureScale", _c.c_int32, [_c.c_double])
+_n.bind("CAD_AdjustLineWidth", _c.c_int32, [_c.c_double])
+_n.bind("CAD_SetCollisionEnabled", _c.c_int32, [_c.c_bool])
+_n.bind("CAD_GetCollisionEnabled", _c.c_int32, [_c.POINTER(_c.c_bool)])
+_n.bind("CAD_CaptureViewport", _c.c_int32, [_c.c_char_p, _c.c_bool])
 
 
-def CAD_SetDimensionTextScreenFixed(enabled: bool) -> None:
-    """C: void CAD_SetDimensionTextScreenFixed(bool enabled)
+def CAD_ZoomExtents() -> int:
+    """C: CAD_Status CAD_ZoomExtents(void)
 
-    치수 **문자**를 줌과 무관하게 화면상 같은 크기로 그릴지 (기본 false).
-    모바일에서 치수는 도면 요소보다 "측정 도구" 에 가깝다 — 줌아웃하면 글자가 같이 작아져
-    값을 못 읽는 게 문제였다. 켜면 글자가 항상 읽히는 크기로 남는다(선·화살표는 그대로).
-    데스크톱은 끄는 게 맞다 — 도면 출력에선 월드 크기여야 한다.
-    매 프레임 비용은 없다(플래그를 정점에 굽는다). 전환 시 기존 치수를 한 번 다시 만든다.
+    카메라·뷰
+    전체 보기
     """
-    _f.CAD_SetDimensionTextScreenFixed(enabled)
+    return _f.CAD_ZoomExtents()
 
 
-def CAD_GetDimensionTextScreenFixed() -> bool:
-    """C: bool CAD_GetDimensionTextScreenFixed(void)
+def CAD_FocusSelected() -> int:
+    """C: CAD_Status CAD_FocusSelected(void)
 
-    치수 **문자**를 줌과 무관하게 화면상 같은 크기로 그릴지 (기본 false).
-    모바일에서 치수는 도면 요소보다 "측정 도구" 에 가깝다 — 줌아웃하면 글자가 같이 작아져
-    값을 못 읽는 게 문제였다. 켜면 글자가 항상 읽히는 크기로 남는다(선·화살표는 그대로).
-    데스크톱은 끄는 게 맞다 — 도면 출력에선 월드 크기여야 한다.
-    매 프레임 비용은 없다(플래그를 정점에 굽는다). 전환 시 기존 치수를 한 번 다시 만든다.
+    고른 것 보기 — 선택이 없으면 CAD_E_NOT_FOUND
+
+    묶음 주석: 카메라·뷰
     """
-    return _f.CAD_GetDimensionTextScreenFixed()
+    return _f.CAD_FocusSelected()
 
 
-def CAD_RequestZoomExtents() -> None:
-    """C: void CAD_RequestZoomExtents(void)
+def CAD_SetView(viewType: int) -> int:
+    """C: CAD_Status CAD_SetView(int32_t viewType)
+
+    CAD_VIEW_*, 범위 밖 CAD_E_OUT_OF_RANGE
     """
-    _f.CAD_RequestZoomExtents()
+    return _f.CAD_SetView(viewType)
 
 
-def CAD_RequestFocusSelected() -> None:
-    """C: void CAD_RequestFocusSelected(void)
+def CAD_SetProjection(ortho: bool) -> int:
+    """C: CAD_Status CAD_SetProjection(bool ortho)
+
+    직교 / 원근
     """
-    _f.CAD_RequestFocusSelected()
+    return _f.CAD_SetProjection(ortho)
 
 
-def CAD_RequestToggleProjection() -> None:
-    """C: void CAD_RequestToggleProjection(void)
+def CAD_GetProjection() -> tuple[int, bool]:
+    """C: CAD_Status CAD_GetProjection(bool* outOrtho)
+
+    활성 칸이 직교인가(맡긴 SetProjection 은 다음 틱 뒤에 보인다)
     """
-    _f.CAD_RequestToggleProjection()
+    outOrtho = _c.c_bool()
+    _r = _f.CAD_GetProjection(_c.byref(outOrtho))
+    return (_r, outOrtho.value)
 
 
-def CAD_RequestToggleDemoLighting() -> None:
-    """C: void CAD_RequestToggleDemoLighting(void)
+def CAD_SetViewDirection(direction: CAD_GeVec3) -> int:
+    """C: CAD_Status CAD_SetViewDirection(CAD_GeVec3 direction)
+
+    임의 방향 시점 — 뷰큐브의 모서리(2면)·꼭짓점(3면)처럼. direction = 타겟에서 카메라 쪽 월드 방향(길이 무관, 0 = CAD_E_DEGENERATE).
+    예: (1,-1,1) = 앞·우·위 꼭짓점
     """
-    _f.CAD_RequestToggleDemoLighting()
+    return _f.CAD_SetViewDirection(direction)
 
 
-def CAD_RequestAdjustTextureScale(delta: float) -> None:
-    """C: void CAD_RequestAdjustTextureScale(float delta)
+def CAD_SetViewPivot(point: CAD_GeVec3, axis: int) -> int:
+    """C: CAD_Status CAD_SetViewPivot(CAD_GeVec3 point, int32_t axis)
+
+    화면 회전 피벗(viewucs) — 작업 평면 UCS 와 별개로 화면을 돌릴 때의 중심·축. axis -1 = 축 자유(피벗만), 0·1·2 = X·Y·Z 축 둘레 턴테이블
     """
-    _f.CAD_RequestAdjustTextureScale(delta)
+    return _f.CAD_SetViewPivot(point, axis)
 
 
-def CAD_RequestAdjustLineWidth(deltaPx: float) -> None:
-    """C: void CAD_RequestAdjustLineWidth(float deltaPx)
+def CAD_ClearViewPivot() -> int:
+    """C: CAD_Status CAD_ClearViewPivot(void)
+
+    화면 회전 피벗(viewucs) — 작업 평면 UCS 와 별개로 화면을 돌릴 때의 중심·축. axis -1 = 축 자유(피벗만), 0·1·2 = X·Y·Z 축 둘레 턴테이블
     """
-    _f.CAD_RequestAdjustLineWidth(deltaPx)
+    return _f.CAD_ClearViewPivot()
 
 
-def CAD_RequestSetView(viewType: int) -> None:
-    """C: void CAD_RequestSetView(int viewType)
+def CAD_GetViewPivot() -> tuple[int, CAD_GeVec3, int]:
+    """C: CAD_Status CAD_GetViewPivot(CAD_GeVec3* outPoint, int32_t* outAxis)
 
-    viewType: 0=Front 1=Top 2=Right 3=Isometric 4=Left 5=Bottom 6=Back
+    지금 피벗 — 없으면 CAD_E_NOT_FOUND. 출력은 NULL 가능
     """
-    _f.CAD_RequestSetView(viewType)
+    outPoint = CAD_GeVec3()
+    outAxis = _c.c_int32()
+    _r = _f.CAD_GetViewPivot(_c.byref(outPoint), _c.byref(outAxis))
+    return (_r, outPoint, outAxis.value)
 
 
-def CAD_RequestSetProjection(ortho: bool) -> None:
-    """C: void CAD_RequestSetProjection(bool ortho)
+def CAD_OrbitCamera(axis: CAD_GeVec3, angle: float) -> int:
+    """C: CAD_Status CAD_OrbitCamera(CAD_GeVec3 axis, double angle)
 
-    viewType: 0=Front 1=Top 2=Right 3=Isometric 4=Left 5=Bottom 6=Back
+    지금 궤도 중심 둘레로 axis 축 angle(rad, 오른손) 만큼 — 턴테이블 = (0,0,1). 바로 돈다
     """
-    _f.CAD_RequestSetProjection(ortho)
+    return _f.CAD_OrbitCamera(axis, angle)
 
 
-def CAD_RequestSetViewDirection(dirX: float, dirY: float, dirZ: float) -> None:
-    """C: void CAD_RequestSetViewDirection(float dirX, float dirY, float dirZ)
-
-    임의 방향 시점 — 뷰큐브의 모서리(2면)/꼭짓점(3면)처럼 표준 6뷰가 아닌 방향에서 보기.
-    dir = 타겟에서 카메라를 향하는 월드 방향(정규화 불필요). 예: (1,-1,1)=앞·우·위 꼭짓점.
+def CAD_SetSection(mode: int, axis: int, position: float, flip: bool, thickness: float) -> int:
+    """C: CAD_Status CAD_SetSection(int32_t mode, int32_t axis, double position, bool flip, double thickness)
     """
-    _f.CAD_RequestSetViewDirection(dirX, dirY, dirZ)
+    return _f.CAD_SetSection(mode, axis, position, flip, thickness)
 
 
-def CAD_RequestSetViewPivot(x: float, y: float, z: float, axis: int) -> None:
-    """C: void CAD_RequestSetViewPivot(float x, float y, float z, int axis)
+def CAD_SetSectionBox(min: CAD_GeVec3, max: CAD_GeVec3) -> int:
+    """C: CAD_Status CAD_SetSectionBox(CAD_GeVec3 min, CAD_GeVec3 max)
 
-    뷰 회전 피벗 (viewucs) — 작업평면 UCS 와 별개로, 화면을 돌릴 때의 중심/축을 지정한다.
-    axis: -1=축 자유(피벗만 고정), 0=X 축 고정, 1=Y, 2=Z (축 고정 시 그 축 기준 턴테이블 회전)
+    상자 값만(켜기는 CAD_SetSection(CAD_SECTION_BOX, …)), min < max
     """
-    _f.CAD_RequestSetViewPivot(x, y, z, axis)
+    return _f.CAD_SetSectionBox(min, max)
 
 
-def CAD_RequestClearViewPivot() -> None:
-    """C: void CAD_RequestClearViewPivot(void)
-
-    뷰 회전 피벗 (viewucs) — 작업평면 UCS 와 별개로, 화면을 돌릴 때의 중심/축을 지정한다.
-    axis: -1=축 자유(피벗만 고정), 0=X 축 고정, 1=Y, 2=Z (축 고정 시 그 축 기준 턴테이블 회전)
+def CAD_SetSectionOptions(showArrows: bool, selectedOnly: bool) -> int:
+    """C: CAD_Status CAD_SetSectionOptions(bool showArrows, bool selectedOnly)
     """
-    _f.CAD_RequestClearViewPivot()
-
-
-def CAD_GetViewPivot() -> tuple[float, float, float, int] | None:
-    """C: bool CAD_GetViewPivot(float* x, float* y, float* z, int* axis)
-
-    현재 피벗 조회 — 설정돼 있으면 true. out 인자는 null 허용.
-    """
-    x = _c.c_float()
-    y = _c.c_float()
-    z = _c.c_float()
-    axis = _c.c_int()
-    if not _f.CAD_GetViewPivot(_c.byref(x), _c.byref(y), _c.byref(z), _c.byref(axis)):
-        return None
-    return (x.value, y.value, z.value, axis.value)
-
-
-def CAD_SetSection(mode: int, axis: int, pos: float, flip: bool, thickness: float) -> bool:
-    """C: bool CAD_SetSection(int mode, int axis, float pos, bool flip, float thickness)
-
-    mode 0 끄기 1 평면(axis 위치 pos 보다 큰 쪽을 자름, flip 이면 반대) 2 슬라이스(pos 중심 thickness 두께만 남김) 3 상자(SetSectionBox).
-    axis 0 X 1 Y 2 Z. thickness 는 슬라이스에만(0 이하면 지금 값 유지). 틀린 값 false.
-    """
-    return _f.CAD_SetSection(mode, axis, pos, flip, thickness)
-
-
-def CAD_SetSectionBox(minX: float, minY: float, minZ: float, maxX: float, maxY: float, maxZ: float) -> bool:
-    """C: bool CAD_SetSectionBox(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
-
-    상자 값만(켜기는 SetSection(3,…))
-
-    묶음 주석: mode 0 끄기 1 평면(axis 위치 pos 보다 큰 쪽을 자름, flip 이면 반대) 2 슬라이스(pos 중심 thickness 두께만 남김) 3 상자(SetSectionBox).
-    axis 0 X 1 Y 2 Z. thickness 는 슬라이스에만(0 이하면 지금 값 유지). 틀린 값 false.
-    """
-    return _f.CAD_SetSectionBox(minX, minY, minZ, maxX, maxY, maxZ)
-
-
-def CAD_SetSectionOptions(showArrows: bool, selectedOnly: bool) -> None:
-    """C: void CAD_SetSectionOptions(bool showArrows, bool selectedOnly)
-
-    mode 0 끄기 1 평면(axis 위치 pos 보다 큰 쪽을 자름, flip 이면 반대) 2 슬라이스(pos 중심 thickness 두께만 남김) 3 상자(SetSectionBox).
-    axis 0 X 1 Y 2 Z. thickness 는 슬라이스에만(0 이하면 지금 값 유지). 틀린 값 false.
-    """
-    _f.CAD_SetSectionOptions(showArrows, selectedOnly)
+    return _f.CAD_SetSectionOptions(showArrows, selectedOnly)
 
 
 def CAD_GetSectionStateJson() -> str | None:
-    """C: int CAD_GetSectionStateJson(char* out, int cap)
+    """C: int32_t CAD_GetSectionStateJson(char* buf, uint32_t capacity)
 
     {"mode","modeName","axis","pos","flip","thickness","box":{"min","max"},"showArrows","selectedOnly","sceneBounds":{"min","max"}} — sceneBounds = 슬라이더 범위
     """
@@ -215,155 +198,185 @@ def CAD_GetSectionStateJson() -> str | None:
         return _n.decode(_buf.value)
 
 
-def CAD_ExtractSectionTo2D(includeBehind: bool) -> int:
-    """C: uint32_t CAD_ExtractSectionTo2D(bool includeBehind)
+def CAD_ExtractSectionTo2D(includeBehind: bool, outIds: Any, capacity: int) -> int:
+    """C: int32_t CAD_ExtractSectionTo2D(bool includeBehind, uint32_t* outIds, uint32_t capacity)
 
-    지금 평면 단면 → 2D 윤곽(편집 가능한 폴리선, includeBehind 면 뒤쪽 회색 참조선 1개 더)을 모델 오른쪽 XY 평면에. 반환 = 만든 객체 수, undo 1.
+    지금 평면 단면 → 2D 윤곽(편집 가능한 폴리선, includeBehind 면 뒤쪽 회색 참조선 하나 더)을 모델 오른쪽 XY 평면에. 되돌리기 1.
+    반환 = 만든 객체 수, outIds = 그 id(outIds = NULL·칸 모자람이면 아무것도 안 만들고 개수만). 평면 단면이 아니면 CAD_E_NOT_READY.
     """
-    return _f.CAD_ExtractSectionTo2D(includeBehind)
+    return _f.CAD_ExtractSectionTo2D(includeBehind, outIds, capacity)
 
 
-def CAD_SetViewportLayout(layout: int) -> None:
-    """C: void CAD_SetViewportLayout(int layout)
+def CAD_SetViewportLayout(layout: int) -> int:
+    """C: CAD_Status CAD_SetViewportLayout(int32_t layout)
 
-    layout: 0=Single(단일) 1=Dual(좌우) 2=Triple 3=Quad(2x2)
+    CAD_LAYOUT_*
     """
-    _f.CAD_SetViewportLayout(layout)
+    return _f.CAD_SetViewportLayout(layout)
 
 
 def CAD_GetViewportLayout() -> int:
-    """C: int CAD_GetViewportLayout(void)
+    """C: int32_t CAD_GetViewportLayout(void)
 
-    layout: 0=Single(단일) 1=Dual(좌우) 2=Triple 3=Quad(2x2)
+    CAD_LAYOUT_*, 음수 = 오류
     """
     return _f.CAD_GetViewportLayout()
 
 
-def CAD_SetActiveViewport(index: int) -> None:
-    """C: void CAD_SetActiveViewport(int index)
+def CAD_SetActiveViewport(index: int) -> int:
+    """C: CAD_Status CAD_SetActiveViewport(int32_t index)
 
-    활성(클릭) 뷰포트 칸 인덱스 0~3.
+    칸 번호 0 ~ (지금 칸 수 − 1)
     """
-    _f.CAD_SetActiveViewport(index)
+    return _f.CAD_SetActiveViewport(index)
 
 
 def CAD_GetActiveViewport() -> int:
-    """C: int CAD_GetActiveViewport(void)
-
-    활성(클릭) 뷰포트 칸 인덱스 0~3.
+    """C: int32_t CAD_GetActiveViewport(void)
     """
     return _f.CAD_GetActiveViewport()
 
 
-def CAD_SetGridEnabled(enabled: bool) -> None:
-    """C: void CAD_SetGridEnabled(bool enabled)
+def CAD_SetGridEnabled(enabled: bool) -> int:
+    """C: CAD_Status CAD_SetGridEnabled(bool enabled)
+
+    표시
     """
-    _f.CAD_SetGridEnabled(enabled)
+    return _f.CAD_SetGridEnabled(enabled)
 
 
-def CAD_SetDemoLighting(enabled: bool) -> None:
-    """C: void CAD_SetDemoLighting(bool enabled)
+def CAD_SetDemoLighting(enabled: bool) -> int:
+    """C: CAD_Status CAD_SetDemoLighting(bool enabled)
+
+    표시
     """
-    _f.CAD_SetDemoLighting(enabled)
+    return _f.CAD_SetDemoLighting(enabled)
 
 
-def CAD_SetVisualStyle(style: int) -> None:
-    """C: void CAD_SetVisualStyle(int style)
+def CAD_SetVisualStyle(style: int) -> int:
+    """C: CAD_Status CAD_SetVisualStyle(int32_t style)
 
-    style: 0=Shaded 1=ShadedEdge 2=Wireframe 3=WireframeEdge 4=HiddenLine
+    CAD_STYLE_*
     """
-    _f.CAD_SetVisualStyle(style)
+    return _f.CAD_SetVisualStyle(style)
 
 
-def CAD_SetSelectionStyle(style: int) -> None:
-    """C: void CAD_SetSelectionStyle(int style)
+def CAD_SetSelectionStyle(style: int) -> int:
+    """C: CAD_Status CAD_SetSelectionStyle(int32_t style)
 
-    선택 하이라이트 스타일: 0=Silhouette(JFA 외곽선), 1=Edge(feature edge 노란색, CAD 방식)
+    선택 강조 — 0 = 실루엣(JFA 외곽선), 1 = 모서리(노란 특징선, CAD 식)
     """
-    _f.CAD_SetSelectionStyle(style)
+    return _f.CAD_SetSelectionStyle(style)
 
 
 def CAD_GetSelectionStyle() -> int:
-    """C: int CAD_GetSelectionStyle(void)
+    """C: int32_t CAD_GetSelectionStyle(void)
 
-    선택 하이라이트 스타일: 0=Silhouette(JFA 외곽선), 1=Edge(feature edge 노란색, CAD 방식)
+    선택 강조 — 0 = 실루엣(JFA 외곽선), 1 = 모서리(노란 특징선, CAD 식)
     """
     return _f.CAD_GetSelectionStyle()
 
 
-def CAD_SetHoverHighlight(enabled: bool) -> None:
-    """C: void CAD_SetHoverHighlight(bool enabled)
+def CAD_SetSelectionLineWidth(width: float) -> int:
+    """C: CAD_Status CAD_SetSelectionLineWidth(double width)
 
-    호버 강조 — 마우스가 올라간 객체를 연한 하늘색 엣지로 표시(선택은 노란색).
-    기본 켬. 도면 작업 중 시선 분산이 싫거나 초대형 씬에서 부담될 때 끌 수 있다.
+    선택 표시 두께(px, 색은 노란색 고정 — CAD 관례)
     """
-    _f.CAD_SetHoverHighlight(enabled)
+    return _f.CAD_SetSelectionLineWidth(width)
 
 
-def CAD_GetHoverHighlight() -> bool:
-    """C: bool CAD_GetHoverHighlight(void)
+def CAD_SetHoverHighlight(enabled: bool) -> int:
+    """C: CAD_Status CAD_SetHoverHighlight(bool enabled)
 
-    호버 강조 — 마우스가 올라간 객체를 연한 하늘색 엣지로 표시(선택은 노란색).
-    기본 켬. 도면 작업 중 시선 분산이 싫거나 초대형 씬에서 부담될 때 끌 수 있다.
+    호버 강조 — 마우스가 올라간 객체를 연한 하늘색 모서리로(기본 켬)
     """
-    return _f.CAD_GetHoverHighlight()
+    return _f.CAD_SetHoverHighlight(enabled)
 
 
-def CAD_GetHoveredObject() -> int:
-    """C: unsigned int CAD_GetHoveredObject(void)
+def CAD_GetHoverHighlight() -> tuple[int, bool]:
+    """C: CAD_Status CAD_GetHoverHighlight(bool* outEnabled)
 
-    현재 커서 아래 객체 id (없으면 0). 호스트가 상태바·툴팁에 이름을 띄우는 용도.
+    호버 강조 — 마우스가 올라간 객체를 연한 하늘색 모서리로(기본 켬)
     """
-    return _f.CAD_GetHoveredObject()
+    outEnabled = _c.c_bool()
+    _r = _f.CAD_GetHoverHighlight(_c.byref(outEnabled))
+    return (_r, outEnabled.value)
 
 
-def CAD_SetHoverStyle(r: float, g: float, b: float, width: float) -> None:
-    """C: void CAD_SetHoverStyle(float r, float g, float b, float width)
+def CAD_SetHoverStyle(color: CAD_Color, width: float) -> int:
+    """C: CAD_Status CAD_SetHoverStyle(CAD_Color color, double width)
 
-    호버 표시 스타일 — 색(0~1) + 선 두께(px, 0.5~10 로 클램프).
-    ⚠️ 두께는 GPU 가 wide line 을 지원할 때만 반영된다(미지원 기기는 1px 고정).
+    호버 색·두께(px 0.5~10). ⚠️ 두께는 GPU 가 굵은 선을 받을 때만(못 받는 장치는 1px)
     """
-    _f.CAD_SetHoverStyle(r, g, b, width)
+    return _f.CAD_SetHoverStyle(color, width)
 
 
-def CAD_SetSelectionLineWidth(width: float) -> None:
-    """C: void CAD_SetSelectionLineWidth(float width)
+def CAD_GetHoveredObject() -> tuple[int, int]:
+    """C: CAD_Status CAD_GetHoveredObject(uint32_t* outId)
 
-    선택 표시 두께 (색은 노란색 고정 — CAD 관례).
+    지금 커서 아래 객체(없으면 0 — 오류 아님). 호스트가 상태바·툴팁에 이름을 띄울 때
     """
-    _f.CAD_SetSelectionLineWidth(width)
+    outId = _c.c_uint32()
+    _r = _f.CAD_GetHoveredObject(_c.byref(outId))
+    return (_r, outId.value)
 
 
-def CAD_SetCollisionEnabled(enabled: bool) -> None:
-    """C: void CAD_SetCollisionEnabled(bool enabled)
+def CAD_SetDimensionTextScreenFixed(enabled: bool) -> int:
+    """C: CAD_Status CAD_SetDimensionTextScreenFixed(bool enabled)
 
-    벽 충돌 (Walk / 캐릭터 모드). 끄면 벽을 통과한다.
-    ⚠️ 정적 지오메트리 대상의 캐릭터 충돌이지 물리엔진이 아니다 — 물체는 떨어지지 않는다.
+    치수 **글자**를 줌과 무관하게 화면에서 같은 크기로(기본 끔). 모바일 측정 도구용 — 도면 출력은 월드 크기여야 하니 데스크톱은 끔
     """
-    _f.CAD_SetCollisionEnabled(enabled)
+    return _f.CAD_SetDimensionTextScreenFixed(enabled)
 
 
-def CAD_GetCollisionEnabled() -> bool:
-    """C: bool CAD_GetCollisionEnabled(void)
+def CAD_GetDimensionTextScreenFixed() -> tuple[int, bool]:
+    """C: CAD_Status CAD_GetDimensionTextScreenFixed(bool* outEnabled)
 
-    벽 충돌 (Walk / 캐릭터 모드). 끄면 벽을 통과한다.
-    ⚠️ 정적 지오메트리 대상의 캐릭터 충돌이지 물리엔진이 아니다 — 물체는 떨어지지 않는다.
+    치수 **글자**를 줌과 무관하게 화면에서 같은 크기로(기본 끔). 모바일 측정 도구용 — 도면 출력은 월드 크기여야 하니 데스크톱은 끔
     """
-    return _f.CAD_GetCollisionEnabled()
+    outEnabled = _c.c_bool()
+    _r = _f.CAD_GetDimensionTextScreenFixed(_c.byref(outEnabled))
+    return (_r, outEnabled.value)
 
 
-def CAD_CaptureViewport(pathUtf8: str | None, clean: bool) -> bool:
-    """C: bool CAD_CaptureViewport(const char* pathUtf8, bool clean)
+def CAD_AdjustTextureScale(delta: float) -> int:
+    """C: CAD_Status CAD_AdjustTextureScale(double delta)
 
-    화면 캡처 → PNG(창 전체). clean = 그리드·뷰큐브 없이. 한 프레임 그려 파일이 생겼는지까지 확인하고 돌아온다
-    (엔진 틱 안 — 플러그인 콜백 등 — 에서 불리면 요청만 남기고 다음 프레임에 찍는다, true = 요청됨). AI 가 결과를 눈으로 볼 때.
+    고른 객체의 텍스처 축척을 delta 만큼 · 선 두께(px)를 deltaPx 만큼 늘리고 줄이기
+    """
+    return _f.CAD_AdjustTextureScale(delta)
+
+
+def CAD_AdjustLineWidth(deltaPx: float) -> int:
+    """C: CAD_Status CAD_AdjustLineWidth(double deltaPx)
+
+    고른 객체의 텍스처 축척을 delta 만큼 · 선 두께(px)를 deltaPx 만큼 늘리고 줄이기
+    """
+    return _f.CAD_AdjustLineWidth(deltaPx)
+
+
+def CAD_SetCollisionEnabled(enabled: bool) -> int:
+    """C: CAD_Status CAD_SetCollisionEnabled(bool enabled)
+
+    벽 충돌(걷기·캐릭터 모드) — 끄면 벽을 지나간다. ⚠️ 정적 형상 대상의 캐릭터 충돌이지 물리 엔진이 아니다
+    """
+    return _f.CAD_SetCollisionEnabled(enabled)
+
+
+def CAD_GetCollisionEnabled() -> tuple[int, bool]:
+    """C: CAD_Status CAD_GetCollisionEnabled(bool* outEnabled)
+
+    벽 충돌(걷기·캐릭터 모드) — 끄면 벽을 지나간다. ⚠️ 정적 형상 대상의 캐릭터 충돌이지 물리 엔진이 아니다
+    """
+    outEnabled = _c.c_bool()
+    _r = _f.CAD_GetCollisionEnabled(_c.byref(outEnabled))
+    return (_r, outEnabled.value)
+
+
+def CAD_CaptureViewport(pathUtf8: str | None, clean: bool) -> int:
+    """C: CAD_Status CAD_CaptureViewport(const char* pathUtf8, bool clean)
+
+    화면 캡처 → PNG(창 전체, 경로 UTF-8). clean = 격자·뷰큐브 없이. 한 프레임 그려 파일이 생겼는지까지 보고 돌아온다
+    (엔진 틱 안 — 플러그인 콜백 등 — 에서 불리면 요청만 남기고 다음 프레임에 찍는다, CAD_OK = 맡김). 못 찍으면 CAD_E_FAILED.
     """
     return _f.CAD_CaptureViewport(_n.text(pathUtf8), clean)
-
-
-def CAD_OrbitCamera(ax: float, ay: float, az: float, angleDeg: float) -> None:
-    """C: void CAD_OrbitCamera(float ax, float ay, float az, float angleDeg)
-
-    카메라 — 지금 궤도 중심 둘레로 (ax,ay,az) 축 angleDeg 만큼 돌리기. 턴테이블 = (0,0,1).
-    """
-    _f.CAD_OrbitCamera(ax, ay, az, angleDeg)

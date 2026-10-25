@@ -78,9 +78,12 @@ namespace LotCadWpf
         [DllImport(DLL)] public static extern void CAD_RequestSelectAll();
         [DllImport(DLL)] public static extern void CAD_RequestDeleteSelected();
         [DllImport(DLL)] public static extern void CAD_RequestClearAll();
-        [DllImport(DLL)] public static extern void CAD_RequestZoomExtents();
-        [DllImport(DLL)] public static extern void CAD_RequestSetView(int viewType);   // 0=Front 1=Top 2=Right 3=Iso
-        [DllImport(DLL)] public static extern void CAD_RequestToggleProjection();
+        // 보기 — 반환 0 = CAD_OK(카메라는 다음 틱에 움직인다)
+        [DllImport(DLL)] public static extern int CAD_ZoomExtents();
+        [DllImport(DLL)] public static extern int CAD_SetView(int viewType);   // 0=Front 1=Top 2=Right 3=Iso
+        [DllImport(DLL)] public static extern int CAD_SetProjection([MarshalAs(UnmanagedType.I1)] bool ortho);
+        [DllImport(DLL)] public static extern int CAD_GetProjection([MarshalAs(UnmanagedType.I1)] out bool ortho);
+        public static void ToggleProjection() { if (CAD_GetProjection(out bool ortho) == 0) CAD_SetProjection(!ortho); }
         [DllImport(DLL)] public static extern void CAD_Undo();
         [DllImport(DLL)] public static extern void CAD_Redo();
 

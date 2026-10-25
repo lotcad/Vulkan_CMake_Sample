@@ -36,10 +36,13 @@ protected:
         toggle("반대쪽 자르기", [this] { return flip_; }, [this](bool on) { flip_ = on; apply(); });
         toggle("단면 화살표", [this] { return arrows_; }, [this](bool on) { arrows_ = on; CAD_SetSectionOptions(arrows_, false); });
         button("2D 윤곽 뽑기", [this] {
-            const uint32_t n = CAD_ExtractSectionTo2D(true);
-            note_ = n ? fmt("2D 윤곽 %u개 — 모델 오른쪽 XY 평면", n) : "실패: " + lastError();
+            // 새 객체를 주는 함수 = 개수를 묻고(아무것도 안 만듦) 그만큼 칸을 줘서 만든다
+            const int32_t want = CAD_ExtractSectionTo2D(true, nullptr, 0);
+            std::vector<uint32_t> ids(want > 0 ? static_cast<size_t>(want) : 0);
+            const int32_t n = want > 0 ? CAD_ExtractSectionTo2D(true, ids.data(), static_cast<uint32_t>(ids.size())) : want;
+            note_ = n > 0 ? fmt("2D 윤곽 %d개 — 모델 오른쪽 XY 평면", n) : "실패: " + lastError();
             // 윤곽은 모델 오른쪽에 놓인다 — 단면을 켜 둔 채면 그쪽이 잘려 안 보인다
-            if (n) { sectionOff(); CAD_RequestSetView(1); CAD_RequestZoomExtents(); }
+            if (n > 0) { sectionOff(); CAD_SetView(CAD_VIEW_TOP); CAD_ZoomExtents(); }
         }, [this] { return mode_ == 1; });
 
         header("도면 뷰 (CAD_CreateDrawingViews)");
@@ -47,16 +50,16 @@ protected:
             sectionOff();   // 도면 뷰는 모델 옆에 놓인다 — 실시간 단면이 그쪽을 자르지 않게 끈다
             const uint32_t n = CAD_CreateDrawingViews(nullptr, 0, 1.0f);
             note_ = n ? fmt("도면 뷰 %u개 (정면·평면·우측면·등각)", n) : "실패: " + lastError();
-            CAD_RequestSetView(1);   // 도면은 XY 평면 — 위에서 본다
-            CAD_RequestZoomExtents();
+            CAD_SetView(1);   // 도면은 XY 평면 — 위에서 본다
+            CAD_ZoomExtents();
         });
         button("단면도 A-A", [this] { sectionView(); }, [this] { return hasViews(); });
         button("상세도", [this] { detailView(); }, [this] { return hasViews(); });
         button("도면 뷰 지우기", [this] {
             CAD_ClearDrawingViews();
             note_ = "도면 뷰를 지웠습니다";
-            CAD_RequestSetView(3);
-            CAD_RequestZoomExtents();
+            CAD_SetView(3);
+            CAD_ZoomExtents();
         }, [this] { return hasViews(); });
         label("결과", [this] { return note_.empty() ? std::string("—") : note_; });
     }
@@ -82,8 +85,8 @@ private:
         thick_ = span(0) * 0.15f;
         flip_ = false;
         apply();
-        CAD_RequestSetView(3);
-        CAD_RequestZoomExtents();
+        CAD_SetView(3);
+        CAD_ZoomExtents();
     }
 
     // 장면 범위 = 슬라이더 범위 (단면 상태 JSON 의 sceneBounds)
@@ -102,9 +105,9 @@ private:
             // 상자 = 장면 범위의 가운데 70% (안쪽만 남긴다)
             float a[3], b[3];
             for (int i = 0; i < 3; ++i) { const float m = (bmax_[i] - bmin_[i]) * 0.15f; a[i] = bmin_[i] + m; b[i] = bmax_[i] - m; }
-            CAD_SetSectionBox(a[0], a[1], a[2], b[0], b[1], b[2]);
+            CAD_SetSectionBox(CAD_GeVec3{a[0], a[1], a[2]}, CAD_GeVec3{b[0], b[1], b[2]});
         }
-        if (!CAD_SetSection(mode_, axis_, pos_, flip_, thick_)) note_ = "단면 실패: " + lastError();
+        if (CAD_SetSection(mode_, axis_, pos_, flip_, thick_) != CAD_OK) note_ = "단면 실패: " + lastError();
     }
 
     std::string views() const { return readString([](char* o, int c) { return CAD_GetDrawingViewsJson(o, c); }); }
@@ -129,7 +132,7 @@ private:
         const uint32_t v = CAD_CreateSectionView(static_cast<float>(x0 - pad), static_cast<float>(y),
                                                  static_cast<float>(x1 + pad), static_cast<float>(y));
         note_ = v ? "단면도 A-A 를 만들었습니다" : "실패: " + lastError();
-        CAD_RequestZoomExtents();
+        CAD_ZoomExtents();
     }
 
     void detailView() {
@@ -139,7 +142,7 @@ private:
         const uint32_t v = CAD_CreateDetailView(static_cast<float>((x0 + x1) * 0.5), static_cast<float>((y0 + y1) * 0.5),
                                                 static_cast<float>(r), 2.0f);
         note_ = v ? "상세도(2배)를 만들었습니다" : "실패: " + lastError();
-        CAD_RequestZoomExtents();
+        CAD_ZoomExtents();
     }
 
     void sectionOff() { mode_ = 0; apply(); rebuild(); }

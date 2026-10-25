@@ -138,7 +138,7 @@ final class LotCADEngine {
             ],
             closed: false)
 
-        CAD_RequestZoomExtents()
+        CAD_ZoomExtents()
     }
 
     @discardableResult
@@ -236,11 +236,11 @@ final class LotCADEngine {
     func removeMaterial() { guard isCreated else { return }; CAD_RequestRemoveMaterial() }
     func adjustTextureScale(_ delta: Float) {
         guard isCreated else { return }
-        CAD_RequestAdjustTextureScale(delta)
+        CAD_AdjustTextureScale(delta)
     }
     func adjustLineWidth(_ deltaPx: Float) {
         guard isCreated else { return }
-        CAD_RequestAdjustLineWidth(deltaPx)
+        CAD_AdjustLineWidth(deltaPx)
     }
     // 옮기기·돌리기·축척·복사·색 — C API 는 대상 id 를 받는다(CAD_Entity*). 돌리기·축척 기준점 = 고른 것 전체 경계 상자 가운데
     private func offset(_ direction: CADPoint, _ distance: Float) -> CAD_GeVec3? {
@@ -351,11 +351,15 @@ final class LotCADEngine {
     // ── 뷰 ──
     // viewType: 0=Front 1=Top 2=Right 3=Isometric 4=Left 5=Bottom 6=Back
     enum ViewType: Int32 { case front = 0, top, right, isometric, left, bottom, back }
-    func zoomExtents()   { guard isCreated else { return }; CAD_RequestZoomExtents() }
-    func focusSelected() { guard isCreated else { return }; CAD_RequestFocusSelected() }
-    func setView(_ view: ViewType) { guard isCreated else { return }; CAD_RequestSetView(view.rawValue) }
-    func toggleProjection()      { guard isCreated else { return }; CAD_RequestToggleProjection() }
-    func setProjection(ortho: Bool) { guard isCreated else { return }; CAD_RequestSetProjection(ortho) }
+    func zoomExtents()   { guard isCreated else { return }; CAD_ZoomExtents() }
+    func focusSelected() { guard isCreated else { return }; CAD_FocusSelected() }
+    func setView(_ view: ViewType) { guard isCreated else { return }; CAD_SetView(view.rawValue) }
+    func toggleProjection() {
+        guard isCreated else { return }
+        var ortho = false
+        if CAD_GetProjection(&ortho) == 0 { _ = CAD_SetProjection(!ortho) }   // 0 = CAD_OK
+    }
+    func setProjection(ortho: Bool) { guard isCreated else { return }; CAD_SetProjection(ortho) }
     // layout: 0=Single 1=Dual 2=Triple 3=Quad
     func setViewportLayout(_ layout: Int32) { guard isCreated else { return }; CAD_SetViewportLayout(layout) }
     var viewportLayout: Int32 { isCreated ? CAD_GetViewportLayout() : 0 }

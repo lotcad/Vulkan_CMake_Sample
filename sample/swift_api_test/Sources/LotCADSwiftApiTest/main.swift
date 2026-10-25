@@ -44,7 +44,7 @@ CAD_SetPosition(boxId, CAD_GeVec3(x: 1.0, y: 0.0, z: 1.5))
 CAD_SetScale(boxId, CAD_GeVec3(x: 0.8, y: 0.8, z: 0.8))
 CAD_SetRotationAxisAngle(boxId, CAD_GeVec3(x: 0.0, y: 0.0, z: 1.0), 0.7853982)
 CAD_SelectObject(boxId, false)
-CAD_RequestZoomExtents()
+CAD_ZoomExtents()
 
 var p = CAD_GeVec3()
 if CAD_GetPosition(boxId, &p) == 0 {

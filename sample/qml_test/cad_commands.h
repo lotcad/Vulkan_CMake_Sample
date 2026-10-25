@@ -25,10 +25,10 @@ public:
     Q_INVOKABLE void selectAll()      { CAD_RequestSelectAll(); }
     Q_INVOKABLE void deleteSelected() { CAD_RequestDeleteSelected(); }
     Q_INVOKABLE void clearAll()       { CAD_RequestClearAll(); }
-    Q_INVOKABLE void zoomExtents()    { CAD_RequestZoomExtents(); }
-    Q_INVOKABLE void focusSelected()  { CAD_RequestFocusSelected(); }
-    Q_INVOKABLE void toggleProjection(){ CAD_RequestToggleProjection(); }
-    Q_INVOKABLE void setView(int v)   { CAD_RequestSetView(v); }   // 0정면 1평면 2우측 3Iso
+    Q_INVOKABLE void zoomExtents()    { CAD_ZoomExtents(); }
+    Q_INVOKABLE void focusSelected()  { CAD_FocusSelected(); }
+    Q_INVOKABLE void toggleProjection(){ bool ortho = false; if (CAD_GetProjection(&ortho) == CAD_OK) CAD_SetProjection(!ortho); }
+    Q_INVOKABLE void setView(int v)   { CAD_SetView(v); }   // 0정면 1평면 2우측 3Iso
     Q_INVOKABLE void undo()           { CAD_Undo(); }
     Q_INVOKABLE void redo()           { CAD_Redo(); }
 

@@ -16,30 +16,34 @@
 
 namespace cadjson {
 
-// int fn(char* out, int cap) 꼴 API 를 읽어 바이트열로. 실패/빈 결과면 빈 QByteArray.
-inline QByteArray readBytes(int (*fn)(char*, int)) {
-    const int need = fn(nullptr, 0);
+// fn(char* out, 칸) 꼴 API 를 읽어 바이트열로. 실패/빈 결과면 빈 QByteArray.
+// 칸 형은 함수마다 다르다(새 규칙 uint32_t · 옛 함수 int) — 템플릿으로 둘 다 받는다.
+template <class R, class Cap>
+QByteArray readBytes(R (*fn)(char*, Cap)) {
+    const int need = int(fn(nullptr, Cap(0)));
     if (need > 0) {
         QByteArray buf(need + 1, '\0');          // +1 = 널 종료 여유
-        const int n = fn(buf.data(), int(buf.size()));
+        const int n = int(fn(buf.data(), Cap(buf.size())));
         if (n <= 0) return {};
         buf.resize(qMin(n, int(buf.size())));
         return buf;
     }
     // 길이 질의를 지원하지 않는(0 을 주는) 함수가 섞여 있어도 쓸 수 있게 한 번 더 시도한다.
     QByteArray buf(64 * 1024, '\0');
-    const int n = fn(buf.data(), int(buf.size()));
+    const int n = int(fn(buf.data(), Cap(buf.size())));
     if (n <= 0) return {};
     buf.resize(qMin(n, int(buf.size())));
     return buf;
 }
 
-inline QJsonObject readObject(int (*fn)(char*, int)) {
+template <class R, class Cap>
+QJsonObject readObject(R (*fn)(char*, Cap)) {
     return QJsonDocument::fromJson(readBytes(fn)).object();
 }
 
 // 배열 JSON → QML model 로 바로 쓸 수 있는 QVariantList (원소는 QVariantMap).
-inline QVariantList readArray(int (*fn)(char*, int)) {
+template <class R, class Cap>
+QVariantList readArray(R (*fn)(char*, Cap)) {
     return QJsonDocument::fromJson(readBytes(fn)).array().toVariantList();
 }
 

@@ -15,6 +15,7 @@
 
 #include <cstdlib>
 #include <memory>
+#include <vector>
 
 namespace {
 	// ── 아주 작은 JSON 읽기 ──
@@ -149,7 +150,7 @@ void CLotCADMFCDlg::OpenSectionPanel()
 			}
 			lo[a] = st->min[a];
 			hi[a] = (std::max)(st->pos, lo[a] + st->Extent() * 0.01f);
-			CAD_SetSectionBox(lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]);
+			CAD_SetSectionBox(CAD_GeVec3{lo[0], lo[1], lo[2]}, CAD_GeVec3{hi[0], hi[1], hi[2]});
 		}
 		CAD_SetSection(st->mode, a, st->pos, st->flip, st->Extent() * st->thickPct / 100);
 	};
@@ -190,9 +191,12 @@ void CLotCADMFCDlg::OpenSectionPanel()
 
 	p.AddSection(L"단면으로 하기");
 	p.AddButton(L"단면 → 2D 윤곽 (폴리선)", [this] {
-		const uint32_t n = CAD_ExtractSectionTo2D(true);   // true = 뒤쪽 회색 참조선도
-		m_panel.SetStatus(n ? L"2D 윤곽 " + std::to_wstring(n) + L"개를 모델 오른쪽 XY 평면에 만들었습니다"
-		                    : L"만든 윤곽 없음 — 방식이 '평면' 이고 솔리드를 지나야 합니다\n" + CadLastError());
+		// 새 객체를 주는 함수 = 개수를 묻고(아무것도 안 만듦) 그만큼 칸을 줘서 만든다. true = 뒤쪽 회색 참조선도
+		const int32_t want = CAD_ExtractSectionTo2D(true, nullptr, 0);
+		std::vector<uint32_t> ids(want > 0 ? static_cast<size_t>(want) : 0);
+		const int32_t n = want > 0 ? CAD_ExtractSectionTo2D(true, ids.data(), static_cast<uint32_t>(ids.size())) : want;
+		m_panel.SetStatus(n > 0 ? L"2D 윤곽 " + std::to_wstring(n) + L"개를 모델 오른쪽 XY 평면에 만들었습니다"
+		                        : L"만든 윤곽 없음 — 방식이 '평면' 이고 솔리드를 지나야 합니다\n" + CadLastError());
 	});
 	p.AddButton(L"슬라이스 — 단면으로 솔리드를 둘로", [] { CAD_ExecuteCommand("sl"); });
 	p.AddButton(L"범위 다시 읽기 (장면을 바꾼 뒤)", [this, readBounds, boundsText] {

@@ -57,11 +57,11 @@ namespace LotCadWpf
         void OnClearAll(object s, RoutedEventArgs e)   => CadApi.CAD_RequestClearAll();
         void OnUndo(object s, RoutedEventArgs e)       => CadApi.CAD_Undo();
         void OnRedo(object s, RoutedEventArgs e)       => CadApi.CAD_Redo();
-        void OnViewFront(object s, RoutedEventArgs e)  => CadApi.CAD_RequestSetView(0);
-        void OnViewTop(object s, RoutedEventArgs e)    => CadApi.CAD_RequestSetView(1);
-        void OnViewIso(object s, RoutedEventArgs e)    => CadApi.CAD_RequestSetView(3);
-        void OnZoom(object s, RoutedEventArgs e)       => CadApi.CAD_RequestZoomExtents();
-        void OnToggleProj(object s, RoutedEventArgs e) => CadApi.CAD_RequestToggleProjection();
+        void OnViewFront(object s, RoutedEventArgs e)  => CadApi.CAD_SetView(0);
+        void OnViewTop(object s, RoutedEventArgs e)    => CadApi.CAD_SetView(1);
+        void OnViewIso(object s, RoutedEventArgs e)    => CadApi.CAD_SetView(3);
+        void OnZoom(object s, RoutedEventArgs e)       => CadApi.CAD_ZoomExtents();
+        void OnToggleProj(object s, RoutedEventArgs e) => CadApi.ToggleProjection();
 
         // ── 해석 — 오른쪽 패널의 그 페이지를 연다 ──
         void OnWindTunnel(object s, RoutedEventArgs e) => Analysis.ShowPage(0);

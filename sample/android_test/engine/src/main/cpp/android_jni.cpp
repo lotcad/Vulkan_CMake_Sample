@@ -144,8 +144,8 @@ JNI(void, nativeCreateBox)(JNIEnv*, jobject)    { uint32_t id = 0; CAD_CreateBox
 JNI(void, nativeSelectAll)(JNIEnv*, jobject)    { CAD_RequestSelectAll(); }
 JNI(void, nativeDeleteSelected)(JNIEnv*, jobject){ CAD_RequestDeleteSelected(); }
 JNI(void, nativeClearAll)(JNIEnv*, jobject)     { CAD_RequestClearAll(); }
-JNI(void, nativeZoomExtents)(JNIEnv*, jobject)  { CAD_RequestZoomExtents(); }
-JNI(void, nativeSetView)(JNIEnv*, jobject, jint v) { CAD_RequestSetView(v); }
+JNI(void, nativeZoomExtents)(JNIEnv*, jobject)  { CAD_ZoomExtents(); }
+JNI(void, nativeSetView)(JNIEnv*, jobject, jint v) { CAD_SetView(v); }
 JNI(void, nativeUndo)(JNIEnv*, jobject)         { CAD_Undo(); }
 JNI(void, nativeRedo)(JNIEnv*, jobject)         { CAD_Redo(); }
 JNI(jint, nativeObjectCount)(JNIEnv*, jobject)  { return static_cast<jint>(CAD_GetObjectCount()); }

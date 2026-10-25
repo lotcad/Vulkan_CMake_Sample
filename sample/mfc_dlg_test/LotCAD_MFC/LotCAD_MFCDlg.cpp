@@ -195,7 +195,7 @@ BOOL CLotCADMFCDlg::OnInitDialog()
 	m_view.AttachEngine();   // CAD_AttachView + CAD_CreateEngine + timer
 
 	// 상태바가 보여 주는 값과 엔진을 처음에 한 번 맞춘다 (SDK 에 읽는 함수가 없어 호스트 값이 기준).
-	CAD_RequestSetProjection(m_ortho);
+	CAD_SetProjection(m_ortho);
 	CAD_SetGridEnabled(m_gridOn);
 	CAD_SetVisualStyle(m_visualStyle);
 
@@ -372,7 +372,7 @@ void CLotCADMFCDlg::OnCadOpen()
 
 	CString path;
 	if (!PickPath(false, kFilter, path)) return;
-	if (CAD_OpenFile(Utf8Path(path).buf)) CAD_RequestZoomExtents();  // 연 것이 화면 밖일 수 있다
+	if (CAD_OpenFile(Utf8Path(path).buf)) CAD_ZoomExtents();  // 연 것이 화면 밖일 수 있다
 	else                                  ReportFailure(_T("열기 실패"));
 }
 
@@ -410,11 +410,11 @@ void CLotCADMFCDlg::OnCadDelete()    { CAD_RequestDeleteSelected(); }
 void CLotCADMFCDlg::OnCadClearAll()  { CAD_RequestClearAll(); }
 
 // ── 보기 ────────────────────────────────────────────────────────────────
-void CLotCADMFCDlg::OnCadZoom()  { CAD_RequestZoomExtents(); }
-void CLotCADMFCDlg::OnCadIso()   { CAD_RequestSetView(3); }  // 0=Front 1=Top 2=Right 3=Iso
-void CLotCADMFCDlg::OnCadTop()   { CAD_RequestSetView(1); }
-void CLotCADMFCDlg::OnCadFront() { CAD_RequestSetView(0); }
-void CLotCADMFCDlg::OnCadRight() { CAD_RequestSetView(2); }
+void CLotCADMFCDlg::OnCadZoom()  { CAD_ZoomExtents(); }
+void CLotCADMFCDlg::OnCadIso()   { CAD_SetView(3); }  // 0=Front 1=Top 2=Right 3=Iso
+void CLotCADMFCDlg::OnCadTop()   { CAD_SetView(1); }
+void CLotCADMFCDlg::OnCadFront() { CAD_SetView(0); }
+void CLotCADMFCDlg::OnCadRight() { CAD_SetView(2); }
 
 void CLotCADMFCDlg::OnCadProjection() { SetOrtho(!m_ortho); }
 
@@ -423,7 +423,7 @@ void CLotCADMFCDlg::OnCadProjection() { SetOrtho(!m_ortho); }
 void CLotCADMFCDlg::SetOrtho(bool ortho)
 {
 	m_ortho = ortho;
-	CAD_RequestSetProjection(ortho);   // true=직교(Ortho) false=원근(Persp)
+	CAD_SetProjection(ortho);   // true=직교(Ortho) false=원근(Persp)
 	m_ribbon.Invalidate(FALSE);
 	m_statusBar.Refresh();
 }
