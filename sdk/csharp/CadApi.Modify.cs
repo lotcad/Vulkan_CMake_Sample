@@ -8,67 +8,29 @@ namespace LotCAD
 {
     public static partial class CadApi
     {
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestMoveSelected(float dirX, float dirY, float dirZ, float distance);
+        public const int CAD_LENGTHEN_DELTA = 0;
+        public const int CAD_LENGTHEN_PERCENT = 1;
+        public const int CAD_LENGTHEN_TOTAL = 2;
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestRotateSelected(float axisX, float axisY, float axisZ, float angleDeg);
+        public static extern int CAD_StretchWindowXY(CAD_GeVec3 corner1, CAD_GeVec3 corner2, CAD_GeVec3 offset);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestScaleSelected(float factor);
+        public static extern int CAD_Lengthen(uint id, int mode, double value, [MarshalAs(UnmanagedType.I1)] bool atStart);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestCopySelected(float dirX, float dirY, float dirZ, float distance, int count);
+        public static extern int CAD_BreakObject(uint id, CAD_GeVec3 point1, CAD_GeVec3 point2, uint[] outIds, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern void CAD_RequestColorSelected(float r, float g, float b);
+        public static extern int CAD_Align3D(uint[] ids, uint count, CAD_GeVec3[] source, CAD_GeVec3[] target, uint pairs);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_Explode([MarshalAs(UnmanagedType.I1)] bool keepOriginal);
+        public static extern int CAD_Offset(uint[] ids, uint count, double distance, CAD_GeVec3 sidePoint, uint[] outIds, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_ArrayRect(int cols, int rows, float dx, float dy);
+        public static extern int CAD_Trim(uint id, CAD_GeVec3 pickPoint, uint[] boundaryIds, uint boundaryCount, CAD_GeVec3 planeNormal, uint[] outIds, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_ArrayPolar(int count, float angleDeg, float centerX, float centerY, float centerZ, [MarshalAs(UnmanagedType.I1)] bool rotateItems);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_StretchWindowXY(float minX, float minY, float maxX, float maxY, float dx, float dy, float dz);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_Lengthen(uint id, int mode, float value, [MarshalAs(UnmanagedType.I1)] bool atStart);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_BreakObject(uint id, float x1, float y1, float z1, float x2, float y2, float z2);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_Array3DRect(int cols, int rows, int levels, float dx, float dy, float dz);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_Array3DPolar(int count, float angleDeg, float ax, float ay, float az, float bx, float by, float bz, [MarshalAs(UnmanagedType.I1)] bool rotateItems);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_Align3D(uint[] ids, uint count, float[] srcXYZ, float[] dstXYZ, int pairs);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_Offset(uint[] ids, uint count, float distance, float sx, float sy, float sz, uint[] outIds, uint outCapacity);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern uint CAD_Mirror(uint[] ids, uint count, float x1, float y1, float z1, float x2, float y2, float z2, float nx, float ny, float nz, [MarshalAs(UnmanagedType.I1)] bool deleteOriginals, uint[] outIds, uint outCapacity);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_Trim(uint id, float px, float py, float pz, uint[] boundaryIds, uint boundaryCount, float nx, float ny, float nz);
-
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool CAD_Extend(uint id, float px, float py, float pz, uint[] boundaryIds, uint boundaryCount, float nx, float ny, float nz);
+        public static extern int CAD_Extend(uint id, CAD_GeVec3 pickPoint, uint[] boundaryIds, uint boundaryCount, CAD_GeVec3 planeNormal, uint[] outIds, uint capacity);
     }
 }

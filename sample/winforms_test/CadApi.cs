@@ -90,12 +90,7 @@ namespace LotCadWinForms
         [DllImport(DLL)] public static extern bool CAD_SaveAs(byte[] pathUtf8, bool selectedOnly);
         [DllImport(DLL)] public static extern bool CAD_OpenFile(byte[] pathUtf8);
 
-        // ── 편집 명령 (전부 현재 선택에 적용, 각각 undo 1스텝) ──
-        [DllImport(DLL)] public static extern bool CAD_Explode(bool keepOriginal);
-        [DllImport(DLL)] public static extern bool CAD_ArrayRect(int cols, int rows, float dx, float dy);
-        [DllImport(DLL)] public static extern bool CAD_ArrayPolar(int count, float angleDeg,
-                                                                 float centerX, float centerY, float centerZ,
-                                                                 bool rotateItems);
+        // ── 편집 명령 — 분해·배열·대칭은 대상 id 를 받는 CAD_EntityExplode·CAD_EntityArrayRect/Polar·CAD_EntityMirror(sdk/csharp 바인딩) ──
 
         // ── 조회 ──
         [DllImport(DLL)] public static extern int CAD_GetObjectCount();        // 음수 = 이유 코드

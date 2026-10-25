@@ -242,25 +242,52 @@ final class LotCADEngine {
         guard isCreated else { return }
         CAD_RequestAdjustLineWidth(deltaPx)
     }
+    // 옮기기·돌리기·축척·복사·색 — C API 는 대상 id 를 받는다(CAD_Entity*). 돌리기·축척 기준점 = 고른 것 전체 경계 상자 가운데
+    private func offset(_ direction: CADPoint, _ distance: Float) -> CAD_GeVec3? {
+        let len = (direction.x * direction.x + direction.y * direction.y + direction.z * direction.z).squareRoot()
+        guard len > 1e-9 else { return nil }
+        let s = Double(distance / len)
+        return CAD_GeVec3(x: Double(direction.x) * s, y: Double(direction.y) * s, z: Double(direction.z) * s)
+    }
+    private func selectionCenter(_ ids: [UInt32]) -> CAD_GeVec3? {
+        var lo = CAD_GeVec3(x: .infinity, y: .infinity, z: .infinity), hi = CAD_GeVec3(x: -.infinity, y: -.infinity, z: -.infinity)
+        for id in ids {
+            var a = CAD_GeVec3(), b = CAD_GeVec3()
+            guard CAD_EntityGetExtents(id, &a, &b) == 0 else { continue }   // 0 = CAD_OK
+            lo = CAD_GeVec3(x: min(lo.x, a.x), y: min(lo.y, a.y), z: min(lo.z, a.z))
+            hi = CAD_GeVec3(x: max(hi.x, b.x), y: max(hi.y, b.y), z: max(hi.z, b.z))
+        }
+        guard lo.x <= hi.x else { return nil }
+        return CAD_GeVec3(x: (lo.x + hi.x) / 2, y: (lo.y + hi.y) / 2, z: (lo.z + hi.z) / 2)
+    }
     func moveSelected(direction: CADPoint, distance: Float) {
-        guard isCreated else { return }
-        CAD_RequestMoveSelected(direction.x, direction.y, direction.z, distance)
+        guard isCreated, let d = offset(direction, distance) else { return }
+        let ids = selectedIds
+        _ = CAD_EntityMove(ids, UInt32(ids.count), d)
     }
     func rotateSelected(axis: CADPoint, angleDegrees: Float) {
         guard isCreated else { return }
-        CAD_RequestRotateSelected(axis.x, axis.y, axis.z, angleDegrees)
+        let ids = selectedIds
+        guard let c = selectionCenter(ids) else { return }
+        let a = CAD_GeVec3(x: Double(axis.x), y: Double(axis.y), z: Double(axis.z))
+        _ = CAD_EntityRotate(ids, UInt32(ids.count), c, a, Double(angleDegrees) * .pi / 180)   // 각 = rad
     }
     func scaleSelected(factor: Float) {
-        guard isCreated else { return }
-        CAD_RequestScaleSelected(factor)
+        guard isCreated, factor > 0 else { return }
+        let ids = selectedIds
+        guard let c = selectionCenter(ids) else { return }
+        _ = CAD_EntityScale(ids, UInt32(ids.count), c, Double(factor))
     }
     func copySelected(direction: CADPoint, distance: Float, count: Int32) {
-        guard isCreated else { return }
-        CAD_RequestCopySelected(direction.x, direction.y, direction.z, distance, count)
+        guard isCreated, count > 0, let d = offset(direction, distance) else { return }
+        let ids = selectedIds
+        let zero = CAD_GeVec3()
+        var made = [UInt32](repeating: 0, count: ids.count * Int(count))   // 사본 = count × 고른 수
+        _ = CAD_EntityArrayRect(ids, UInt32(ids.count), UInt32(count) + 1, 1, 1, d, zero, zero, &made, UInt32(made.count))
     }
     func colorSelected(_ color: CADPoint) {
         guard isCreated else { return }
-        CAD_RequestColorSelected(color.x, color.y, color.z)
+        for id in selectedIds { _ = CAD_SetColor(id, CAD_Color(r: Double(color.x), g: Double(color.y), b: Double(color.z))) }
     }
 
     // ── 편집 / 선택 ──
@@ -312,7 +339,14 @@ final class LotCADEngine {
         let ids = selectedIds; var made = [UInt32](repeating: 0, count: max(ids.count, 1))
         _ = CAD_EdgeChamfer(ids, UInt32(ids.count), Double(distance), &made, UInt32(made.count))
     }
-    func explode(keepOriginal: Bool = false) { guard isCreated else { return }; _ = CAD_Explode(keepOriginal) }
+    func explode(keepOriginal: Bool = false) {
+        guard isCreated else { return }
+        let ids = selectedIds
+        let n = CAD_EntityExplode(ids, UInt32(ids.count), keepOriginal, nil, 0)   // 개수만 묻기(아무것도 안 바뀜)
+        guard n > 0 else { return }
+        var made = [UInt32](repeating: 0, count: Int(n))
+        _ = CAD_EntityExplode(ids, UInt32(ids.count), keepOriginal, &made, UInt32(made.count))
+    }
 
     // ── 뷰 ──
     // viewType: 0=Front 1=Top 2=Right 3=Isometric 4=Left 5=Bottom 6=Back
