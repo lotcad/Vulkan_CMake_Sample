@@ -15,7 +15,7 @@ namespace {
     struct Control {
         std::string label;
         std::string unit;
-        std::vector<int> joints;   // 같이 움직일 관절 인덱스
+        std::vector<int32_t> joints;   // 같이 움직일 관절 인덱스
         float lower = 0, upper = 0; // 관절 단위(라디안/미터)
         bool gripper = false;       // true 면 값 = 0~100 % (lower..upper 의 비율)
         // 자동 재생용 — 항목마다 다른 속도·위상으로 흔들어 단조롭지 않게.
@@ -55,7 +55,7 @@ namespace {
 
     void apply(const Control& c, float display) {
         const float j = toJoint(c, display);
-        std::vector<float> vals(c.joints.size(), j);
+        std::vector<double> vals(c.joints.size(), static_cast<double>(j));
         CAD_SetJointValues(g_robot, c.joints.data(), vals.data(), static_cast<uint32_t>(vals.size()));
     }
 
@@ -65,18 +65,21 @@ namespace {
         grip.label = "그리퍼"; grip.unit = "%"; grip.gripper = true;
         grip.speed = 0.9f;
 
-        const int n = static_cast<int>(CAD_GetJointCount(g_robot));
-        for (int j = 0; j < n; ++j) {
-            int type = 0; float lo = 0, hi = 0; bool hasLimit = false;
-            if (!CAD_GetJointInfo(g_robot, j, &type, &lo, &hi, &hasLimit)) continue;
-            if (type == 0) continue;   // 고정 관절은 조작할 게 없다
-            if (type == 3) {           // 직선 관절 = 손가락 → 그리퍼 하나로
+        const int32_t n = CAD_GetJointCount(g_robot);   // 음수 = 실패
+        for (int32_t j = 0; j < n; ++j) {
+            CAD_JointInfo info{};
+            info.size = sizeof(info);   // 부르는 쪽이 크기를 적는다
+            if (CAD_GetJointInfo(g_robot, j, &info) != CAD_OK) continue;   // 0 = 성공
+            const float lo = static_cast<float>(info.lower), hi = static_cast<float>(info.upper);
+            const bool hasLimit = info.hasLimit;
+            if (info.type == CAD_JOINT_FIXED) continue;   // 고정 관절은 조작할 게 없다
+            if (info.type == CAD_JOINT_PRISMATIC) {       // 직선 관절 = 손가락 → 그리퍼 하나로
                 if (grip.joints.empty()) { grip.lower = lo; grip.upper = hi; }
                 grip.joints.push_back(j);
                 continue;
             }
             char name[128] = {};
-            CAD_GetJointName(g_robot, j, name, static_cast<int>(sizeof(name)));
+            CAD_GetJointName(g_robot, j, name, static_cast<uint32_t>(sizeof(name)));
             Control c;
             c.label = labelFor(name);
             c.unit = "°";
@@ -97,7 +100,7 @@ extern "C" {
 
 bool RobotDemo_Load(void) {
     // 엔진이 다시 만들어졌으면(앱 재시작 — 프로세스는 살아 있어 이 전역은 남는다) 로봇이 없다.
-    if (g_robot != 0 && CAD_GetRobotCount() >= g_robot) return true;
+    if (g_robot != 0 && CAD_GetRobotCount() >= static_cast<int32_t>(g_robot)) return true;
     g_robot = 0;
     g_playing = false;
     // 로봇 전용 장면 — 엔진 기본 데모 객체를 치운다(로봇이 그 사이에 묻혀 작게 보인다).
@@ -109,8 +112,7 @@ bool RobotDemo_Load(void) {
         for (uint32_t id : ids) CAD_DeleteObject(id);
     }
     // 엔진이 작업 폴더를 런타임 에셋 경로로 옮겨 두므로 상대 경로로 충분하다.
-    g_robot = CAD_LoadUrdf("models/demo_arm.urdf");
-    if (g_robot == 0) return false;
+    if (CAD_LoadUrdf("models/demo_arm.urdf", &g_robot) != CAD_OK) { g_robot = 0; return false; }   // 결과 코드 + 로봇 핸들
     buildControls();
     CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기 — 불러온 링크가 선택 강조색으로 보이지 않게
     CAD_SetView(3);        // Iso
@@ -135,7 +137,9 @@ float RobotDemo_ControlMax(int i) {
 float RobotDemo_GetControl(int i) {
     if (!valid(i)) return 0;
     const Control& c = g_controls[i];
-    return toDisplay(c, CAD_GetJointValue(g_robot, c.joints.front()));
+    double v = 0;
+    CAD_GetJointValue(g_robot, c.joints.front(), &v);
+    return toDisplay(c, static_cast<float>(v));
 }
 
 void RobotDemo_SetControl(int i, float value) {

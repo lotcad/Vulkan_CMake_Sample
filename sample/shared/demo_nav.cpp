@@ -28,7 +28,7 @@ public:
 
     void setup() override {
         uint32_t walls[4];
-        CAD_CreateRoom(0, 0, 0, 12, 9, 1.2f, 0.2f, walls);
+        CAD_CreateRoom(CAD_GeVec3{0.0, 0.0, 0.0}, 12, 9, 1.2, 0.2, nullptr, walls);   // 바닥 가운데 + 안쪽 크기
         mkBox(0, 0, -0.05f, 12.4f, 9.4f, 0.1f);           // 바닥
         // 장애물 — 가운데를 막아 돌아가게
         mkBox(-1.0f, 0.5f, 0.5f, 0.8f, 5.5f, 1.0f);
@@ -69,7 +69,7 @@ protected:
         slider("X", "m", -5.5f, 5.5f, [this] { return gx_; }, [this](float v) { gx_ = v; });
         slider("Y", "m", -4.0f, 4.0f, [this] { return gy_; }, [this](float v) { gy_ = v; });
         button("목적지 정하기", [this] {
-            if (!CAD_NavSetGoal(agent_, gx_, gy_, 0)) note_ = "길이 없습니다: " + lastError();
+            if (CAD_NavSetGoal(agent_, CAD_GeVec3{gx_, gy_, 0.0}) != CAD_OK) note_ = "길이 없습니다: " + lastError();
             else note_ = fmt("목적지 (%.1f, %.1f)", gx_, gy_);
         }, [this] { return agent_ != 0; });
 
@@ -100,8 +100,8 @@ protected:
 
 private:
     void buildMap() {
-        if (!CAD_NavBuildMap(nullptr)) { note_ = "지도 실패: " + lastError(); return; }
-        if (!agent_) agent_ = CAD_NavAddAgent(body_, false);
+        if (CAD_NavBuildMap(nullptr) != CAD_OK) { note_ = "지도 실패: " + lastError(); return; }
+        if (!agent_ && CAD_NavAddAgent(body_, false, &agent_) != CAD_OK) agent_ = 0;   // 결과 코드 + 대상 id
         if (!agent_) { note_ = "대상 추가 실패: " + lastError(); return; }
         params();
         CAD_NavShowGrid(grid_);

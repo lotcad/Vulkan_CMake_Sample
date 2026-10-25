@@ -32,8 +32,8 @@ public:
     void setup() override {
         presetNames_.clear();
         presetPaths_.clear();
-        const uint32_t n = CAD_GetParticlePresetCount();
-        for (uint32_t i = 0; i < n; ++i) {
+        const int32_t n = CAD_GetParticlePresetCount();   // 음수 = 실패
+        for (int32_t i = 0; i < n; ++i) {
             presetNames_.push_back(readString([i](char* o, int c) { return CAD_GetParticlePresetName(i, o, c); }));
             presetPaths_.push_back(readString([i](char* o, int c) { return CAD_GetParticlePresetPath(i, o, c); }));
         }
@@ -47,7 +47,7 @@ public:
     }
 
     void update(double) override {
-        status = emitter_ ? fmt("입자 %u개", CAD_GetParticleLiveCount(emitter_)) : "프리셋이 없습니다 (sdk/effects 확인)";
+        status = emitter_ ? fmt("입자 %d개", CAD_GetParticleLiveCount(emitter_)) : "프리셋이 없습니다 (sdk/effects 확인)";
     }
 
 protected:
@@ -57,11 +57,11 @@ protected:
                [this](int k) { preset_ = k; createEmitter(); rebuild(); });
         toggle("재생", [this] { return playing_; }, [this](bool on) {
             playing_ = on;
-            CAD_SetParticlePlayback(emitter_, on ? 1 : 0);
+            CAD_SetParticlePlayback(emitter_, on ? CAD_PARTICLE_PLAY : CAD_PARTICLE_PAUSE);
         });
         button("처음부터", [this] {
-            CAD_SetParticlePlayback(emitter_, 2);
-            if (playing_) CAD_SetParticlePlayback(emitter_, 1);
+            CAD_SetParticlePlayback(emitter_, CAD_PARTICLE_RESET);
+            if (playing_) CAD_SetParticlePlayback(emitter_, CAD_PARTICLE_PLAY);
         });
 
         header("설정 (CAD_SetParticleSettingsJson)");
@@ -77,7 +77,7 @@ protected:
             CAD_SetParticleSettingsJson(emitter_, fmt("{\"start_color\":[%.3f,%.3f,%.3f]}", r, g, b).c_str());
         });
         button("프리셋 값으로", [this] { createEmitter(); rebuild(); });
-        label("입자 수", [this] { return fmt("%u", emitter_ ? CAD_GetParticleLiveCount(emitter_) : 0u); });
+        label("입자 수", [this] { return fmt("%d", emitter_ ? CAD_GetParticleLiveCount(emitter_) : 0); });
     }
 
 private:
@@ -95,11 +95,15 @@ private:
     void createEmitter() {
         if (emitter_) CAD_DeleteObject(emitter_);
         emitter_ = 0;
-        if (preset_ >= 0 && preset_ < static_cast<int>(presetPaths_.size()))
-            emitter_ = CAD_CreateParticleEmitterFromPreset(presetPaths_[static_cast<size_t>(preset_)].c_str(), 0, 0, 0, 1.0f);
-        if (!emitter_) emitter_ = CAD_CreateParticleEmitter(preset_ % 3, 0, 0, 0, 1.0f);
+        // 만들기 = 결과 코드(0 = CAD_OK) + 새 id. 프리셋 파일이 안 되면 내장 프리셋으로
+        if (preset_ >= 0 && preset_ < static_cast<int>(presetPaths_.size()) &&
+            CAD_CreateParticleEmitterFromPreset(presetPaths_[static_cast<size_t>(preset_)].c_str(), CAD_GeVec3{0.0, 0.0, 0.0}, 1.0,
+                                                nullptr, &emitter_) != CAD_OK)
+            emitter_ = 0;
+        if (!emitter_ && CAD_CreateParticleEmitter(preset_ % 3, CAD_GeVec3{0.0, 0.0, 0.0}, 1.0, nullptr, &emitter_) != CAD_OK)
+            emitter_ = 0;
         CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기 — 만든 객체가 선택돼 기즈모가 뜨지 않게
-        if (playing_) CAD_SetParticlePlayback(emitter_, 1);
+        if (playing_) CAD_SetParticlePlayback(emitter_, CAD_PARTICLE_PLAY);
         refreshSettings();
         const std::vector<double> c = jsonNumbers(settings_, "start_color");
         hue_ = 20;

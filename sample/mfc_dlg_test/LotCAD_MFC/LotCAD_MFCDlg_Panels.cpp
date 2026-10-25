@@ -265,7 +265,7 @@ void CLotCADMFCDlg::OpenNavPanel()
 	p.AddSection(L"1. 지도");
 	p.AddButton(L"지도 만들기 (장면에서 자동)", [st] {
 		// NULL = 격자 크기·로봇 반경을 장면에서 추정. {"cellSize":0.2} 처럼 일부만 줄 수도 있다.
-		if (CAD_NavBuildMap(nullptr)) { CAD_NavShowGrid(st->grid); st->msg = L"지도를 만들었습니다"; }
+		if (CAD_NavBuildMap(nullptr) == CAD_OK) { CAD_NavShowGrid(st->grid); st->msg = L"지도를 만들었습니다"; }   // 0 = 성공
 		else                            st->msg = L"지도 실패: " + CadLastError();
 	});
 	p.AddToggle(L"격자 보이기", st->grid, [st](bool v) { st->grid = v; CAD_NavShowGrid(v); });
@@ -275,7 +275,7 @@ void CLotCADMFCDlg::OpenNavPanel()
 	p.AddButton(L"선택한 객체를 대상으로 추가", [st] {
 		const std::vector<uint32_t> ids = SelectedIds();
 		int added = 0;
-		for (uint32_t id : ids) if (CAD_NavAddAgent(id, st->vehicle)) ++added;
+		for (uint32_t id : ids) if (CAD_NavAddAgent(id, st->vehicle, nullptr) == CAD_OK) ++added;   // 고른 것마다 하나씩
 		st->msg = ids.empty() ? L"먼저 3D 뷰에서 움직일 객체를 선택하세요"
 		        : added       ? L"대상 " + std::to_wstring(added) + L"개 추가"
 		                      : L"추가 실패: " + CadLastError();
@@ -291,7 +291,7 @@ void CLotCADMFCDlg::OpenNavPanel()
 		if (st->picking) m_view.SetFocus();
 	});
 	p.AddButton(L"출발", [st] {
-		if (CAD_NavStart(0)) { st->msg = L"출발"; return; }
+		if (CAD_NavStart(0) == CAD_OK) { st->msg = L"출발"; return; }
 		const std::wstring why = CadLastError();   // 엔진이 이유를 안 남길 때도 있다 — 그땐 흔한 원인을 알려 준다
 		st->msg = L"출발 실패: " + (why.empty() ? L"목적지를 먼저 찍었는지 확인하세요" : why);
 	});
@@ -313,7 +313,7 @@ void CLotCADMFCDlg::OpenNavPanel()
 			const int got = PollPickPoint(pt);
 			if (got > 0) {
 				st->picking = false;
-				st->msg = CAD_NavSetGoal(0, pt[0], pt[1], pt[2]) ? Format(L"목적지 (%.1f, %.1f) — 출발을 누르세요", pt[0], pt[1])
+				st->msg = CAD_NavSetGoal(0, CAD_GeVec3{pt[0], pt[1], pt[2]}) == CAD_OK ? Format(L"목적지 (%.1f, %.1f) — 출발을 누르세요", pt[0], pt[1])
 				                                                  : L"길 없음: " + CadLastError();
 			} else if (got < 0) {
 				st->picking = false;
@@ -367,15 +367,17 @@ void CLotCADMFCDlg::OpenParticlePanel()
 		void SetAll(const char* json)
 		{
 			for (uint32_t id : Targets())
-				if (!CAD_SetParticleSettingsJson(id, json)) { msg = L"설정 실패: " + CadLastError(); return; }
+				if (CAD_SetParticleSettingsJson(id, json) != CAD_OK) { msg = L"설정 실패: " + CadLastError(); return; }
 		}
 	};
 	auto st = std::make_shared<State>();
 
 	std::vector<std::wstring> kinds = { L"불", L"연기", L"불꽃" };
-	for (uint32_t i = 0; i < CAD_GetParticlePresetCount(); ++i) {   // effects/*.json — 이름순
+	const int32_t presetCount = CAD_GetParticlePresetCount();   // 음수 = 실패
+	for (int32_t i = 0; i < presetCount; ++i) {   // effects/*.json — 이름순
 		char name[256] = {}, path[1024] = {};
-		if (CAD_GetParticlePresetName(i, name, sizeof(name)) < 0 || CAD_GetParticlePresetPath(i, path, sizeof(path)) < 0) continue;
+		if (CAD_GetParticlePresetName(i, name, static_cast<uint32_t>(sizeof(name))) < 0 ||
+		    CAD_GetParticlePresetPath(i, path, static_cast<uint32_t>(sizeof(path))) < 0) continue;
 		kinds.push_back(L"라이브러리: " + Utf8ToWide(name));
 		st->presetPaths.push_back(path);
 	}
@@ -396,10 +398,10 @@ void CLotCADMFCDlg::OpenParticlePanel()
 
 	p.AddSection(L"재생");
 	p.AddNote(L"대상: 선택한 방출기, 없으면 여기서 만든 것");
-	// state: 0 일시정지(입자 유지) · 1 재생 · 2 리셋(정지)
-	p.AddButton(L"재생",       [st] { for (uint32_t id : st->Targets()) CAD_SetParticlePlayback(id, 1); });
-	p.AddButton(L"일시정지",   [st] { for (uint32_t id : st->Targets()) CAD_SetParticlePlayback(id, 0); });
-	p.AddButton(L"처음부터",   [st] { for (uint32_t id : st->Targets()) CAD_SetParticlePlayback(id, 2); });
+	// CAD_PARTICLE_PAUSE 일시정지(입자 유지) · PLAY 재생 · RESET 리셋(정지)
+	p.AddButton(L"재생",       [st] { for (uint32_t id : st->Targets()) CAD_SetParticlePlayback(id, CAD_PARTICLE_PLAY); });
+	p.AddButton(L"일시정지",   [st] { for (uint32_t id : st->Targets()) CAD_SetParticlePlayback(id, CAD_PARTICLE_PAUSE); });
+	p.AddButton(L"처음부터",   [st] { for (uint32_t id : st->Targets()) CAD_SetParticlePlayback(id, CAD_PARTICLE_RESET); });
 
 	p.AddSection(L"설정");
 	p.AddNote(L"같은 대상에 — 움직인 값만 바뀐다");
@@ -422,11 +424,14 @@ void CLotCADMFCDlg::OpenParticlePanel()
 				const float x = pt[0], y = pt[1], z = pt[2];
 				st->picking = false;
 				// 내장은 번호로, 라이브러리는 프리셋 파일 경로로 만든다. 처음엔 정지 상태라 바로 재생한다.
-				const uint32_t id = st->kind < 3
-					? CAD_CreateParticleEmitter(st->kind, x, y, z, st->unitsPerMeter)
-					: CAD_CreateParticleEmitterFromPreset(st->presetPaths[st->kind - 3].c_str(), x, y, z, st->unitsPerMeter);
-				if (id) {
-					CAD_SetParticlePlayback(id, 1);
+				// 만들기 = 결과 코드(0 = CAD_OK) + 새 id
+				const CAD_GeVec3 at{x, y, z};
+				uint32_t id = 0;
+				const CAD_Status made = st->kind < 3
+					? CAD_CreateParticleEmitter(st->kind, at, st->unitsPerMeter, nullptr, &id)
+					: CAD_CreateParticleEmitterFromPreset(st->presetPaths[st->kind - 3].c_str(), at, st->unitsPerMeter, nullptr, &id);
+				if (made == CAD_OK) {
+					CAD_SetParticlePlayback(id, CAD_PARTICLE_PLAY);
 					st->made.push_back(id);
 					st->msg = Format(L"방출기를 (%.1f, %.1f, %.1f) 에 만들었습니다", x, y, z);
 				} else {

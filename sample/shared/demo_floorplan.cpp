@@ -1,5 +1,5 @@
 // 3D 평면도 — (1) 치수로 방 세우기(문·창 포함)  (2) 평면도 이미지에서 벽 찾아 세우기(AI 없이).
-// 쓰는 API: CAD_CreateFloorplanWithOpenings · CAD_FloorplanExtractFromRgba · CAD_CreateWallGraph
+// 쓰는 API: CAD_CreateFloorplan(문·창 포함) · CAD_FloorplanExtractFromRgba · CAD_CreateWallGraph
 //           CAD_CreateFloorplanFromImage(파일)
 #include "demo_internal.h"
 
@@ -65,7 +65,7 @@ public:
 
 protected:
     void buildControls() override {
-        header("치수로 세우기 (CAD_CreateFloorplanWithOpenings)");
+        header("치수로 세우기 (CAD_CreateFloorplan)");
         slider("거실 폭", "m", 2, 8, [this] { return wA_; }, [this](float v) { wA_ = v; });
         slider("방 폭", "m", 2, 6, [this] { return wB_; }, [this](float v) { wB_ = v; });
         slider("깊이", "m", 2, 8, [this] { return depth_; }, [this](float v) { depth_ = v; });
@@ -82,17 +82,17 @@ protected:
 private:
     void buildRooms() {
         clearScene();
-        // 거실(0) | 방(1) 나란히. 단위 m, 원점 기준 로컬 좌표.
-        const float rects[8] = {0, 0, wA_, depth_, wA_, 0, wA_ + wB_, depth_};
+        // 거실(0) | 방(1) 나란히. 단위 m, 월드 XY — 둘을 합친 가운데가 원점에 오게.
+        const double ox = -(wA_ + wB_) * 0.5, oy = -depth_ * 0.5;
+        const double rects[8] = {ox, oy, ox + wA_, oy + depth_, ox + wA_, oy, ox + wA_ + wB_, oy + depth_};
         CAD_FloorplanOpeningDesc op[4] = {};
-        op[0] = {0, 0, 1, 0, 0.9f, 2.1f, 0, 0, 0};          // 거실↔방 문
-        op[1] = {0, 0, -1, 0, 0.9f, 2.1f, 0, 1, 0.5f};      // 거실 남쪽 현관
-        op[2] = {1, 0, -1, 1, 1.8f, 1.2f, 0.9f, 0, 0};      // 거실 북쪽 창
-        op[3] = {1, 1, -1, 3, 1.2f, 1.2f, 0.9f, 0, 0};      // 방 동쪽 창
+        op[0] = {CAD_OPENING_DOOR, 0, 1, CAD_WALL_SOUTH, 0.9, 2.1, 0, CAD_OPENING_CENTER, 0};       // 거실↔방 문
+        op[1] = {CAD_OPENING_DOOR, 0, -1, CAD_WALL_SOUTH, 0.9, 2.1, 0, CAD_OPENING_START, 0.5};     // 거실 남쪽 현관
+        op[2] = {CAD_OPENING_WINDOW, 0, -1, CAD_WALL_NORTH, 1.8, 1.2, 0.9, CAD_OPENING_CENTER, 0};  // 거실 북쪽 창
+        op[3] = {CAD_OPENING_WINDOW, 1, -1, CAD_WALL_EAST, 1.2, 1.2, 0.9, CAD_OPENING_CENTER, 0};   // 방 동쪽 창
         uint32_t ids[64];
-        const uint32_t n = CAD_CreateFloorplanWithOpenings(-(wA_ + wB_) * 0.5f, -depth_ * 0.5f, 0, rects, 2,
-                                                           height_, 0.15f, op, 4, ids, 64);
-        note_ = n ? fmt("벽 %u개 — 문 2 · 창 2", n) : "실패: " + lastError();
+        const int32_t n = CAD_CreateFloorplan(0.0, rects, 2, height_, 0.15, op, 4, nullptr, ids, 64);   // 반환 = 벽 수, 음수 = 실패
+        note_ = n > 0 ? fmt("벽 %d개 — 문 2 · 창 2", n) : "실패: " + lastError();
         CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
         CAD_SetView(3);
         CAD_ZoomExtents();
@@ -103,9 +103,9 @@ private:
         const int w = c.w, h = c.h;
         const unsigned char* px = c.px.data();
         // 그림 폭 = 1000px × 10mm 중 벽 중심선 폭(여백·외벽 반 두께 제외)
-        const float widthMm = (1000 - 2 * 50 - 20) * 10.0f;
+        const double widthMm = (1000 - 2 * 50 - 20) * 10.0;
         const std::string json = readString([&](char* o, int cap) {
-            return CAD_FloorplanExtractFromRgba(px, w, h, widthMm, o, cap);
+            return CAD_FloorplanExtractFromRgba(px, w, h, widthMm, o, static_cast<uint32_t>(cap));
         });
         if (json.empty()) { note_ = "벽을 찾지 못했습니다: " + lastError(); return; }
         buildWalls(json);
@@ -114,31 +114,31 @@ private:
     void buildFromFile(const std::string& path) {
         clearScene();
         uint32_t ids[256];
-        const uint32_t n = CAD_CreateFloorplanFromImage(path.c_str(), 0, height_, true, ids, 256);
-        note_ = n ? fmt("벽 %u개 (축척은 문 폭 900mm 로 추정)", n) : "실패: " + lastError();
+        const int32_t n = CAD_CreateFloorplanFromImage(path.c_str(), 0, height_, true, nullptr, ids, 256);
+        note_ = n > 0 ? fmt("벽 %d개 (축척은 문 폭 900mm 로 추정)", n) : "실패: " + lastError();
         CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
         CAD_SetView(3);
         CAD_ZoomExtents();
     }
 
-    // 추출 JSON(mm) → [x1,y1,x2,y2,두께] (m) → CAD_CreateWallGraph
+    // 추출 JSON(mm, 좌하단 원점) → [x1,y1,x2,y2,두께] (m, 월드 XY — 도면 가운데가 원점에 오게 옮김) → CAD_CreateWallGraph
     void buildWalls(const std::string& json) {
         clearScene();
-        std::vector<float> segs;
+        const double ox = -jsonNumber(json, "widthMm") / 2000.0;
+        const double oy = -jsonNumber(json, "depthMm") / 2000.0;
+        std::vector<double> segs;
         for (const std::string& wobj : jsonObjects(json, "walls")) {
-            segs.push_back(static_cast<float>(jsonNumber(wobj, "x1") / 1000.0));
-            segs.push_back(static_cast<float>(jsonNumber(wobj, "y1") / 1000.0));
-            segs.push_back(static_cast<float>(jsonNumber(wobj, "x2") / 1000.0));
-            segs.push_back(static_cast<float>(jsonNumber(wobj, "y2") / 1000.0));
-            segs.push_back(static_cast<float>(jsonNumber(wobj, "thicknessMm") / 1000.0));
+            segs.push_back(ox + jsonNumber(wobj, "x1") / 1000.0);
+            segs.push_back(oy + jsonNumber(wobj, "y1") / 1000.0);
+            segs.push_back(ox + jsonNumber(wobj, "x2") / 1000.0);
+            segs.push_back(oy + jsonNumber(wobj, "y2") / 1000.0);
+            segs.push_back(jsonNumber(wobj, "thicknessMm") / 1000.0);
         }
         const uint32_t count = static_cast<uint32_t>(segs.size() / 5);
         if (count == 0) { note_ = "벽 선분이 없습니다: " + jsonString(json, "summary"); return; }
-        const float ox = -static_cast<float>(jsonNumber(json, "widthMm") / 2000.0);
-        const float oy = -static_cast<float>(jsonNumber(json, "depthMm") / 2000.0);
         uint32_t ids[256];
-        const uint32_t n = CAD_CreateWallGraph(ox, oy, 0, segs.data(), count, height_, 0.1f, ids, 256);
-        note_ = n ? fmt("벽 선분 %u개 → 벽 %u개 · %s", count, n, jsonString(json, "summary").c_str())
+        const int32_t n = CAD_CreateWallGraph(0.0, segs.data(), count, height_, 0.1, nullptr, ids, 256);   // 반환 = 벽 수, 음수 = 실패
+        note_ = n > 0 ? fmt("벽 선분 %u개 → 벽 %d개 · %s", count, n, jsonString(json, "summary").c_str())
                   : "실패: " + lastError();
         CAD_SetSelection(nullptr, 0, CAD_SELECT_REPLACE);   // 선택 비우기
         CAD_SetView(3);
