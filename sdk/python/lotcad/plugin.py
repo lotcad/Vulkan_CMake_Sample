@@ -391,9 +391,9 @@ def CAD_SetPluginTag(id: int, owner: str | None, type: str | None, data: str | N
     객체는 평범한 메시라 그리기·픽킹·저장이 전부 그대로 동작하고, 플러그인이 없는 곳에서
     열어도 형상은 보인다. 딱지는 보존돼 나중에 플러그인이 있으면 도로 살아난다.
 
-      id = CAD_CreateMesh(xyz, nv, idx, ni, NULL);          // 형상
+      CAD_CreateMesh(pts, nv, idx, ni, NULL, NULL, &id);    // 형상(월드 = 처음 자기 좌표)
       CAD_SetPluginTag(id, "ArchBuilder", "wall", json);   // 딱지
-      ... 값이 바뀌면 → CAD_ReplaceMesh(id, ...)           // 재생성
+      ... 값이 바뀌면 → CAD_ReplaceMesh(id, pts, ...)       // 재생성(자기 좌표 — 사용자가 옮긴 자리는 그대로)
 
     .lot 을 열어 딱지 붙은 객체가 복원되면 CAD_SetOnPluginEntityLoaded 콜백으로 알려준다.
     플러그인은 owner 가 자기 이름이면 data 를 읽어 살아 있는 엔티티로 넘겨받는다.
@@ -416,9 +416,9 @@ def CAD_ClearPluginTag(id: int) -> bool:
     객체는 평범한 메시라 그리기·픽킹·저장이 전부 그대로 동작하고, 플러그인이 없는 곳에서
     열어도 형상은 보인다. 딱지는 보존돼 나중에 플러그인이 있으면 도로 살아난다.
 
-      id = CAD_CreateMesh(xyz, nv, idx, ni, NULL);          // 형상
+      CAD_CreateMesh(pts, nv, idx, ni, NULL, NULL, &id);    // 형상(월드 = 처음 자기 좌표)
       CAD_SetPluginTag(id, "ArchBuilder", "wall", json);   // 딱지
-      ... 값이 바뀌면 → CAD_ReplaceMesh(id, ...)           // 재생성
+      ... 값이 바뀌면 → CAD_ReplaceMesh(id, pts, ...)       // 재생성(자기 좌표 — 사용자가 옮긴 자리는 그대로)
 
     .lot 을 열어 딱지 붙은 객체가 복원되면 CAD_SetOnPluginEntityLoaded 콜백으로 알려준다.
     플러그인은 owner 가 자기 이름이면 data 를 읽어 살아 있는 엔티티로 넘겨받는다.
@@ -441,9 +441,9 @@ def CAD_HasPluginTag(id: int) -> bool:
     객체는 평범한 메시라 그리기·픽킹·저장이 전부 그대로 동작하고, 플러그인이 없는 곳에서
     열어도 형상은 보인다. 딱지는 보존돼 나중에 플러그인이 있으면 도로 살아난다.
 
-      id = CAD_CreateMesh(xyz, nv, idx, ni, NULL);          // 형상
+      CAD_CreateMesh(pts, nv, idx, ni, NULL, NULL, &id);    // 형상(월드 = 처음 자기 좌표)
       CAD_SetPluginTag(id, "ArchBuilder", "wall", json);   // 딱지
-      ... 값이 바뀌면 → CAD_ReplaceMesh(id, ...)           // 재생성
+      ... 값이 바뀌면 → CAD_ReplaceMesh(id, pts, ...)       // 재생성(자기 좌표 — 사용자가 옮긴 자리는 그대로)
 
     .lot 을 열어 딱지 붙은 객체가 복원되면 CAD_SetOnPluginEntityLoaded 콜백으로 알려준다.
     플러그인은 owner 가 자기 이름이면 data 를 읽어 살아 있는 엔티티로 넘겨받는다.
@@ -466,9 +466,9 @@ def CAD_GetPluginTagOwner(id: int) -> str | None:
     객체는 평범한 메시라 그리기·픽킹·저장이 전부 그대로 동작하고, 플러그인이 없는 곳에서
     열어도 형상은 보인다. 딱지는 보존돼 나중에 플러그인이 있으면 도로 살아난다.
 
-      id = CAD_CreateMesh(xyz, nv, idx, ni, NULL);          // 형상
+      CAD_CreateMesh(pts, nv, idx, ni, NULL, NULL, &id);    // 형상(월드 = 처음 자기 좌표)
       CAD_SetPluginTag(id, "ArchBuilder", "wall", json);   // 딱지
-      ... 값이 바뀌면 → CAD_ReplaceMesh(id, ...)           // 재생성
+      ... 값이 바뀌면 → CAD_ReplaceMesh(id, pts, ...)       // 재생성(자기 좌표 — 사용자가 옮긴 자리는 그대로)
 
     .lot 을 열어 딱지 붙은 객체가 복원되면 CAD_SetOnPluginEntityLoaded 콜백으로 알려준다.
     플러그인은 owner 가 자기 이름이면 data 를 읽어 살아 있는 엔티티로 넘겨받는다.
@@ -500,9 +500,9 @@ def CAD_GetPluginTagType(id: int) -> str | None:
     객체는 평범한 메시라 그리기·픽킹·저장이 전부 그대로 동작하고, 플러그인이 없는 곳에서
     열어도 형상은 보인다. 딱지는 보존돼 나중에 플러그인이 있으면 도로 살아난다.
 
-      id = CAD_CreateMesh(xyz, nv, idx, ni, NULL);          // 형상
+      CAD_CreateMesh(pts, nv, idx, ni, NULL, NULL, &id);    // 형상(월드 = 처음 자기 좌표)
       CAD_SetPluginTag(id, "ArchBuilder", "wall", json);   // 딱지
-      ... 값이 바뀌면 → CAD_ReplaceMesh(id, ...)           // 재생성
+      ... 값이 바뀌면 → CAD_ReplaceMesh(id, pts, ...)       // 재생성(자기 좌표 — 사용자가 옮긴 자리는 그대로)
 
     .lot 을 열어 딱지 붙은 객체가 복원되면 CAD_SetOnPluginEntityLoaded 콜백으로 알려준다.
     플러그인은 owner 가 자기 이름이면 data 를 읽어 살아 있는 엔티티로 넘겨받는다.
@@ -534,9 +534,9 @@ def CAD_GetPluginTagData(id: int) -> str | None:
     객체는 평범한 메시라 그리기·픽킹·저장이 전부 그대로 동작하고, 플러그인이 없는 곳에서
     열어도 형상은 보인다. 딱지는 보존돼 나중에 플러그인이 있으면 도로 살아난다.
 
-      id = CAD_CreateMesh(xyz, nv, idx, ni, NULL);          // 형상
+      CAD_CreateMesh(pts, nv, idx, ni, NULL, NULL, &id);    // 형상(월드 = 처음 자기 좌표)
       CAD_SetPluginTag(id, "ArchBuilder", "wall", json);   // 딱지
-      ... 값이 바뀌면 → CAD_ReplaceMesh(id, ...)           // 재생성
+      ... 값이 바뀌면 → CAD_ReplaceMesh(id, pts, ...)       // 재생성(자기 좌표 — 사용자가 옮긴 자리는 그대로)
 
     .lot 을 열어 딱지 붙은 객체가 복원되면 CAD_SetOnPluginEntityLoaded 콜백으로 알려준다.
     플러그인은 owner 가 자기 이름이면 data 를 읽어 살아 있는 엔티티로 넘겨받는다.
@@ -568,9 +568,9 @@ def CAD_SetOnPluginEntityLoaded(cb: Callable | None) -> None:
     객체는 평범한 메시라 그리기·픽킹·저장이 전부 그대로 동작하고, 플러그인이 없는 곳에서
     열어도 형상은 보인다. 딱지는 보존돼 나중에 플러그인이 있으면 도로 살아난다.
 
-      id = CAD_CreateMesh(xyz, nv, idx, ni, NULL);          // 형상
+      CAD_CreateMesh(pts, nv, idx, ni, NULL, NULL, &id);    // 형상(월드 = 처음 자기 좌표)
       CAD_SetPluginTag(id, "ArchBuilder", "wall", json);   // 딱지
-      ... 값이 바뀌면 → CAD_ReplaceMesh(id, ...)           // 재생성
+      ... 값이 바뀌면 → CAD_ReplaceMesh(id, pts, ...)       // 재생성(자기 좌표 — 사용자가 옮긴 자리는 그대로)
 
     .lot 을 열어 딱지 붙은 객체가 복원되면 CAD_SetOnPluginEntityLoaded 콜백으로 알려준다.
     플러그인은 owner 가 자기 이름이면 data 를 읽어 살아 있는 엔티티로 넘겨받는다.
