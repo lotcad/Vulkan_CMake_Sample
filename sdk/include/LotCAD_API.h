@@ -13,10 +13,11 @@
  *   document    AcDbDatabase / symbol tables              documents, files, transactions, undo, layers, linetypes, blocks, xrefs
  *   objects     AcDbEntity                                ids, properties, JSON, query, transform, color, layer, bounds, measure
  *   curves      AcDbCurve                                 lines, arcs, polylines, splines, sketch constraints
- *   modify      modify commands                           move/copy/array/explode/stretch/break/offset/mirror/trim/extend/align
+ *   modify      modify commands                           stretch/lengthen/break/offset/trim/extend/align (move/copy/array/mirror = objects)
  *   drawing     annotation                                text, dimensions, leaders, hatches, drawing views, plot, images
  *   solids      AcDb3dSolid / AcBr                        primitives, B-Rep features, booleans, fillets, interference
  *   mesh        —                                         meshes, mesh repair, point clouds, volume meshes
+ *   graph       — (Grasshopper / Geometry Nodes)          node graph: nodes, links, values, evaluate, bake
  *   analysis    —                                         wind tunnel, water, structural analysis
  *   effects     —                                         particles, external effects
  *   robot       —                                         URDF robots, joints, rigging
@@ -39,6 +40,7 @@
 #include "lotcad/lotcad_drawing.h"
 #include "lotcad/lotcad_solids.h"
 #include "lotcad/lotcad_mesh.h"
+#include "lotcad/lotcad_graph.h"
 #include "lotcad/lotcad_analysis.h"
 #include "lotcad/lotcad_effects.h"
 #include "lotcad/lotcad_robot.h"

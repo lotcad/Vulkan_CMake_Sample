@@ -29,6 +29,7 @@ from .editor import *  # noqa: F401,F403
 from .effects import *  # noqa: F401,F403
 from .events import *  # noqa: F401,F403
 from .geometry import *  # noqa: F401,F403
+from .graph import *  # noqa: F401,F403
 from .mesh import *  # noqa: F401,F403
 from .modify import *  # noqa: F401,F403
 from .nav import *  # noqa: F401,F403
