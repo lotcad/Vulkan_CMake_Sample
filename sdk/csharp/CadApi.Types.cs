@@ -37,5 +37,6 @@ namespace LotCAD
         public const int CAD_E_NOT_READY = -18;
         public const int CAD_E_NOT_FOUND = -19;
         public const int CAD_E_DUPLICATE = -20;
+        public const int CAD_E_CONFLICT = -21;
     }
 }

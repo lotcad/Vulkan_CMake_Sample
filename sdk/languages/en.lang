@@ -1,11 +1,22 @@
 ask.graph=Node graph — on · off
 ask.graph.default=toggle
 msg.graph.mergeSkipped=This document already has a node graph — the file's graph was not added
-msg.graph.usage=graph [on|off|frame|add kind] — node graph pane
+msg.graph.usage=graph [on|off|frame|add kind|bake] — node graph pane (bake = turn the selected outputs into ordinary objects)
 msg.graph.paneOn=Node graph pane — double-click empty space to add a node, drag from an output port to connect, wheel = zoom, middle-drag = pan
 msg.graph.paneOff=Node graph pane closed
 msg.graph.outCount=Scene objects {0}
 msg.graph.emptyHint=Double-click empty space to add a node
+msg.graph.outputLocked=This object is made by the node graph — edit it in the graph, or detach it with graph bake (moving and rotating are fine)
+msg.graph.bakeNone=None of the selected objects come from the node graph
+msg.graph.baked=Detached from the graph as ordinary objects: {0}
+msg.graph.emptyResult=The result is empty
+msg.graph.meshFallback=Could not compute exactly, used a mesh instead (no fillet or chamfer after this)
+msg.graph.meshNoBlend=Cannot fillet or chamfer a shape computed as a mesh
+msg.graph.badNumber=Enter a single number
+msg.graph.badPoint=Enter three numbers like x,y,z (z defaults to 0)
+prompt.graph.edit={0}: type a value then Enter  (ESC to cancel)
+prompt.graph.editPoint={0}: type x,y,z then Enter  (ESC to cancel)
+prompt.graph.editText={0}: type text then Enter  (ESC to cancel)
 # LotCAD English UI
 @code=en
 @name=English (EN)
@@ -2614,6 +2625,22 @@ msg.capi.no_length=This kind has no length (curves only)
 msg.capi.no_area=This kind has no area (closed curves, circles and arcs only)
 msg.capi.no_material=No material '{0}' (list them with CAD_GetMaterialName)
 msg.capi.material_index=Material index out of range
+msg.capi.constraint_no_value=This constraint has no value (horizontal, parallel …)
+msg.capi.constraint_positive=Distance, radius and diameter must be greater than 0
+msg.capi.curve_create_failed=Could not create the curve — check the points and size
+msg.capi.curve_degenerate=Length or radius is 0
+msg.capi.ellipse_plane=The major axis is not in the plane of the normal
+msg.capi.ellipse_ratio=The minor ratio must be 0 < ratio ≤ 1
+msg.capi.no_constraint=No constraint {0}
+msg.capi.not_polyline=id {0} is not a polyline
+msg.capi.polygon_sides=Sides must be 3..1024
+msg.capi.polyline_points=A polyline needs 2 or more points (no NaN)
+msg.capi.sketch_apply_failed=Could not apply the solution to the shapes (locked layer …)
+msg.capi.sketch_bad=Kind, point or value does not fit this constraint (same line twice, horizontal with vertical …)
+msg.capi.sketch_conflict=Conflicts with other constraints and cannot be solved (constraint {0}) — CAD_GetLastSketchConflict
+msg.capi.sketch_kind=id {0}: sketch constraints apply to lines and circles only
+msg.capi.sketch_type=Unknown constraint type (CAD_SKETCH_*)
+msg.capi.spline_points=Spline fit points: 2 or more open, 3 or more closed (max 100000, no NaN)
 msg.capi.cloth_seconds_range=The time must be more than 0 and at most 600 seconds
 msg.cloth.unstable=The cloth simulation broke down (non-numeric positions) — press Reset
 msg.ed.no_zero=Zero is not allowed — enter another value

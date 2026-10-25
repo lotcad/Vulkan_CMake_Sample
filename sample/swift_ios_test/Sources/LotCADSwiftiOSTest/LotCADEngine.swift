@@ -8,6 +8,11 @@ struct CADPoint {
     let z: Float
 }
 
+// 엔진 좌표(월드 mm, double)
+extension CADPoint {
+    var ge: CAD_GeVec3 { CAD_GeVec3(x: Double(x), y: Double(y), z: Double(z)) }
+}
+
 // macOS 의 LotCADEngine 을 iOS UIView 기반으로 미러링.
 // 거의 동일한 API — attach 만 UIView 를 받고, 내부적으로 CAD_AttachView 에 UIView 포인터 전달.
 final class LotCADEngine {
@@ -103,7 +108,8 @@ final class LotCADEngine {
     @discardableResult
     func createLine(from start: CADPoint, to end: CADPoint) -> UInt32 {
         guard isCreated else { return 0 }
-        let id = CAD_CreateLine(start.x, start.y, start.z, end.x, end.y, end.z)
+        var id: UInt32 = 0
+        _ = CAD_CreateLine(start.ge, end.ge, nil, &id)   // 결과 코드(0 = 성공) — 실패면 id 0, 이유는 CAD_GetLastError
         trackDemoObject(id)
         return id
     }
@@ -111,7 +117,8 @@ final class LotCADEngine {
     @discardableResult
     func createCircle(center: CADPoint, radius: Float, normal: CADPoint) -> UInt32 {
         guard isCreated else { return 0 }
-        let id = CAD_CreateCircle(center.x, center.y, center.z, radius, normal.x, normal.y, normal.z)
+        var id: UInt32 = 0
+        _ = CAD_CreateCircle(center.ge, Double(radius), normal.ge, nil, &id)
         trackDemoObject(id)
         return id
     }
@@ -125,12 +132,8 @@ final class LotCADEngine {
         firstVertexDir: CADPoint
     ) -> UInt32 {
         guard isCreated else { return 0 }
-        let id = CAD_CreatePolygon(
-            center.x, center.y, center.z,
-            radius,
-            sides,
-            normal.x, normal.y, normal.z,
-            firstVertexDir.x, firstVertexDir.y, firstVertexDir.z)
+        var id: UInt32 = 0
+        _ = CAD_CreatePolygon(center.ge, Double(radius), sides, normal.ge, firstVertexDir.ge, nil, &id)
         trackDemoObject(id)
         return id
     }
@@ -138,10 +141,8 @@ final class LotCADEngine {
     @discardableResult
     func createArc(start: CADPoint, through: CADPoint, end: CADPoint) -> UInt32 {
         guard isCreated else { return 0 }
-        let id = CAD_CreateArc(
-            start.x, start.y, start.z,
-            through.x, through.y, through.z,
-            end.x, end.y, end.z)
+        var id: UInt32 = 0
+        _ = CAD_CreateArc(start.ge, through.ge, end.ge, nil, &id)
         trackDemoObject(id)
         return id
     }
@@ -149,9 +150,10 @@ final class LotCADEngine {
     @discardableResult
     func createPolyline(points: [CADPoint], closed: Bool) -> UInt32 {
         guard isCreated, points.count >= 2 else { return 0 }
-        let xyz = points.flatMap { [$0.x, $0.y, $0.z] }
-        let id = xyz.withUnsafeBufferPointer { buffer in
-            CAD_CreatePolyline(buffer.baseAddress, UInt32(points.count), closed)
+        let pts = points.map { $0.ge }
+        var id: UInt32 = 0
+        _ = pts.withUnsafeBufferPointer { buffer in
+            CAD_CreatePolyline(buffer.baseAddress, UInt32(pts.count), closed, nil, &id)
         }
         trackDemoObject(id)
         return id
@@ -160,9 +162,8 @@ final class LotCADEngine {
     @discardableResult
     func createRectangle(corner0: CADPoint, corner2: CADPoint) -> UInt32 {
         guard isCreated else { return 0 }
-        let id = CAD_CreateRectangle(
-            corner0.x, corner0.y, corner0.z,
-            corner2.x, corner2.y, corner2.z)
+        var id: UInt32 = 0
+        _ = CAD_CreateRectangle(corner0.ge, corner2.ge, nil, &id)
         trackDemoObject(id)
         return id
     }

@@ -11,7 +11,7 @@ macOS 라이브러리에는 MoltenVK 가 들어 있습니다(아래 [플랫폼�
 안드로이드는 엔진 `.so` 를 iOS 처럼 Releases 에서 받습니다.)
 
 > **`capi-v2` 브랜치** — C API 2단계(옛 함수를 새 규칙 `CAD_Status`·`CAD_GeVec3`·글자 길이로 바꾸기)를 따라가는 샘플. 영역마다 쌓고 끝나면 main 에 합친다.
-> 여기 `sdk/` 의 Windows·Linux 바이너리·헤더·바인딩은 엔진 e9782b2(2a 객체 기본 46개). macOS 바이너리는 아직 c62936a 라 그 OS 샘플은 다음 갱신 전까지 맞지 않는다.
+> 여기 `sdk/` 의 헤더·바인딩과 Windows 바이너리는 엔진 86676e2(2b 곡선 만들기·스케치 제약까지). Linux 바이너리는 e9782b2(2a), macOS 는 c62936a — 그 OS 바이너리가 따라오기 전까지 그 OS 샘플은 맞지 않는다.
 
 ```
 3dEngine_Sample/

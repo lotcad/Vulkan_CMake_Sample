@@ -31,7 +31,8 @@ public:
         setError(QString());
 
         // ── 판 ──
-        const uint32_t sketch = CAD_CreateRectangle(0, 0, 0, kPlateW, kPlateD, 0);
+        uint32_t sketch = 0;
+        CAD_CreateRectangle(CAD_GeVec3{0, 0, 0}, CAD_GeVec3{kPlateW, kPlateD, 0}, nullptr, &sketch);
         if (!sketch) return fail("판 스케치(사각형)를 만들지 못했습니다");
         const uint32_t plate = CAD_CreateExtrude(sketch, kPlateH);
         if (!plate) return fail("판 돌출에 실패했습니다");
@@ -45,7 +46,8 @@ public:
             { kInset,            kPlateD - kInset  },
         };
         for (const auto& h : holes) {
-            const uint32_t c = CAD_CreateCircle(h[0], h[1], 0, kHoleR, 0, 0, 1);
+            uint32_t c = 0;
+            CAD_CreateCircle(CAD_GeVec3{h[0], h[1], 0}, kHoleR, CAD_GeVec3{0, 0, 1}, nullptr, &c);
             if (!c) return fail("모서리 구멍 스케치를 만들지 못했습니다");
             if (!CAD_CutExtrudeFromSketch(plate, c, 0, true))
                 return fail("모서리 구멍을 뚫지 못했습니다");
@@ -53,16 +55,16 @@ public:
 
         // ── 가운데 보스 Ø40×25 ──
         // 스케치를 위 캡(z = 판 두께)에 올려야 엔진이 "위쪽 캡에서 위로" 쌓는다.
-        const uint32_t bossSketch =
-            CAD_CreateCircle(kPlateW / 2, kPlateD / 2, kPlateH, kBossR, 0, 0, 1);
+        uint32_t bossSketch = 0;
+        CAD_CreateCircle(CAD_GeVec3{kPlateW / 2, kPlateD / 2, kPlateH}, kBossR, CAD_GeVec3{0, 0, 1}, nullptr, &bossSketch);
         if (!bossSketch) return fail("보스 스케치를 만들지 못했습니다");
         if (!CAD_BossExtrudeFromSketch(plate, bossSketch, kBossH))
             return fail("보스를 쌓지 못했습니다");
 
         // ── 보스 가운데 관통 Ø20 ──
         // 보스보다 **나중에** 뚫는다. 기존 관통 컷은 뒤에 쌓인 보스까지 관통하므로 순서가 중요하다.
-        const uint32_t boreSketch =
-            CAD_CreateCircle(kPlateW / 2, kPlateD / 2, 0, kBoreR, 0, 0, 1);
+        uint32_t boreSketch = 0;
+        CAD_CreateCircle(CAD_GeVec3{kPlateW / 2, kPlateD / 2, 0}, kBoreR, CAD_GeVec3{0, 0, 1}, nullptr, &boreSketch);
         if (!boreSketch) return fail("관통 구멍 스케치를 만들지 못했습니다");
         if (!CAD_CutExtrudeFromSketch(plate, boreSketch, 0, true))
             return fail("관통 구멍을 뚫지 못했습니다");

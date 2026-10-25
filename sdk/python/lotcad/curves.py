@@ -9,7 +9,7 @@ from typing import Any, Callable, Sequence  # noqa: F401  (형식 힌트)
 from . import _native as _n
 from ._types import *  # noqa: F401,F403
 
-__all__ = ['CAD_SKETCH_WHOLE_ENTITY', 'CAD_SKETCH_COINCIDENT', 'CAD_SKETCH_HORIZONTAL', 'CAD_SKETCH_VERTICAL', 'CAD_SKETCH_CONCENTRIC', 'CAD_SKETCH_DISTANCE', 'CAD_SKETCH_RADIUS', 'CAD_SKETCH_DIAMETER', 'CAD_SKETCH_PARALLEL', 'CAD_SKETCH_PERPENDICULAR', 'CAD_SKETCH_EQUAL', 'CAD_SKETCH_FIXED', 'CAD_SKETCH_ANGLE', 'CAD_SKETCH_TANGENT', 'CAD_SKETCH_DISTANCE_X', 'CAD_SKETCH_DISTANCE_Y', 'CAD_SKETCH_UNDER', 'CAD_SKETCH_WELL', 'CAD_SKETCH_REDUNDANT', 'CAD_SKETCH_CONFLICT', 'CAD_SKETCH_INVALID', 'CAD_CreateLine', 'CAD_CreateCircle', 'CAD_AddSketchConstraint', 'CAD_SetSketchConstraintValue', 'CAD_RemoveSketchConstraint', 'CAD_SolveSketchConstraints', 'CAD_GetSketchConstraintCount', 'CAD_GetSketchConstraintIds', 'CAD_GetSketchConstraintInfo', 'CAD_GetSketchDiagnosis', 'CAD_GetLastSketchConflict', 'CAD_CreatePolygon', 'CAD_CreateArc', 'CAD_CreatePolyline', 'CAD_CreateRectangle', 'CAD_GetPolylinePoints', 'CAD_SetPolylinePoints', 'CAD_CreateEllipse', 'CAD_CreateSpline', 'CAD_CurveGetGeCurve', 'CAD_CurveSetFromGeCurve', 'CAD_CreateCurveFromGe', 'CAD_CurveGetInterval', 'CAD_CurveIsClosed', 'CAD_CurveEvaluate', 'CAD_CurveParamAtPoint', 'CAD_CurveLength', 'CAD_CurveParamAtLength', 'CAD_CurveClosestPoint', 'CAD_CurveArea', 'CAD_CurveIntersect', 'CAD_CurveOffset', 'CAD_CurveSplit', 'CAD_CurveReverse', 'CAD_CurveExtendToPoint']
+__all__ = ['CAD_SKETCH_WHOLE_ENTITY', 'CAD_SKETCH_COINCIDENT', 'CAD_SKETCH_HORIZONTAL', 'CAD_SKETCH_VERTICAL', 'CAD_SKETCH_CONCENTRIC', 'CAD_SKETCH_DISTANCE', 'CAD_SKETCH_RADIUS', 'CAD_SKETCH_DIAMETER', 'CAD_SKETCH_PARALLEL', 'CAD_SKETCH_PERPENDICULAR', 'CAD_SKETCH_EQUAL', 'CAD_SKETCH_FIXED', 'CAD_SKETCH_ANGLE', 'CAD_SKETCH_TANGENT', 'CAD_SKETCH_DISTANCE_X', 'CAD_SKETCH_DISTANCE_Y', 'CAD_SKETCH_UNDER', 'CAD_SKETCH_WELL', 'CAD_SKETCH_REDUNDANT', 'CAD_SKETCH_CONFLICT', 'CAD_SKETCH_INVALID', 'CAD_CreateLine', 'CAD_CreateCircle', 'CAD_CreateArc', 'CAD_CreatePolygon', 'CAD_CreateRectangle', 'CAD_CreatePolyline', 'CAD_CreateEllipse', 'CAD_CreateSpline', 'CAD_GetPolylinePoints', 'CAD_SetPolylinePoints', 'CAD_AddSketchConstraint', 'CAD_SetSketchConstraintValue', 'CAD_RemoveSketchConstraint', 'CAD_SolveSketchConstraints', 'CAD_GetSketchConstraintCount', 'CAD_GetSketchConstraintIds', 'CAD_GetSketchConstraintInfo', 'CAD_GetSketchDiagnosis', 'CAD_GetLastSketchConflict', 'CAD_CurveGetGeCurve', 'CAD_CurveSetFromGeCurve', 'CAD_CreateCurveFromGe', 'CAD_CurveGetInterval', 'CAD_CurveIsClosed', 'CAD_CurveEvaluate', 'CAD_CurveParamAtPoint', 'CAD_CurveLength', 'CAD_CurveParamAtLength', 'CAD_CurveClosestPoint', 'CAD_CurveArea', 'CAD_CurveIntersect', 'CAD_CurveOffset', 'CAD_CurveSplit', 'CAD_CurveReverse', 'CAD_CurveExtendToPoint']
 
 _f = _n.native
 
@@ -35,25 +35,25 @@ CAD_SKETCH_REDUNDANT = 2
 CAD_SKETCH_CONFLICT = 3
 CAD_SKETCH_INVALID = 4
 
-_n.bind("CAD_CreateLine", _c.c_uint32, [_c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_CreateCircle", _c.c_uint32, [_c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_AddSketchConstraint", _c.c_uint32, [_c.c_int, _c.c_uint32, _c.c_int, _c.c_uint32, _c.c_int, _c.c_float])
-_n.bind("CAD_SetSketchConstraintValue", _c.c_bool, [_c.c_uint32, _c.c_float])
-_n.bind("CAD_RemoveSketchConstraint", _c.c_bool, [_c.c_uint32])
-_n.bind("CAD_SolveSketchConstraints", _c.c_bool, [])
-_n.bind("CAD_GetSketchConstraintCount", _c.c_uint32, [])
-_n.bind("CAD_GetSketchConstraintIds", _c.c_uint32, [_c.POINTER(_c.c_uint32), _c.c_uint32])
-_n.bind("CAD_GetSketchConstraintInfo", _c.c_bool, [_c.c_uint32, _c.POINTER(CAD_SketchConstraintInfo)])
-_n.bind("CAD_GetSketchDiagnosis", _c.c_int, [_c.c_uint32, _c.POINTER(_c.c_int), _c.POINTER(_c.c_int), _c.POINTER(_c.c_uint32), _c.c_uint32])
-_n.bind("CAD_GetLastSketchConflict", _c.c_uint32, [_c.POINTER(_c.c_uint32), _c.c_uint32])
-_n.bind("CAD_CreatePolygon", _c.c_uint32, [_c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_int, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_CreateArc", _c.c_uint32, [_c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_CreatePolyline", _c.c_uint32, [_c.POINTER(_c.c_float), _c.c_uint32, _c.c_bool])
-_n.bind("CAD_CreateRectangle", _c.c_uint32, [_c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_GetPolylinePoints", _c.c_uint32, [_c.c_uint32, _c.POINTER(_c.c_float), _c.c_uint32, _c.POINTER(_c.c_bool)])
-_n.bind("CAD_SetPolylinePoints", _c.c_bool, [_c.c_uint32, _c.POINTER(_c.c_float), _c.c_uint32, _c.c_bool])
-_n.bind("CAD_CreateEllipse", _c.c_uint32, [_c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float, _c.c_float])
-_n.bind("CAD_CreateSpline", _c.c_uint32, [_c.POINTER(_c.c_float), _c.c_uint32, _c.c_bool])
+_n.bind("CAD_CreateLine", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateCircle", _c.c_int32, [CAD_GeVec3, _c.c_double, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateArc", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreatePolygon", _c.c_int32, [CAD_GeVec3, _c.c_double, _c.c_int32, CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateRectangle", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreatePolyline", _c.c_int32, [_c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_bool, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateEllipse", _c.c_int32, [CAD_GeVec3, CAD_GeVec3, _c.c_double, CAD_GeVec3, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_CreateSpline", _c.c_int32, [_c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_bool, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_GetPolylinePoints", _c.c_int32, [_c.c_uint32, _c.POINTER(CAD_GeVec3), _c.c_uint32, _c.POINTER(_c.c_bool)])
+_n.bind("CAD_SetPolylinePoints", _c.c_int32, [_c.c_uint32, _c.POINTER(CAD_GeVec3), _c.c_uint32, _c.c_bool])
+_n.bind("CAD_AddSketchConstraint", _c.c_int32, [_c.c_int32, _c.c_uint32, _c.c_int32, _c.c_uint32, _c.c_int32, _c.c_double, _c.POINTER(_c.c_uint32)])
+_n.bind("CAD_SetSketchConstraintValue", _c.c_int32, [_c.c_uint32, _c.c_double])
+_n.bind("CAD_RemoveSketchConstraint", _c.c_int32, [_c.c_uint32])
+_n.bind("CAD_SolveSketchConstraints", _c.c_int32, [])
+_n.bind("CAD_GetSketchConstraintCount", _c.c_int32, [])
+_n.bind("CAD_GetSketchConstraintIds", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32])
+_n.bind("CAD_GetSketchConstraintInfo", _c.c_int32, [_c.c_uint32, _c.POINTER(CAD_SketchConstraintInfo)])
+_n.bind("CAD_GetSketchDiagnosis", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_int32), _c.POINTER(_c.c_int32), _c.POINTER(_c.c_uint32), _c.c_uint32])
+_n.bind("CAD_GetLastSketchConflict", _c.c_int32, [_c.POINTER(_c.c_uint32), _c.c_uint32])
 _n.bind("CAD_CurveGetGeCurve", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_uint64)])
 _n.bind("CAD_CurveSetFromGeCurve", _c.c_int32, [_c.c_uint32, _c.c_uint64])
 _n.bind("CAD_CreateCurveFromGe", _c.c_int32, [_c.c_uint64, _c.POINTER(CAD_CurveCreateOptions), _c.POINTER(_c.c_uint32)])
@@ -72,168 +72,247 @@ _n.bind("CAD_CurveReverse", _c.c_int32, [_c.c_uint32])
 _n.bind("CAD_CurveExtendToPoint", _c.c_int32, [_c.c_uint32, _c.c_bool, CAD_GeVec3])
 
 
-def CAD_CreateLine(x1: float, y1: float, z1: float, x2: float, y2: float, z2: float) -> int:
-    """C: uint32_t CAD_CreateLine(float x1, float y1, float z1, float x2, float y2, float z2)
+def CAD_CreateLine(start: CAD_GeVec3, end: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateLine(CAD_GeVec3 start, CAD_GeVec3 end, const CAD_CurveCreateOptions* opt, uint32_t* outId)
     """
-    return _f.CAD_CreateLine(x1, y1, z1, x2, y2, z2)
+    if opt is None and fields:
+        opt = CAD_CurveCreateOptions(**fields)
+    if opt is not None and not opt.size:
+        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+    _p_opt = _c.byref(opt) if opt is not None else None
+    outId = _c.c_uint32()
+    _r = _f.CAD_CreateLine(start, end, _p_opt, _c.byref(outId))
+    return (_r, outId.value)
 
 
-def CAD_CreateCircle(cx: float, cy: float, cz: float, radius: float, normalX: float, normalY: float, normalZ: float) -> int:
-    """C: uint32_t CAD_CreateCircle(float cx, float cy, float cz, float radius, float normalX, float normalY, float normalZ)
+def CAD_CreateCircle(center: CAD_GeVec3, radius: float, normal: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateCircle(CAD_GeVec3 center, double radius, CAD_GeVec3 normal, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+
+    원 — normal = 원이 놓인 평면의 법선
     """
-    return _f.CAD_CreateCircle(cx, cy, cz, radius, normalX, normalY, normalZ)
+    if opt is None and fields:
+        opt = CAD_CurveCreateOptions(**fields)
+    if opt is not None and not opt.size:
+        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+    _p_opt = _c.byref(opt) if opt is not None else None
+    outId = _c.c_uint32()
+    _r = _f.CAD_CreateCircle(center, radius, normal, _p_opt, _c.byref(outId))
+    return (_r, outId.value)
 
 
-def CAD_AddSketchConstraint(type: int, entityA: int, pointA: int, entityB: int, pointB: int, value: float) -> int:
-    """C: uint32_t CAD_AddSketchConstraint(int type, uint32_t entityA, int pointA, uint32_t entityB, int pointB, float value)
+def CAD_CreateArc(start: CAD_GeVec3, through: CAD_GeVec3, end: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateArc(CAD_GeVec3 start, CAD_GeVec3 through, CAD_GeVec3 end, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+
+    세 점 호 — 시작 → 지나는 점 → 끝
     """
-    return _f.CAD_AddSketchConstraint(type, entityA, pointA, entityB, pointB, value)
+    if opt is None and fields:
+        opt = CAD_CurveCreateOptions(**fields)
+    if opt is not None and not opt.size:
+        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+    _p_opt = _c.byref(opt) if opt is not None else None
+    outId = _c.c_uint32()
+    _r = _f.CAD_CreateArc(start, through, end, _p_opt, _c.byref(outId))
+    return (_r, outId.value)
 
 
-def CAD_SetSketchConstraintValue(constraintId: int, value: float) -> bool:
-    """C: bool CAD_SetSketchConstraintValue(uint32_t constraintId, float value)
+def CAD_CreatePolygon(center: CAD_GeVec3, radius: float, sides: int, normal: CAD_GeVec3, firstVertexDir: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreatePolygon(CAD_GeVec3 center, double radius, int32_t sides, CAD_GeVec3 normal, CAD_GeVec3 firstVertexDir, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+
+    정다각형(닫힌 폴리선) — 꼭짓점이 중심에서 radius(외접원), sides = 3..1024, firstVertexDir = 첫 꼭짓점 방향(평면 안, (0,0,0) = 평면의 첫 축)
+    """
+    if opt is None and fields:
+        opt = CAD_CurveCreateOptions(**fields)
+    if opt is not None and not opt.size:
+        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+    _p_opt = _c.byref(opt) if opt is not None else None
+    outId = _c.c_uint32()
+    _r = _f.CAD_CreatePolygon(center, radius, sides, normal, firstVertexDir, _p_opt, _c.byref(outId))
+    return (_r, outId.value)
+
+
+def CAD_CreateRectangle(corner0: CAD_GeVec3, corner2: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateRectangle(CAD_GeVec3 corner0, CAD_GeVec3 corner2, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+
+    사각형(닫힌 폴리선) — 맞모서리 두 점. 두 점이 이루는 축 평면(XY·YZ·XZ)에 놓인다
+    """
+    if opt is None and fields:
+        opt = CAD_CurveCreateOptions(**fields)
+    if opt is not None and not opt.size:
+        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+    _p_opt = _c.byref(opt) if opt is not None else None
+    outId = _c.c_uint32()
+    _r = _f.CAD_CreateRectangle(corner0, corner2, _p_opt, _c.byref(outId))
+    return (_r, outId.value)
+
+
+def CAD_CreatePolyline(points: Sequence | None, count: int, closed: bool, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreatePolyline(const CAD_GeVec3* points, uint32_t count, bool closed, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+
+    폴리선 — 점 count 개(2 이상), closed = 마지막 → 첫 점까지
+    """
+    _a_points = _n.array(CAD_GeVec3, points)
+    if opt is None and fields:
+        opt = CAD_CurveCreateOptions(**fields)
+    if opt is not None and not opt.size:
+        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+    _p_opt = _c.byref(opt) if opt is not None else None
+    outId = _c.c_uint32()
+    _r = _f.CAD_CreatePolyline(_a_points, count, closed, _p_opt, _c.byref(outId))
+    return (_r, outId.value)
+
+
+def CAD_CreateEllipse(center: CAD_GeVec3, majorAxis: CAD_GeVec3, ratio: float, normal: CAD_GeVec3, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateEllipse(CAD_GeVec3 center, CAD_GeVec3 majorAxis, double ratio, CAD_GeVec3 normal, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+
+    타원 — 중심, 장축 반벡터(중심 → 장축 끝, 길이 = 장반경, 평면 안), 단축비(0 < ratio ≤ 1), 평면 법선
+    """
+    if opt is None and fields:
+        opt = CAD_CurveCreateOptions(**fields)
+    if opt is not None and not opt.size:
+        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+    _p_opt = _c.byref(opt) if opt is not None else None
+    outId = _c.c_uint32()
+    _r = _f.CAD_CreateEllipse(center, majorAxis, ratio, normal, _p_opt, _c.byref(outId))
+    return (_r, outId.value)
+
+
+def CAD_CreateSpline(fitPoints: Sequence | None, count: int, closed: bool, opt: CAD_CurveCreateOptions | None = None, **fields) -> tuple[int, int]:
+    """C: CAD_Status CAD_CreateSpline(const CAD_GeVec3* fitPoints, uint32_t count, bool closed, const CAD_CurveCreateOptions* opt, uint32_t* outId)
+
+    맞춤점을 지나는 스플라인 — 열린 것은 2점, 닫힌(주기) 것은 3점 이상(최대 100000)
+    """
+    _a_fitPoints = _n.array(CAD_GeVec3, fitPoints)
+    if opt is None and fields:
+        opt = CAD_CurveCreateOptions(**fields)
+    if opt is not None and not opt.size:
+        opt.size = _c.sizeof(CAD_CurveCreateOptions)
+    _p_opt = _c.byref(opt) if opt is not None else None
+    outId = _c.c_uint32()
+    _r = _f.CAD_CreateSpline(_a_fitPoints, count, closed, _p_opt, _c.byref(outId))
+    return (_r, outId.value)
+
+
+def CAD_GetPolylinePoints(id: int, outPoints: Any, capacity: int) -> tuple[int, bool]:
+    """C: int32_t CAD_GetPolylinePoints(uint32_t id, CAD_GeVec3* outPoints, uint32_t capacity, bool* outClosed)
+
+    폴리선 정점 목록 (PEDIT · AcDbPolyline getPointAt/setPointAt)
+    닫기·열기·반전·정점 넣기/빼기는 전부 "정점 목록을 바꾸는 일" 이라 목록을 통째로 읽고 쓴다. 좌표 = **월드** mm(객체의 이동·회전·축척이
+    걸린 화면 자리 — 객체 JSON 의 points 와 같다). 폴리선이 아니면 CAD_E_WRONG_TYPE(선·원·호는 CAD_Curve* 로).
+
+      int32_t n = CAD_GetPolylinePoints(id, NULL, 0, NULL);     // 개수
+      CAD_GeVec3* p = malloc(sizeof(CAD_GeVec3) * n);
+      bool closed = false;
+      CAD_GetPolylinePoints(id, p, (uint32_t)n, &closed);
+      ... 고친 뒤 ...
+      CAD_SetPolylinePoints(id, p, (uint32_t)n, closed);        // 되돌리기 1
+
+    Get 반환 = 정점 수(capacity 만큼만 채움). Set 은 2점 이상, 잠긴 도면층 = CAD_E_LOCKED.
+    """
+    outClosed = _c.c_bool()
+    _r = _f.CAD_GetPolylinePoints(id, outPoints, capacity, _c.byref(outClosed))
+    return (_r, outClosed.value)
+
+
+def CAD_SetPolylinePoints(id: int, points: Sequence | None, count: int, closed: bool) -> int:
+    """C: CAD_Status CAD_SetPolylinePoints(uint32_t id, const CAD_GeVec3* points, uint32_t count, bool closed)
+
+    폴리선 정점 목록 (PEDIT · AcDbPolyline getPointAt/setPointAt)
+    닫기·열기·반전·정점 넣기/빼기는 전부 "정점 목록을 바꾸는 일" 이라 목록을 통째로 읽고 쓴다. 좌표 = **월드** mm(객체의 이동·회전·축척이
+    걸린 화면 자리 — 객체 JSON 의 points 와 같다). 폴리선이 아니면 CAD_E_WRONG_TYPE(선·원·호는 CAD_Curve* 로).
+
+      int32_t n = CAD_GetPolylinePoints(id, NULL, 0, NULL);     // 개수
+      CAD_GeVec3* p = malloc(sizeof(CAD_GeVec3) * n);
+      bool closed = false;
+      CAD_GetPolylinePoints(id, p, (uint32_t)n, &closed);
+      ... 고친 뒤 ...
+      CAD_SetPolylinePoints(id, p, (uint32_t)n, closed);        // 되돌리기 1
+
+    Get 반환 = 정점 수(capacity 만큼만 채움). Set 은 2점 이상, 잠긴 도면층 = CAD_E_LOCKED.
+    """
+    _a_points = _n.array(CAD_GeVec3, points)
+    return _f.CAD_SetPolylinePoints(id, _a_points, count, closed)
+
+
+def CAD_AddSketchConstraint(type: int, entityA: int, pointA: int, entityB: int, pointB: int, value: float) -> tuple[int, int]:
+    """C: CAD_Status CAD_AddSketchConstraint(int32_t type, uint32_t entityA, int32_t pointA, uint32_t entityB, int32_t pointB, double value, uint32_t* outId)
+
+    제약 더하기 — 바로 풀어 형상을 맞춘다, 되돌리기 1. 같은 제약이 이미 있으면 그 id(CAD_OK).
+    없는 객체 = CAD_E_BAD_HANDLE, 잠김 = CAD_E_LOCKED, 선·원 아님 = CAD_E_WRONG_TYPE, 그 종류에 안 맞는 점·값 = CAD_E_INVALID_ARG
+    """
+    outId = _c.c_uint32()
+    _r = _f.CAD_AddSketchConstraint(type, entityA, pointA, entityB, pointB, value, _c.byref(outId))
+    return (_r, outId.value)
+
+
+def CAD_SetSketchConstraintValue(constraintId: int, value: float) -> int:
+    """C: CAD_Status CAD_SetSketchConstraintValue(uint32_t constraintId, double value)
+
+    값 바꾸기(거리·반지름·직경 > 0, 각도·가로·세로 거리는 부호 있음) — 값 없는 제약 = CAD_E_WRONG_TYPE, 없는 id = CAD_E_BAD_HANDLE
     """
     return _f.CAD_SetSketchConstraintValue(constraintId, value)
 
 
-def CAD_RemoveSketchConstraint(constraintId: int) -> bool:
-    """C: bool CAD_RemoveSketchConstraint(uint32_t constraintId)
+def CAD_RemoveSketchConstraint(constraintId: int) -> int:
+    """C: CAD_Status CAD_RemoveSketchConstraint(uint32_t constraintId)
+
+    값 바꾸기(거리·반지름·직경 > 0, 각도·가로·세로 거리는 부호 있음) — 값 없는 제약 = CAD_E_WRONG_TYPE, 없는 id = CAD_E_BAD_HANDLE
     """
     return _f.CAD_RemoveSketchConstraint(constraintId)
 
 
-def CAD_SolveSketchConstraints() -> bool:
-    """C: bool CAD_SolveSketchConstraints(void)
+def CAD_SolveSketchConstraints() -> int:
+    """C: CAD_Status CAD_SolveSketchConstraints(void)
+
+    장면의 제약 전부를 다시 푼다 — 풀 수 없으면 CAD_E_CONFLICT(형상은 그대로)
     """
     return _f.CAD_SolveSketchConstraints()
 
 
 def CAD_GetSketchConstraintCount() -> int:
-    """C: uint32_t CAD_GetSketchConstraintCount(void)
+    """C: int32_t CAD_GetSketchConstraintCount(void)
+
+    장면의 제약 전부를 다시 푼다 — 풀 수 없으면 CAD_E_CONFLICT(형상은 그대로)
     """
     return _f.CAD_GetSketchConstraintCount()
 
 
 def CAD_GetSketchConstraintIds(outIds: Any, capacity: int) -> int:
-    """C: uint32_t CAD_GetSketchConstraintIds(uint32_t* outIds, uint32_t capacity)
+    """C: int32_t CAD_GetSketchConstraintIds(uint32_t* outIds, uint32_t capacity)
 
-    반환=필요한 전체 개수. outIds/capacity가 작으면 앞부분만 복사한다.
+    장면의 제약 전부를 다시 푼다 — 풀 수 없으면 CAD_E_CONFLICT(형상은 그대로)
     """
     return _f.CAD_GetSketchConstraintIds(outIds, capacity)
 
 
-def CAD_GetSketchConstraintInfo(constraintId: int) -> CAD_SketchConstraintInfo | None:
-    """C: bool CAD_GetSketchConstraintInfo(uint32_t constraintId, CAD_SketchConstraintInfo* outInfo)
+def CAD_GetSketchConstraintInfo(constraintId: int) -> tuple[int, CAD_SketchConstraintInfo]:
+    """C: CAD_Status CAD_GetSketchConstraintInfo(uint32_t constraintId, CAD_SketchConstraintInfo* outInfo)
 
-    반환=필요한 전체 개수. outIds/capacity가 작으면 앞부분만 복사한다.
+    장면의 제약 전부를 다시 푼다 — 풀 수 없으면 CAD_E_CONFLICT(형상은 그대로)
     """
     outInfo = CAD_SketchConstraintInfo()
-    if not _f.CAD_GetSketchConstraintInfo(constraintId, _c.byref(outInfo)):
-        return None
-    return outInfo
+    outInfo.size = _c.sizeof(CAD_SketchConstraintInfo)   # 출력 구조체 — 엔진은 이 크기까지만 쓴다
+    _r = _f.CAD_GetSketchConstraintInfo(constraintId, _c.byref(outInfo))
+    return (_r, outInfo)
 
 
 def CAD_GetSketchDiagnosis(entityId: int, outProblemIds: Any, capacity: int) -> tuple[int, int, int]:
-    """C: int CAD_GetSketchDiagnosis(uint32_t entityId, int* outDof, int* outStatus, uint32_t* outProblemIds, uint32_t capacity)
+    """C: int32_t CAD_GetSketchDiagnosis(uint32_t entityId, int32_t* outDof, int32_t* outStatus, uint32_t* outProblemIds, uint32_t capacity)
 
-    이 선·원과 제약으로 이어진 묶음의 자유도·구속 상태. 형상은 바꾸지 않는다.
-    outProblemIds 에는 충돌(또는 중복) 제약 id — 반환 = 필요한 전체 개수, capacity 만큼만 복사. 실패 시 -1.
+    이 선·원과 제약으로 이어진 묶음의 자유도·구속 상태(CAD_SKETCH_UNDER …). 형상은 바꾸지 않는다.
+    반환 = 문제가 된 제약 수(충돌·잘못된 참조·중복 — 상태에 따라), outProblemIds 에 capacity 만큼
     """
-    outDof = _c.c_int()
-    outStatus = _c.c_int()
+    outDof = _c.c_int32()
+    outStatus = _c.c_int32()
     _r = _f.CAD_GetSketchDiagnosis(entityId, _c.byref(outDof), _c.byref(outStatus), outProblemIds, capacity)
     return (_r, outDof.value, outStatus.value)
 
 
 def CAD_GetLastSketchConflict(outIds: Any, capacity: int) -> int:
-    """C: uint32_t CAD_GetLastSketchConflict(uint32_t* outIds, uint32_t capacity)
+    """C: int32_t CAD_GetLastSketchConflict(uint32_t* outIds, uint32_t capacity)
 
-    마지막 제약 추가·값 편집이 충돌로 실패했을 때 부딪친 제약 id 들. 반환 = 전체 개수.
+    마지막 더하기·값 바꾸기·풀기가 CAD_E_CONFLICT 였을 때 부딪친 제약 id 들 — 반환 = 전체 개수
     """
     return _f.CAD_GetLastSketchConflict(outIds, capacity)
-
-
-def CAD_CreatePolygon(cx: float, cy: float, cz: float, radius: float, sides: int, normalX: float, normalY: float, normalZ: float, firstVertexDirX: float, firstVertexDirY: float, firstVertexDirZ: float) -> int:
-    """C: uint32_t CAD_CreatePolygon(float cx, float cy, float cz, float radius, int sides, float normalX, float normalY, float normalZ, float firstVertexDirX, float firstVertexDirY, float firstVertexDirZ)
-    """
-    return _f.CAD_CreatePolygon(cx, cy, cz, radius, sides, normalX, normalY, normalZ, firstVertexDirX, firstVertexDirY, firstVertexDirZ)
-
-
-def CAD_CreateArc(startX: float, startY: float, startZ: float, throughX: float, throughY: float, throughZ: float, endX: float, endY: float, endZ: float) -> int:
-    """C: uint32_t CAD_CreateArc(float startX, float startY, float startZ, float throughX, float throughY, float throughZ, float endX, float endY, float endZ)
-    """
-    return _f.CAD_CreateArc(startX, startY, startZ, throughX, throughY, throughZ, endX, endY, endZ)
-
-
-def CAD_CreatePolyline(xyz: Sequence | None, pointCount: int, closed: bool) -> int:
-    """C: uint32_t CAD_CreatePolyline(const float* xyz, uint32_t pointCount, bool closed)
-    """
-    _a_xyz = _n.array(_c.c_float, xyz)
-    return _f.CAD_CreatePolyline(_a_xyz, pointCount, closed)
-
-
-def CAD_CreateRectangle(x0: float, y0: float, z0: float, x2: float, y2: float, z2: float) -> int:
-    """C: uint32_t CAD_CreateRectangle(float x0, float y0, float z0, float x2, float y2, float z2)
-    """
-    return _f.CAD_CreateRectangle(x0, y0, z0, x2, y2, z2)
-
-
-def CAD_GetPolylinePoints(id: int, outXyz: Any, cap: int) -> tuple[int, bool]:
-    """C: uint32_t CAD_GetPolylinePoints(uint32_t id, float* outXyz, uint32_t cap, bool* outClosed)
-
-    닫기·열기·반전·정점 삽입/삭제는 전부 "정점 목록을 바꾸는 일" 이라, 하위 명령마다
-    함수를 늘리는 대신 목록을 통째로 읽고 쓰게 한다. 호스트가 받아서 고쳐 되돌려주면 된다.
-
-    uint32_t n = CAD_GetPolylinePoints(id, NULL, 0, NULL);   // 개수 질의
-    float* buf = malloc(n * 3 * sizeof(float));
-    bool closed = false;
-    CAD_GetPolylinePoints(id, buf, n, &closed);
-    ... 고친 뒤 ...
-    CAD_SetPolylinePoints(id, buf, n, closed);               // undo 1스텝으로 적재
-
-    xyz 는 3 × count 개 float. 좌표는 객체 로컬 (그립/스케치와 같은 공간).
-    Set 은 정점이 2개 미만이면 실패. Polyline 이 아닌 객체는 0 / false.
-    """
-    outClosed = _c.c_bool()
-    _r = _f.CAD_GetPolylinePoints(id, outXyz, cap, _c.byref(outClosed))
-    return (_r, outClosed.value)
-
-
-def CAD_SetPolylinePoints(id: int, xyz: Sequence | None, count: int, closed: bool) -> bool:
-    """C: bool CAD_SetPolylinePoints(uint32_t id, const float* xyz, uint32_t count, bool closed)
-
-    닫기·열기·반전·정점 삽입/삭제는 전부 "정점 목록을 바꾸는 일" 이라, 하위 명령마다
-    함수를 늘리는 대신 목록을 통째로 읽고 쓰게 한다. 호스트가 받아서 고쳐 되돌려주면 된다.
-
-    uint32_t n = CAD_GetPolylinePoints(id, NULL, 0, NULL);   // 개수 질의
-    float* buf = malloc(n * 3 * sizeof(float));
-    bool closed = false;
-    CAD_GetPolylinePoints(id, buf, n, &closed);
-    ... 고친 뒤 ...
-    CAD_SetPolylinePoints(id, buf, n, closed);               // undo 1스텝으로 적재
-
-    xyz 는 3 × count 개 float. 좌표는 객체 로컬 (그립/스케치와 같은 공간).
-    Set 은 정점이 2개 미만이면 실패. Polyline 이 아닌 객체는 0 / false.
-    """
-    _a_xyz = _n.array(_c.c_float, xyz)
-    return _f.CAD_SetPolylinePoints(id, _a_xyz, count, closed)
-
-
-def CAD_CreateEllipse(cx: float, cy: float, cz: float, majorX: float, majorY: float, majorZ: float, ratio: float, normalX: float, normalY: float, normalZ: float) -> int:
-    """C: uint32_t CAD_CreateEllipse(float cx, float cy, float cz, float majorX, float majorY, float majorZ, float ratio, float normalX, float normalY, float normalZ)
-
-    타원 — 중심, 장축 반벡터(중심→장축 끝, 길이 = 장반경), 단축비(0<ratio≤1), 평면 법선(0,0,0 이면 +Z). 실패 0.
-    """
-    return _f.CAD_CreateEllipse(cx, cy, cz, majorX, majorY, majorZ, ratio, normalX, normalY, normalZ)
-
-
-def CAD_CreateSpline(fitXYZ: Sequence | None, count: int, closed: bool) -> int:
-    """C: uint32_t CAD_CreateSpline(const float* fitXYZ, uint32_t count, bool closed)
-
-    맞춤점을 지나는 스플라인 — fitXYZ = count*3, closed = 닫힌(주기) 스플라인. 열린 것은 2점, 닫힌 것은 3점 이상. 실패 0.
-    """
-    _a_fitXYZ = _n.array(_c.c_float, fitXYZ)
-    return _f.CAD_CreateSpline(_a_fitXYZ, count, closed)
 
 
 def CAD_CurveGetGeCurve(id: int) -> tuple[int, int]:

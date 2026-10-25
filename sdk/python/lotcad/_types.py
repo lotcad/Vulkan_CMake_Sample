@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import ctypes as _c
-__all__ = ['CAD_Color', 'CAD_GeVec3', 'CAD_GePlane', 'CAD_GeMatrix', 'CAD_GeArc', 'CAD_GeEllipse', 'CAD_GeIntersection', 'CAD_PostFn', 'CAD_OverlayFrameInfo', 'CAD_OverlayRenderFn', 'CAD_OverlayPointerInfo', 'CAD_OverlayInputFn', 'CAD_OsnapPoint', 'CAD_OsnapOptions', 'CAD_CommandFn', 'CAD_EdInputResult', 'CAD_EdInputFn', 'CAD_EdInputOptions', 'CAD_EdSelectOptions', 'CAD_EdCommandState', 'CAD_EventFn', 'CAD_SketchConstraintInfo', 'CAD_CurveCreateOptions', 'CAD_BRepInfo', 'CAD_BRepParameters', 'CAD_BRepFaceInfo', 'CAD_BRepCutInfo', 'CAD_BooleanCylinderCutInfo', 'CAD_InterferenceInfo', 'CAD_MeshCheckInfo', 'CAD_SimOptions', 'CAD_SimCondition', 'CAD_SimFace', 'CAD_SimState', 'CAD_SimSummary', 'CAD_SimConvergence', 'CAD_SimRunOptions', 'CAD_WindOptions', 'CAD_WindState', 'CAD_WindViewOptions', 'CAD_WindPointValue', 'CAD_WindSurfacePoint', 'CAD_WaterOptions', 'CAD_WaterState', 'CAD_WaterFloater', 'CAD_WaterPointValue', 'CAD_ClothOptions', 'CAD_ClothState', 'CAD_FloorplanOpeningDesc']
+__all__ = ['CAD_Color', 'CAD_GeVec3', 'CAD_GePlane', 'CAD_GeMatrix', 'CAD_GeArc', 'CAD_GeEllipse', 'CAD_GeIntersection', 'CAD_PostFn', 'CAD_OverlayFrameInfo', 'CAD_OverlayRenderFn', 'CAD_OverlayPointerInfo', 'CAD_OverlayInputFn', 'CAD_OsnapPoint', 'CAD_OsnapOptions', 'CAD_CommandFn', 'CAD_EdInputResult', 'CAD_EdInputFn', 'CAD_EdInputOptions', 'CAD_EdSelectOptions', 'CAD_EdCommandState', 'CAD_EventFn', 'CAD_CurveCreateOptions', 'CAD_SketchConstraintInfo', 'CAD_BRepInfo', 'CAD_BRepParameters', 'CAD_BRepFaceInfo', 'CAD_BRepCutInfo', 'CAD_BooleanCylinderCutInfo', 'CAD_InterferenceInfo', 'CAD_MeshCheckInfo', 'CAD_SimOptions', 'CAD_SimCondition', 'CAD_SimFace', 'CAD_SimState', 'CAD_SimSummary', 'CAD_SimConvergence', 'CAD_SimRunOptions', 'CAD_WindOptions', 'CAD_WindState', 'CAD_WindViewOptions', 'CAD_WindPointValue', 'CAD_WindSurfacePoint', 'CAD_WaterOptions', 'CAD_WaterState', 'CAD_WaterFloater', 'CAD_WaterPointValue', 'CAD_ClothOptions', 'CAD_ClothState', 'CAD_FloorplanOpeningDesc']
 
 
 class CAD_Color(_c.Structure):
@@ -214,23 +214,24 @@ class CAD_EdCommandState(_c.Structure):
 
 CAD_EventFn = _c.CFUNCTYPE(None, _c.c_int, _c.c_uint32, _c.c_void_p)
 
-class CAD_SketchConstraintInfo(_c.Structure):
-    _fields_ = [
-        ("id", _c.c_uint32),
-        ("type", _c.c_int),
-        ("entityA", _c.c_uint32),
-        ("pointA", _c.c_int),
-        ("entityB", _c.c_uint32),
-        ("pointB", _c.c_int),
-        ("value", _c.c_float),
-        ("driving", _c.c_bool),
-        ("enabled", _c.c_bool),
-    ]
-
 class CAD_CurveCreateOptions(_c.Structure):
     _fields_ = [
         ("size", _c.c_uint32),
         ("propsFrom", _c.c_uint32),
+    ]
+
+class CAD_SketchConstraintInfo(_c.Structure):
+    _fields_ = [
+        ("size", _c.c_uint32),
+        ("id", _c.c_uint32),
+        ("type", _c.c_int32),
+        ("entityA", _c.c_uint32),
+        ("pointA", _c.c_int32),
+        ("entityB", _c.c_uint32),
+        ("pointB", _c.c_int32),
+        ("value", _c.c_double),
+        ("driving", _c.c_bool),
+        ("enabled", _c.c_bool),
     ]
 
 class CAD_BRepInfo(_c.Structure):
