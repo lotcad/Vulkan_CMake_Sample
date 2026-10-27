@@ -25,9 +25,9 @@ _FUNCS = {"wind": "CAD_WindTunnel", "water": "CAD_Water", "sim": "CAD_Structural
 def call(which, args):
     """해석 API 한 번 — 결과 JSON(dict). 실패면 {"ok": False, "error": …}.
 
-    ⚠️ 2회 호출 규약을 직접 지킨다: out=NULL 로 길이를 먼저 묻고(이때 한 번 실행), 같은 인자로 버퍼를 넘기면
-    엔진이 다시 실행하지 않고 그 결과를 준다. 자동 생성 바인딩(lotcad.CAD_WindTunnel 등)은 작은 버퍼로 먼저 불렀다가
-    모자라면 **버퍼로 다시** 부르므로 run·start 가 두 번 들어가 "이미 도는 중" 이 된다 — 그래서 원시 함수(lotcad.native)로.
+    2회 호출 규약: out=NULL 로 길이를 먼저 묻고(이때 한 번 실행), 같은 인자로 버퍼를 넘기면 엔진이 다시 실행하지 않고
+    그 결과를 준다. 자동 생성 바인딩(lotcad.CAD_WindTunnel 등)도 이 순서로 부르며 글(str, 실패면 None)을 돌려준다 —
+    여기서는 원시 함수(lotcad.native)로 같은 순서를 밟아 바로 dict 로 풀고, 실패면 CAD_GetLastError 를 담는다.
     """
     fn = getattr(lotcad.native, _FUNCS[which])
     raw = json.dumps(args).encode("utf-8")

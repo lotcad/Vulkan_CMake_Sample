@@ -12,10 +12,11 @@ namespace LotCadWinForms
 
         // ── 생명주기 / 뷰 ──
         // 루프 세 함수(CreateEngine·Tick·ShouldClose)는 bool, 나머지는 결과 코드(0 = CAD_OK, 이유는 CAD_GetLastError)
-        [DllImport(DLL)] public static extern bool CAD_CreateEngine();
+        // C bool 은 1바이트 — I1 이 없으면 4바이트로 읽어 false 가 true 로 보일 수 있다
+        [DllImport(DLL)] [return: MarshalAs(UnmanagedType.I1)] public static extern bool CAD_CreateEngine();
         [DllImport(DLL)] public static extern int CAD_DestroyEngine();
-        [DllImport(DLL)] public static extern bool CAD_Tick();
-        [DllImport(DLL)] public static extern bool CAD_ShouldClose();
+        [DllImport(DLL)] [return: MarshalAs(UnmanagedType.I1)] public static extern bool CAD_Tick();
+        [DllImport(DLL)] [return: MarshalAs(UnmanagedType.I1)] public static extern bool CAD_ShouldClose();
         [DllImport(DLL)] public static extern int CAD_SetIgnoreCloseRequest([MarshalAs(UnmanagedType.I1)] bool ignore);
         // CharSet.Ansi 는 한글 경로를 깨뜨린다(엔진은 UTF-8 을 기대). byte[] 로 넘긴다. 0 = CAD_OK
         [DllImport(DLL)] public static extern int CAD_SetRuntimeAssetPath(byte[] pathUtf8);
