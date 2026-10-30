@@ -18,6 +18,9 @@ struct ContentView: View {
     // 숫자 입력 — CAD 정밀도는 "정확히 가리키기" 가 아니라 **숫자**에서 온다.
     // 전체 키보드는 3D 뷰를 덮어 못 쓰므로 좁은 숫자패드만 띄운다.
     @State private var numInput = ""
+    // 노드 그래프 값 상자·노드 찾기 — 엔진이 글을 기다리면(프롬프트) 키보드를 띄우고, 친 글은 명령행과 같은 입구로
+    @State private var graphText = ""
+    @FocusState private var graphFocused: Bool
 
     var body: some View {
         ZStack {
@@ -101,6 +104,7 @@ struct ContentView: View {
             if showDrawMenu { drawMenuRow }
             if showDimMenu { dimMenuRow }
             if showViewMenu { viewMenuRow }
+            if controller.graphMode && !controller.graphPrompt.isEmpty { graphInputRow }
             if controller.cursorToolActive {
                 if !controller.promptText.isEmpty { promptLabel }
                 // 치수는 값을 안 받는다 — 패드를 띄우면 쳐도 반응이 없어 오해를 부른다.
@@ -173,6 +177,29 @@ struct ContentView: View {
             }
             .padding(.horizontal, 4)
         }
+    }
+
+    // 노드 그래프 입력 줄 — 값 상자(숫자·점·글자)·노드 목록 거르기. 엔진 안내를 자리 표시로, ↵ = 적용(빈 글 = 취소), ✕ = 취소
+    private var graphInputRow: some View {
+        HStack(spacing: 6) {
+            TextField(controller.graphPrompt, text: $graphText)
+                .focused($graphFocused)
+                .textInputAutocapitalization(.never)
+                .disableAutocorrection(true)
+                .submitLabel(.done)
+                .onSubmit(commitGraphText)
+                .padding(.vertical, 8).padding(.horizontal, 12)
+                .background(Color.white.opacity(0.92)).foregroundColor(.black).cornerRadius(6)
+            toolButton("↵") { commitGraphText() }
+            toolButton("✕") { controller.engine.cancelCommand(); graphText = ""; graphFocused = false }
+        }
+        .onAppear { graphText = ""; graphFocused = true }
+    }
+
+    private func commitGraphText() {
+        if graphText.isEmpty { controller.engine.cancelCommand() } else { controller.engine.executeCommand(graphText) }
+        graphText = ""
+        graphFocused = false
     }
 
     // 엔진이 주는 안내 문구 — 도구 종류와 무관하게 "지금 뭘 해야 하는지" 를 그대로 보여준다.
@@ -279,6 +306,7 @@ struct ContentView: View {
                 toolButton("그리기") { showDrawMenu.toggle(); showDimMenu = false; showViewMenu = false }
                 toolButton("측정")   { showDimMenu.toggle(); showDrawMenu = false; showViewMenu = false }
                 toolButton("뷰")     { showViewMenu.toggle(); showDrawMenu = false; showDimMenu = false }
+                toolButton(controller.graphMode ? "그래프 ●" : "그래프") { controller.toggleGraph() }
                 toolButton("큐브")   { controller.engine.addCube() }
                 toolButton("전체선택") { controller.engine.selectAll() }
                 toolButton("삭제")   { controller.engine.deleteSelected() }
@@ -318,6 +346,25 @@ final class LotCADController: ObservableObject {
     @Published private(set) var promptText = ""
     private var lastPrompt = ""
     weak var metalView: LotCADMetalView?
+
+    // ─── 노드 그래프 칸 ───────────────────────────────────────
+    // 엔진 graph 명령이 화면을 둘로 나눠 오른쪽에 그래프 칸을 연다. 손가락 조작은 엔진 터치 모드가 맡고,
+    // 앱은 길게 누르기(메뉴)와 글 입력(값 상자·노드 찾기)만 — 엔진이 글을 기다리면 프롬프트가 생긴다.
+    @Published private(set) var graphMode = false
+    @Published private(set) var graphPrompt = ""
+
+    func toggleGraph() {
+        graphMode.toggle()
+        engine.executeCommand(graphMode ? "graph on" : "graph off")
+        metalView?.graphMode = graphMode
+        if !graphMode { graphPrompt = "" }
+    }
+
+    private func syncGraphPrompt() {
+        guard graphMode, !cursorToolActive else { return }
+        let p = engine.prompt()
+        if p != graphPrompt { graphPrompt = p }
+    }
 
     /// 숫자패드를 띄울지 — 진행 중인 도구가 **값을 실제로 받을 때만**.
     ///
@@ -459,6 +506,7 @@ final class LotCADController: ObservableObject {
         }
         updateMeasure()
         syncCursorTool()
+        syncGraphPrompt()
     }
 
     /// 선택 → 길이·면적을 읽어 라벨 문자열을 만든다.

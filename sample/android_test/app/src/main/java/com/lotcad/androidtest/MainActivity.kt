@@ -5,10 +5,14 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.text.InputType
 import android.view.Gravity
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -30,6 +34,10 @@ class MainActivity : Activity() {
     private lateinit var numPad: LinearLayout
     private lateinit var numValue: TextView
     private var numInput = ""
+    // 노드 그래프 — [그래프] 로 칸을 열고 닫는다. 엔진이 글을 기다리면(값 상자·노드 찾기 → 프롬프트) 입력 줄 + 화면 키보드 (iOS 와 동일)
+    private var graphMode = false
+    private lateinit var graphBar: LinearLayout
+    private lateinit var graphEdit: EditText
 
     // 커서가 마우스를 대신하므로 데스크톱 도구 흐름(점1 → 점2 → 치수선 위치)을 그대로 쓴다.
     private fun beginCursorTool() {
@@ -51,6 +59,7 @@ class MainActivity : Activity() {
     /** 프롬프트 반영 — 그리기 도구는 점 개수가 열려 있어(폴리선 등) 치수처럼 단계를 못 센다.
      *  그래서 **프롬프트가 비면 도구가 끝난 것**으로 보고 커서 모드를 푼다 (iOS syncCursorTool 과 동일). */
     private fun onPrompt(p: String) {
+        if (graphMode && !cursorBarVisible()) { showGraphInput(p); return }
         if (!cursorBarVisible()) return
         if (CadNative.nativeDimensionPointCount() >= 0) { numPad.visibility = View.GONE; return }  // 치수: onDimCount 가 맡음
         if (p.isEmpty()) { endCursorTool(); return }
@@ -70,6 +79,30 @@ class MainActivity : Activity() {
         if (n < 0) { endCursorTool(); return }
         cursorStep = n
         cursorPickBtn.text = when (n) { 0 -> "선택 1"; 1 -> "선택 2"; else -> "선택" }
+    }
+
+    /** 그래프 입력 줄 — 프롬프트가 있으면 띄우고 키보드를 올린다, 비면(값 적용·취소·다른 곳 탭) 내린다. */
+    private fun showGraphInput(p: String) {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        if (p.isEmpty()) {
+            if (graphBar.visibility == View.VISIBLE) imm.hideSoftInputFromWindow(graphEdit.windowToken, 0)
+            graphBar.visibility = View.GONE
+            return
+        }
+        graphEdit.hint = p
+        if (graphBar.visibility != View.VISIBLE) {
+            graphEdit.setText("")
+            graphBar.visibility = View.VISIBLE
+            graphEdit.requestFocus()
+            imm.showSoftInput(graphEdit, InputMethodManager.SHOW_IMPLICIT)
+        }
+    }
+
+    /** 친 글 = 명령행과 같은 입구(엔진이 값 상자·노드 목록으로 돌린다). 빈 글 = 취소. */
+    private fun commitGraphText() {
+        val t = graphEdit.text.toString()
+        if (t.isEmpty()) CadNative.nativeCancelCommand() else CadNative.nativeExecuteCommand(t)
+        graphEdit.setText("")
     }
 
     private fun cursorBarVisible() = ::cursorBar.isInitialized && cursorBar.visibility == View.VISIBLE
@@ -180,6 +213,8 @@ class MainActivity : Activity() {
         addBtn("그리기")   { toggleOnly(drawBar) }
         addBtn("측정")     { toggleOnly(dimBar) }
         addBtn("뷰")       { toggleOnly(viewBar) }
+        val graphBtn = Button(this).apply { text = "그래프" }
+        bar.addView(graphBtn)
         addBtn("큐브")     { CadNative.nativeAddCube() }
         addBtn("전체선택") { CadNative.nativeSelectAll() }
         addBtn("삭제")     { CadNative.nativeDeleteSelected() }
@@ -259,6 +294,23 @@ class MainActivity : Activity() {
         root.addView(numPad, LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
+        // 노드 그래프 입력 줄 — 엔진 안내를 자리 표시로, 완료·↵ = 적용(빈 글 = 취소), ✕ = 취소
+        graphEdit = EditText(this).apply {
+            isSingleLine = true
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            imeOptions = EditorInfo.IME_ACTION_DONE
+            setOnEditorActionListener { _, id, _ -> if (id == EditorInfo.IME_ACTION_DONE) { commitGraphText(); true } else false }
+        }
+        graphBar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            visibility = View.GONE
+            addView(graphEdit, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            addView(Button(this@MainActivity).apply { text = "↵"; setOnClickListener { commitGraphText() } })
+            addView(Button(this@MainActivity).apply { text = "✕"; setOnClickListener { graphEdit.setText(""); CadNative.nativeCancelCommand() } })
+        }
+        root.addView(graphBar, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+
         // 커서 도구 줄 — 버튼은 하나이고 **문구만 단계에 따라 바뀐다**(선택 1 → 선택 2 → 선택).
         cursorBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -293,6 +345,14 @@ class MainActivity : Activity() {
             }
         }
         this.renderView = renderView
+        // [그래프] — 엔진 graph 명령이 화면을 둘로 나눠 오른쪽에 노드 그래프 칸을 연다. 켜지면 ●
+        graphBtn.setOnClickListener {
+            graphMode = !graphMode
+            CadNative.nativeExecuteCommand(if (graphMode) "graph on" else "graph off")
+            renderView.graphMode = graphMode
+            graphBtn.text = if (graphMode) "그래프 ●" else "그래프"
+            if (!graphMode) showGraphInput("")
+        }
         // [회전] 토글 — 켜지면 문구로 상태를 보인다 (●). 1손가락 드래그 = pan ↔ 궤도회전.
         orbitBtn.setOnClickListener {
             renderView.orbitMode = !renderView.orbitMode

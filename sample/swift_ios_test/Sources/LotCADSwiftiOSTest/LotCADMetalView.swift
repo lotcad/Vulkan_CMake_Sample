@@ -15,6 +15,9 @@ final class LotCADMetalView: UIView {
     /// true 면 1손가락 드래그 = 궤도회전(빈 곳). 돌려 보는 게 주목적인 뷰어(로봇 팔 샘플)용.
     /// 기본 false — CAD 화면은 이동(pan)이 더 잦다.
     var oneFingerOrbits = false
+    /// 노드 그래프 칸이 열려 있나 — 켜지면 길게 누르기 = 오른쪽 클릭(그래프 칸의 노드 메뉴·노드 목록·연결 끊기).
+    /// 한 손가락 끌기(가운데)·두 손가락(오른쪽)·집기(휠)·탭(왼쪽)은 엔진이 터치 모드(CAD_SetSnapTouchMode)에서 그래프용으로 바꿔 받는다.
+    var graphMode = false
 
     // ─── 가상 커서 (도구 사용 중) ────────────────────────────────
     // 손가락이 목표를 가려 스냅 심볼(□△○⊕)이 안 보이는 문제를 구조적으로 없앤다.
@@ -165,6 +168,11 @@ final class LotCADMetalView: UIView {
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         addGestureRecognizer(tap)
 
+        // 길게 누르기 = 오른쪽 클릭 — 그래프 모드일 때만(3D 칸엔 오른쪽 클릭 메뉴가 없다). 손가락이 10pt 넘게 움직이면 끌기로 넘어간다.
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPress.minimumPressDuration = 0.5
+        addGestureRecognizer(longPress)
+
         // 2손가락 궤도회전과 pinch 는 동시 인식 (CAD 의 표준 — 줌하면서 시점 조정)
         orbit.require(toFail: oneFinger) // 1손가락이 우선 판정되게
     }
@@ -280,6 +288,17 @@ final class LotCADMetalView: UIView {
             // .ended 는 손가락 하나가 떨어진 뒤라 location(중점)이 남은 손가락으로 튀어 있다.
             // 그 좌표로 커서 중심 줌을 하면 화면이 확 튀므로 마지막 증분은 버린다.
             break
+        }
+    }
+
+    @objc private func handleLongPress(_ g: UILongPressGestureRecognizer) {
+        guard let engine = engine, graphMode, !cursorMode, g.state == .began else { return }
+        let pt = enginePoint(g.location(in: self))
+        let x = Double(pt.x), y = Double(pt.y)
+        // 탭과 같은 이유로 up 은 조금 뒤에 — 엔진이 누름을 한 틱은 본다. 안 움직였으니 그래프 칸은 메뉴(끌면 화면 옮기기)
+        engine.mouseDown(button: MouseButton.right, x: x, y: y, modifiers: 0)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak engine] in
+            engine?.mouseUp(button: MouseButton.right, x: x, y: y, modifiers: 0)
         }
     }
 

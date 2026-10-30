@@ -2,6 +2,7 @@ package com.lotcad.androidtest
 
 import android.content.Context
 import android.view.Choreographer
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.SurfaceHolder
@@ -127,6 +128,23 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context),
     //       그래서 마우스로 판별되면 데스크톱 규약으로 갈아탄다 — mouseButtonOf() 참조.
     /** [회전] 토글 상태 — true 면 1손가락 드래그 = 궤도회전 (MainActivity 버튼이 바꾼다). */
     var orbitMode = false
+
+    // ─── 노드 그래프 칸 (iOS graphMode 와 동일) ──────────────────────
+    // 손가락 조작은 엔진 터치 모드(CAD_SetSnapTouchMode)가 그래프용으로 바꿔 받는다 — 한 손가락(가운데) = 노드 끌기·잇기·막대,
+    // 두 손가락(오른쪽) = 옮기기, 핀치(휠) = 확대, 탭(왼쪽) = 고르기. 앱이 더하는 것은 길게 누르기 = 오른쪽 클릭(메뉴·노드 목록·연결 끊기).
+    /** 노드 그래프 칸이 열려 있나 (MainActivity [그래프] 버튼이 바꾼다). */
+    var graphMode = false
+    private var longPressed = false      // 이 손가락은 길게 누르기로 썼다 — 뗄 때까지 끌기·탭 없음
+    private val longPressDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onLongPress(e: MotionEvent) {
+            if (!graphMode || cursorMode || activeButton >= 0 || e.pointerCount > 1) return
+            longPressed = true
+            val x = e.x; val y = e.y
+            CadNative.nativeTouch(0, BTN_RIGHT, x, y)
+            // 탭(iOS)과 같은 이유로 뗌은 조금 뒤에 — 엔진이 누름을 한 틱은 본다. 안 움직였으니 그래프 칸은 메뉴
+            postDelayed({ CadNative.nativeTouch(2, BTN_RIGHT, x, y) }, 50)
+        }
+    })
 
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private var downX = 0f
@@ -293,6 +311,12 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context),
 
     override fun onTouchEvent(e: MotionEvent): Boolean {
         scaleDetector.onTouchEvent(e)   // 줌은 여기서, 드래그는 아래에서 — 둘 다 흘러간다
+        if (!isMouse(e)) longPressDetector.onTouchEvent(e)
+        if (e.actionMasked == MotionEvent.ACTION_DOWN) longPressed = false
+        else if (longPressed) {   // 길게 누르기 뒤 — 뗄 때까지 아무것도 안 보낸다(뗌이 탭으로 새지 않게)
+            if (e.actionMasked == MotionEvent.ACTION_UP || e.actionMasked == MotionEvent.ACTION_CANCEL) longPressed = false
+            return true
+        }
         when (e.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 downX = e.x; downY = e.y; activeButton = -1
@@ -352,7 +376,11 @@ class VulkanSurfaceView(context: Context) : SurfaceView(context),
                 if (activeButton < 0) {
                     val dx = x - downX; val dy = y - downY
                     // 2손가락은 위에서 이미 드래그로 판정됐으니 바로 시작한다(판정에 쓴 이동을 또 기다리지 않게).
-                    if (twoFinger && !isMouse(e) || dx * dx + dy * dy > touchSlop * touchSlop) beginDrag(want, x, y)
+                    if (twoFinger && !isMouse(e)) beginDrag(want, x, y)
+                    else if (dx * dx + dy * dy > touchSlop * touchSlop) {
+                        // 그래프 칸: 누른 자리에서 시작해야 그 노드·포트를 잡는다(슬롭만큼 옮긴 자리면 빗나간다)
+                        if (graphMode) { beginDrag(want, downX, downY); CadNative.nativeTouch(1, want, x, y) } else beginDrag(want, x, y)
+                    }
                 } else if (activeButton != want) {
                     endDrag(x, y); beginDrag(want, x, y)   // 손가락 수가 바뀐 경우
                 } else {
