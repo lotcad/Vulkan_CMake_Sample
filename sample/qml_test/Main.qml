@@ -13,13 +13,29 @@ ApplicationWindow {
     visible: true
     title: "LotCAD — Qt6 Cross-platform Host"
 
-    // 어느 기능 패널을 오른쪽에 띄울지. 0 닫힘 1 도면 2 단면 3 해석.
+    // 어느 기능 패널을 오른쪽에 띄울지. 0 닫힘 1 도면 2 단면 3 해석 4 도면층·선종류·블록 5 노드 그래프.
     //
     // 왜 패널인가: 3D 뷰가 네이티브 자식 창이라 QML Popup/Dialog 를 같은 창에 띄우면 뷰 뒤로 숨는다.
     // 그래서 기능 UI 는 3D 영역 **바깥**에 두고, 메뉴만 별도 최상위 창(Platform.Menu)으로 띄운다.
     property int featurePage: 0
 
     // 해석 패널을 그 종류 탭으로 연다(kind = wind | water | sim) — 리본 해석 탭·해석 메뉴가 부른다.
+    // 도면층·선종류·블록 패널 — page = layers | linetypes | blocks
+    function openLayers(page) {
+        layersPanel.page = page
+        LayersApi.refresh()
+        win.featurePage = 4
+    }
+    // 노드 그래프 패널 — 종류 목록은 엔진이 돈 뒤에 읽는다(첫 프레임 전엔 엔진이 죽는다)
+    function openGraph(example) {
+        GraphApi.loadKinds()
+        if (example) GraphApi.example()
+        GraphApi.refresh()
+        win.featurePage = 5
+    }
+    // 메시 점검·수리 결과 — 왼쪽 패널 아래에 보인다
+    property string meshReport: ""
+
     function openAnalysis(kind) {
         analysisPanel.page = kind
         win.featurePage = 3
@@ -73,6 +89,8 @@ ApplicationWindow {
             ToolButton { text: "도면";   onClicked: drawingMenu.open(this) }
             ToolButton { text: "단면";   onClicked: sectionMenu.open(this) }
             ToolButton { text: "해석";   onClicked: analysisMenu.open(this) }
+            ToolButton { text: "형식";   onClicked: formatMenu.open(this) }
+            ToolButton { text: "그래프"; onClicked: graphMenu.open(this) }
             Item { Layout.fillWidth: true }
         }
     }
@@ -170,6 +188,26 @@ ApplicationWindow {
     }
 
     Platform.Menu {
+        id: formatMenu
+        title: "형식"
+        Platform.MenuItem { text: "도면층…"; onTriggered: win.openLayers("layers") }
+        Platform.MenuItem { text: "선종류…"; onTriggered: win.openLayers("linetypes") }
+        Platform.MenuItem { text: "블록…";   onTriggered: win.openLayers("blocks") }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "메시 점검"; onTriggered: win.meshReport = CadCommands.checkMeshes() }
+        Platform.MenuItem { text: "메시 수리"; onTriggered: win.meshReport = CadCommands.repairMeshes() }
+    }
+
+    Platform.Menu {
+        id: graphMenu
+        title: "그래프"
+        Platform.MenuItem { text: "노드 그래프 패널"; onTriggered: win.openGraph(false) }
+        Platform.MenuItem { text: "예제 (상자 → 배열 → 출력)"; onTriggered: win.openGraph(true) }
+        Platform.MenuItem { text: "계산"; onTriggered: GraphApi.evaluate() }
+        Platform.MenuItem { text: "굽기"; onTriggered: GraphApi.bake() }
+    }
+
+    Platform.Menu {
         id: analysisMenu
         title: "해석"
         Platform.MenuItem { text: "바람 터널"; onTriggered: win.openAnalysis("wind") }
@@ -184,7 +222,16 @@ ApplicationWindow {
 
     // 상단 리본 — 엔진 ImGui 리본(ui/lot_ribbon.cpp)과 같은 탭·그룹·아이콘 구성.
     // 3D 뷰가 네이티브 자식 창이라 리본은 그 바깥(header)에 있어야 가려지지 않는다.
-    header: Ribbon { onAnalysisRequested: (kind) => win.openAnalysis(kind) }
+    header: Ribbon {
+        onAnalysisRequested: (kind) => win.openAnalysis(kind)
+        onPanelRequested: (what) => {
+            if (what.startsWith("layers:")) win.openLayers(what.substring(7))
+            else if (what === "graph") win.openGraph(false)
+            else if (what === "graph:example") win.openGraph(true)
+            else if (what === "mesh:check") win.meshReport = CadCommands.checkMeshes()
+            else if (what === "mesh:repair") win.meshReport = CadCommands.repairMeshes()
+        }
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -210,6 +257,15 @@ ApplicationWindow {
 
                 Item { Layout.fillHeight: true }   // 아래 밀어내기
 
+                Label {
+                    Layout.fillWidth: true
+                    visible: win.meshReport !== ""
+                    text: win.meshReport
+                    color: "#bbb"
+                    wrapMode: Text.Wrap
+                    MouseArea { anchors.fill: parent; onClicked: win.meshReport = "" }   // 눌러 지우기
+                }
+
                 Button { Layout.fillWidth: true; text: "전체 삭제"; onClicked: CadCommands.clearAll() }
             }
         }
@@ -233,7 +289,9 @@ ApplicationWindow {
             // 낮은 빈도로 읽어 맞춘다(매 프레임은 필요 없다).
             Timer {
                 interval: 200; repeat: true; running: featurePanel.visible
-                onTriggered: win.featurePage === 1 ? DrawingApi.refresh()
+                onTriggered: win.featurePage === 4 ? LayersApi.refresh()
+                           : win.featurePage === 5 ? GraphApi.refresh()
+                           : win.featurePage === 1 ? DrawingApi.refresh()
                            : win.featurePage === 3 ? AnalysisApi.refresh() : SectionApi.refresh()
             }
 
@@ -245,7 +303,7 @@ ApplicationWindow {
                 RowLayout {
                     Layout.fillWidth: true
                     Label {
-                        text: win.featurePage === 1 ? "도면 뷰" : win.featurePage === 3 ? "해석" : "실시간 단면"
+                        text: ["", "도면 뷰", "실시간 단면", "해석", "도면층 · 선종류 · 블록", "노드 그래프"][win.featurePage]
                         color: "#ddd"; font.bold: true
                     }
                     Item { Layout.fillWidth: true }
@@ -550,6 +608,10 @@ ApplicationWindow {
 
                     // ══ 해석 ══ — 내용이 길어 AnalysisPanel.qml 로 나눴다
                     AnalysisPanel { id: analysisPanel }
+
+                    // ══ 도면층·선종류·블록 ══ / ══ 노드 그래프 ══
+                    LayersPanel { id: layersPanel }
+                    NodeGraphPanel {}
                 }
             }
         }

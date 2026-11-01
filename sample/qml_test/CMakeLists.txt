@@ -52,6 +52,8 @@ qt_add_executable(qml_host
     drawing_api.h       # 기능별 QML 싱글톤 — 한 파일에 몰지 않고 기능 단위로 나눈다
     section_api.h
     analysis_api.h      # 해석(바람 터널·물·구조 해석)
+    layers_api.h        # 도면층·선종류·블록
+    graph_api.h         # 노드 그래프
     demo_scene.h
 )
 
@@ -64,6 +66,8 @@ qt_add_qml_module(qml_host
         Main.qml
         Ribbon.qml       # 엔진 ImGui 리본과 같은 탭/그룹 구성
         AnalysisPanel.qml  # 해석 패널(바람 터널·물·구조 해석) — AnalysisApi
+        LayersPanel.qml    # 도면층·선종류·블록 패널 — LayersApi
+        NodeGraphPanel.qml # 노드 그래프 패널 — GraphApi
         ToolIcon.qml     # 아이콘 한 개(Canvas)
         ToolIcons.js     # 67개 선 아이콘 — 엔진 ui/lot_tool_icons.cpp 포팅
 )

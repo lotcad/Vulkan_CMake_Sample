@@ -11,7 +11,11 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QString>
+#include <QStringList>
 #include <QtQml/qqmlregistration.h>
+
+#include <algorithm>
+#include <vector>
 
 class CadCommands : public QObject {
     Q_OBJECT
@@ -80,6 +84,31 @@ public:
         return CAD_SaveAs(p.toUtf8().constData(), selectedOnly) == CAD_OK;
     }
 
+    // ── 메시 점검·수리 — 선택한 메시. 결과는 사람이 읽을 한 줄씩(QML 이 그대로 보여 준다) ──
+    Q_INVOKABLE QString checkMeshes() const {
+        QStringList lines;
+        for (uint32_t id : selection()) {
+            CAD_MeshCheckInfo m{};
+            m.size = sizeof m;
+            if (CAD_CheckMesh(id, &m) != CAD_OK) { lines << QString("#%1: %2").arg(id).arg(statusMessage()); continue; }
+            QStringList issues;
+            const auto add = [&](const char* name, uint32_t v) { if (v) issues << QString("%1 %2").arg(name).arg(v); };
+            add("열린 모서리", m.openEdges); add("구멍", m.holes); add("겹친 면", m.duplicates);
+            add("찌그러진 면", m.degenerate); add("비다양체 모서리", m.nonManifoldEdges); add("뒤집힌 모서리", m.flippedEdges);
+            lines << QString("#%1: 삼각형 %2 · 덩어리 %3 · %4 — %5").arg(id).arg(m.triangles).arg(m.components)
+                         .arg(m.closed ? "닫힘" : "열림").arg(issues.isEmpty() ? "문제 없음" : issues.join(", "));
+        }
+        return lines.isEmpty() ? "메시 점검: 3D 뷰에서 메시를 먼저 선택하세요" : lines.join("\n");
+    }
+    // 점 붙이기·찌그러진/겹친 면 지우기·방향 맞추기·구멍 메우기(B-Rep 솔리드는 대상 아님)
+    Q_INVOKABLE QString repairMeshes() const {
+        const std::vector<uint32_t> ids = selection();
+        if (ids.empty()) return "메시 수리: 3D 뷰에서 메시를 먼저 선택하세요";
+        const int32_t changed = CAD_RepairMeshes(ids.data(), uint32_t(ids.size()), nullptr);   // 반환 = 바꾼 메시 수(0 = 고칠 것 없음)
+        if (changed < 0) return "메시 수리 실패: " + statusMessage();
+        return QString("메시 수리: %1개 고침\n").arg(changed) + checkMeshes();
+    }
+
     // 실패 사유 표시용 — openDocument/importFile/saveAs 가 false 를 준 뒤 읽는다(직전 실패 이유 = CAD_GetLastError).
     Q_INVOKABLE QString statusMessage() const {
         char buf[512] = {0};
@@ -89,6 +118,13 @@ public:
     }
 
 private:
+    static std::vector<uint32_t> selection() {
+        const int32_t n = CAD_GetSelection(nullptr, 0);   // NULL, 0 = 개수만
+        std::vector<uint32_t> ids(size_t(n > 0 ? n : 0));
+        if (n > 0) ids.resize(size_t(std::min<int32_t>(n, CAD_GetSelection(ids.data(), uint32_t(n)))));
+        return ids;
+    }
+
     // 취소 후 실행 — ExecuteCommand 만 부르면 선 그리던 중 "rect" 가 값으로 먹혀 도구가 안 바뀐다
     static bool start(const char* name) {
         CAD_CancelCommand();
@@ -96,10 +132,10 @@ private:
     }
 
     static constexpr const char* kOpenFilter =
-        "모든 지원 형식 (*.lot *.obj *.stl *.dxf *.ply *.gltf *.glb);;"
-        "프로젝트 (*.lot);;메시 (*.obj *.stl *.gltf *.glb);;도면 (*.dxf);;점군 (*.ply);;"
+        "모든 지원 형식 (*.lot *.step *.stp *.obj *.stl *.dxf *.dwg *.ply *.gltf *.glb);;"
+        "프로젝트 (*.lot);;STEP (*.step *.stp);;메시 (*.obj *.stl *.gltf *.glb);;도면 (*.dxf *.dwg);;점군 (*.ply);;"
         "모든 파일 (*)";
     static constexpr const char* kSaveFilter =
-        "프로젝트 (*.lot);;OBJ (*.obj);;STL (*.stl);;DXF (*.dxf);;glTF (*.glb *.gltf);;"
+        "프로젝트 (*.lot);;STEP (*.step);;DWG (*.dwg);;OBJ (*.obj);;STL (*.stl);;DXF (*.dxf);;glTF (*.glb *.gltf);;"
         "모든 파일 (*)";
 };

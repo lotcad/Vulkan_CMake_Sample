@@ -133,7 +133,22 @@ Item {
                 { icon: "Exploded", label: "분해도",  cmd: "exview",        tip: "분해도 막대 켜고 끔 — 끌면 분해 정도", big: true },
                 { icon: "Balloon",  label: "풍선",    cmd: "balloon",       tip: "품번 풍선 켜고 끔 — 같은 모양 = 같은 번호, ×수량" },
                 { icon: "Bom",      label: "부품표",  cmd: "bom",           tip: "부품표 켜고 끔 — bom csv 로 저장" },
-                { icon: "Manual",   label: "설명서",  cmd: "exview manual", tip: "조립 설명서 PDF — 표지(부품표) + 조립 단계마다 한 쪽" } ] } ] },
+                { icon: "Manual",   label: "설명서",  cmd: "exview manual", tip: "조립 설명서 PDF — 표지(부품표) + 조립 단계마다 한 쪽" } ] },
+            { caption: "메시", items: [
+                { icon: "Shell", label: "점검", cmd: "CAD_CheckMesh",    tip: "선택한 메시 — 열린 모서리·구멍·겹친 면 …", act: "panel:mesh:check" },
+                { icon: "Union", label: "수리", cmd: "CAD_RepairMeshes", tip: "점 붙이기·찌그러진 면 지우기·방향 맞추기·구멍 메우기", act: "panel:mesh:repair" } ] } ] },
+
+        // 형식 · 그래프 — 엔진 패널(ImGui) 대신 호스트 패널(LayersPanel·NodeGraphPanel)
+        { name: "형식", groups: [
+            { caption: "도면층", items: [
+                { icon: "Copy",   label: "도면층", cmd: "layer",    tip: "도면층 목록 — 보이기·잠금·색·선종류·선택 옮기기", big: true, act: "panel:layers:layers" },
+                { icon: "Offset", label: "선종류", cmd: "linetype", tip: "선택한 객체의 선종류·전체 축척", big: true, act: "panel:layers:linetypes" } ] },
+            { caption: "블록", items: [
+                { icon: "Bom", label: "블록", cmd: "block", tip: "선택으로 블록 만들기 · 삽입 분해", big: true, act: "panel:layers:blocks" } ] } ] },
+        { name: "그래프", groups: [
+            { caption: "노드 그래프", items: [
+                { icon: "Array", label: "그래프", cmd: "graph", tip: "노드 그래프 패널 — 노드 넣기·잇기·계산·굽기", big: true, act: "panel:graph" },
+                { icon: "Box",   label: "예제",   cmd: "graph", tip: "상자 → 선형 배열(5개) → 출력", big: true, act: "panel:graph:example" } ] } ] },
 
         // 해석 — 엔진 리본의 해석 탭과 같은 버튼. 엔진은 자기 패널(ImGui)을 여는데 그 패널은 호스트 창에서 안 그려지므로
         // 호스트의 해석 패널(Main.qml, AnalysisApi)을 연다. 대상은 지금 선택한 솔리드.
@@ -147,6 +162,8 @@ Item {
 
     // 해석 버튼 — 패널은 Main.qml 에 있어 신호로 알린다(kind = wind | water | sim).
     signal analysisRequested(string kind)
+    // 형식·그래프·메시 버튼 — 패널·결과는 Main.qml 에 있다(what = layers:<page> | graph | graph:example | mesh:check | mesh:repair)
+    signal panelRequested(string what)
 
     function trigger(item) {
         if (item.act !== undefined) {
@@ -155,6 +172,7 @@ Item {
             else if (item.act === "undo")           CadCommands.undo()
             else if (item.act === "redo")           CadCommands.redo()
             else if (item.act.startsWith("analysis:")) root.analysisRequested(item.act.substring(9))
+            else if (item.act.startsWith("panel:"))    root.panelRequested(item.act.substring(6))
             return
         }
         if (item.mode !== undefined) root.gizmoMode = item.mode
