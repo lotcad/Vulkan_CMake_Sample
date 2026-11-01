@@ -20,14 +20,16 @@ extern "C" {
  * 반환 = 결과 글자 길이(NUL 제외). 같은 인자로 길이를 먼저 묻고 다시 불러도 한 번만 실행한다. "ok": false 여도 반환은 길이(이유는 결과의 error). */
 CAD_API int32_t    CAD_NodeGraph(const char* argsJson, char* buf, uint32_t capacity);
 
-/* 상태 JSON — graph(nodes·links, 노드마다 outputs·sceneIds·error) · errors · objects(그래프가 가진 장면 객체) · evaluations · pending · timings(노드 ms). */
+/* 상태 JSON — graph(nodes·links, 노드마다 outputs·sceneIds·error·waiting) · errors · waiting(입력이 안 이어져 기다리는 노드 id — 오류 아님)
+ * · objects(그래프가 가진 장면 객체) · evaluations · pending · timings(노드 ms). */
 CAD_API int32_t    CAD_NodeGraphGetJson(char* buf, uint32_t capacity);
 /* 노드 종류 목록 JSON — [{kind, group, inputs:[{name,type,default,min,max}], outputs:[{name,type}]}]. type = number·integer·bool·text·point·objects. */
 CAD_API int32_t    CAD_NodeGraphGetKindsJson(char* buf, uint32_t capacity);
 /* 그래프 통째로 바꾸기(CAD_NodeGraphGetJson 의 graph 와 같은 모양). 모르는 종류의 노드는 건너뛰고 이유는 CAD_GetLastError 에 남긴다(CAD_OK). */
 CAD_API CAD_Status CAD_NodeGraphSetJson(const char* graphJson);
 CAD_API CAD_Status CAD_NodeGraphClear(void);
-/* 지금 계산 — 반환 = 오류 난 노드 수(0 = 다 됨), 음수 = 오류. 노드마다 이유는 CAD_NodeGraphGetJson 의 errors. */
+/* 지금 계산 — 반환 = 오류 난 노드 수(0 = 오류 없음), 음수 = 오류. 노드마다 이유는 CAD_NodeGraphGetJson 의 errors.
+ * 입력이 안 이어진 노드는 오류가 아니라 waiting 에 든다 — 0 이어도 그런 노드가 있으면 그 아래 출력은 객체를 안 만든다. */
 CAD_API int32_t    CAD_NodeGraphEvaluate(void);
 
 /* 노드 넣기 — 모르는 kind 는 CAD_E_NOT_FOUND. 입력 값은 CAD_NodeGraphSet* 로(안 넣으면 종류의 기본값). */
@@ -46,7 +48,7 @@ CAD_API CAD_Status CAD_NodeGraphSetPoint(uint32_t nodeId, const char* port, CAD_
 /* 끄기·켜기(블렌더 Mute — 끈 노드는 계산하지 않고 입력을 그대로 넘기며, 끈 출력 노드는 장면에 아무것도 두지 않는다). */
 CAD_API CAD_Status CAD_NodeGraphSetMuted(const uint32_t* nodeIds, uint32_t count, bool muted);
 
-/* 출력 노드가 만든 장면 객체 id — 반환 = 개수(계산 전·출력 노드가 아니면 0). */
+/* 출력 노드가 만든 장면 객체 id — 반환 = 개수(계산 전·출력 노드가 아님·입력 기다림·끔이면 0 — 장면에 있는 것만). */
 CAD_API int32_t    CAD_NodeGraphGetNodeObjects(uint32_t nodeId, uint32_t* outIds, uint32_t capacity);
 /* 굽기 — objectIds(0 개 = 지금 선택)의 출력 객체를 그래프에서 떼어 보통 객체로(그 출력 노드는 지워진다, 객체 id 는 그대로).
  * 반환 = 떼어 낸 객체 수, outIds = 그 id. outIds = NULL·칸 모자람이면 아무것도 안 바꾸고 개수만. 그래프가 만든 객체가 없으면 CAD_E_NOT_FOUND. */

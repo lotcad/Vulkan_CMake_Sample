@@ -43,7 +43,9 @@ CAD_API CAD_Status CAD_NavRemoveAgent(uint32_t agentId);   /* 없음 = CAD_E_NOT
 CAD_API CAD_Status CAD_NavClearAgents(void);
 /* {"speed","scanRange","radius"(0=자동),"showRays","checked","isVehicle"} 중 준 키만. 틀림 = CAD_E_INVALID_ARG + 이유 */
 CAD_API CAD_Status CAD_NavSetAgentParams(uint32_t agentId, const char* json);
-/* 목적지 — 경로 계획까지(출발은 Start). 길이 없음·대상 없음 = CAD_E_FAILED + 이유 */
+/* 목적지 — 경로 계획까지(출발은 Start). 지도가 없거나 마지막으로 구운 뒤 장면이 바뀌었으면 먼저 굽는다(아무도 안 달릴 때 — BuildMap 없이도 됨).
+ * 길이 없음·대상 없음·지도를 못 만듦 = CAD_E_FAILED + 이유.
+ * 사다리: 객체 속성 navLink 가 있거나, 이름이 "사다리"·"ladder" 이거나, 얇고 높은 몸에 고른 간격 가로대가 셋 이상이면 오르내리는 길로 쓴다 */
 CAD_API CAD_Status CAD_NavSetGoal(uint32_t agentId, CAD_GeVec3 goal);
 /* 출발·멈춤·처음 자리로(정지·경로 삭제). 대상·지도·목적지가 없음 = CAD_E_NOT_READY */
 CAD_API CAD_Status CAD_NavStart(uint32_t agentId);

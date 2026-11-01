@@ -56,7 +56,8 @@ def CAD_NodeGraph(argsJson: str | None) -> str | None:
 def CAD_NodeGraphGetJson() -> str | None:
     """C: int32_t CAD_NodeGraphGetJson(char* buf, uint32_t capacity)
 
-    상태 JSON — graph(nodes·links, 노드마다 outputs·sceneIds·error) · errors · objects(그래프가 가진 장면 객체) · evaluations · pending · timings(노드 ms).
+    상태 JSON — graph(nodes·links, 노드마다 outputs·sceneIds·error·waiting) · errors · waiting(입력이 안 이어져 기다리는 노드 id — 오류 아님)
+    · objects(그래프가 가진 장면 객체) · evaluations · pending · timings(노드 ms).
     """
     _cap = 256
     while True:
@@ -106,7 +107,8 @@ def CAD_NodeGraphClear() -> int:
 def CAD_NodeGraphEvaluate() -> int:
     """C: int32_t CAD_NodeGraphEvaluate(void)
 
-    지금 계산 — 반환 = 오류 난 노드 수(0 = 다 됨), 음수 = 오류. 노드마다 이유는 CAD_NodeGraphGetJson 의 errors.
+    지금 계산 — 반환 = 오류 난 노드 수(0 = 오류 없음), 음수 = 오류. 노드마다 이유는 CAD_NodeGraphGetJson 의 errors.
+    입력이 안 이어진 노드는 오류가 아니라 waiting 에 든다 — 0 이어도 그런 노드가 있으면 그 아래 출력은 객체를 안 만든다.
     """
     return _f.CAD_NodeGraphEvaluate()
 
@@ -201,7 +203,7 @@ def CAD_NodeGraphSetMuted(nodeIds: Sequence | None, count: int, muted: bool) -> 
 def CAD_NodeGraphGetNodeObjects(nodeId: int, outIds: Any, capacity: int) -> int:
     """C: int32_t CAD_NodeGraphGetNodeObjects(uint32_t nodeId, uint32_t* outIds, uint32_t capacity)
 
-    출력 노드가 만든 장면 객체 id — 반환 = 개수(계산 전·출력 노드가 아니면 0).
+    출력 노드가 만든 장면 객체 id — 반환 = 개수(계산 전·출력 노드가 아님·입력 기다림·끔이면 0 — 장면에 있는 것만).
     """
     return _f.CAD_NodeGraphGetNodeObjects(nodeId, outIds, capacity)
 

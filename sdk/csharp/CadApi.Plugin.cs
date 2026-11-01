@@ -57,6 +57,9 @@ namespace LotCAD
         public static extern int CAD_GetUiItemIcon(uint index, byte[] buf, uint capacity);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_SetSceneTreePanelVisible([MarshalAs(UnmanagedType.I1)] bool visible);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_AddUiControl(int kind, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, [MarshalAs(UnmanagedType.LPUTF8Str)] string title, [MarshalAs(UnmanagedType.LPUTF8Str)] string command, double minimum, double maximum, double value, uint owner, out uint outItemId);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]

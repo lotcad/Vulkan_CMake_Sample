@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import ctypes as _c
-__all__ = ['CAD_CreateOptions', 'CAD_Color', 'CAD_GeVec3', 'CAD_GePlane', 'CAD_GeMatrix', 'CAD_GeArc', 'CAD_GeEllipse', 'CAD_GeIntersection', 'CAD_PostFn', 'CAD_OverlayFrameInfo', 'CAD_OverlayRenderFn', 'CAD_OverlayPointerInfo', 'CAD_OverlayInputFn', 'CAD_OsnapPoint', 'CAD_OsnapOptions', 'CAD_CommandFn', 'CAD_JigDelta', 'CAD_SubobjectSelection', 'CAD_EdInputResult', 'CAD_EdInputFn', 'CAD_EdInputOptions', 'CAD_EdSelectOptions', 'CAD_EdCommandState', 'CAD_EventFn', 'CAD_SketchConstraintInfo', 'CAD_BRepInfo', 'CAD_BRepFaceInfo', 'CAD_BRepCutInfo', 'CAD_BooleanCylinderCutInfo', 'CAD_InterferenceInfo', 'CAD_MeshCheckInfo', 'CAD_MeshRepairOptions', 'CAD_SimOptions', 'CAD_SimCondition', 'CAD_SimFace', 'CAD_SimState', 'CAD_SimSummary', 'CAD_SimConvergence', 'CAD_SimRunOptions', 'CAD_WindOptions', 'CAD_WindState', 'CAD_WindViewOptions', 'CAD_WindPointValue', 'CAD_WindSurfacePoint', 'CAD_WaterOptions', 'CAD_WaterState', 'CAD_WaterFloater', 'CAD_WaterPointValue', 'CAD_ClothOptions', 'CAD_ClothState', 'CAD_JointInfo', 'CAD_FloorplanOpeningDesc']
+__all__ = ['CAD_CreateOptions', 'CAD_Color', 'CAD_GeVec3', 'CAD_GePlane', 'CAD_GeMatrix', 'CAD_GeArc', 'CAD_GeEllipse', 'CAD_GeIntersection', 'CAD_PostFn', 'CAD_OverlayFrameInfo', 'CAD_OverlayRenderFn', 'CAD_OverlayPointerInfo', 'CAD_OverlayInputFn', 'CAD_OverlayScrollFn', 'CAD_OsnapPoint', 'CAD_OsnapOptions', 'CAD_CommandFn', 'CAD_JigDelta', 'CAD_SubobjectSelection', 'CAD_EdInputResult', 'CAD_EdInputFn', 'CAD_EdInputOptions', 'CAD_EdSelectOptions', 'CAD_EdCommandState', 'CAD_EventFn', 'CAD_SketchConstraintInfo', 'CAD_BRepInfo', 'CAD_BRepFaceInfo', 'CAD_BRepCutInfo', 'CAD_BooleanCylinderCutInfo', 'CAD_InterferenceInfo', 'CAD_MeshCheckInfo', 'CAD_MeshRepairOptions', 'CAD_SimOptions', 'CAD_SimCondition', 'CAD_SimFace', 'CAD_SimState', 'CAD_SimSummary', 'CAD_SimConvergence', 'CAD_SimRunOptions', 'CAD_WindOptions', 'CAD_WindState', 'CAD_WindViewOptions', 'CAD_WindPointValue', 'CAD_WindSurfacePoint', 'CAD_WaterOptions', 'CAD_WaterState', 'CAD_WaterFloater', 'CAD_WaterPointValue', 'CAD_ClothOptions', 'CAD_ClothState', 'CAD_JointInfo', 'CAD_FloorplanOpeningDesc']
 
 
 class CAD_CreateOptions(_c.Structure):
@@ -132,6 +132,8 @@ class CAD_OverlayPointerInfo(_c.Structure):
     ]
 
 CAD_OverlayInputFn = _c.CFUNCTYPE(_c.c_uint32, _c.POINTER(CAD_OverlayPointerInfo), _c.c_void_p)
+
+CAD_OverlayScrollFn = _c.CFUNCTYPE(_c.c_bool, _c.c_double, _c.c_double, _c.c_double, _c.c_double, _c.c_void_p)
 
 class CAD_OsnapPoint(_c.Structure):
     _fields_ = [

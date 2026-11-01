@@ -118,6 +118,14 @@ CAD_API CAD_Status CAD_SetOverlayInputCallback(
     CAD_OverlayInputFn callback,
     void* user);
 
+// Return true when the overlay consumed the wheel. Otherwise the CAD view
+// keeps its normal zoom behavior. Coordinates are logical pixels; deltas are
+// wheel units (positive Y means scrolling up).
+typedef bool (*CAD_OverlayScrollFn)(
+    double x, double y, double deltaX, double deltaY, void* user);
+CAD_API CAD_Status CAD_SetOverlayScrollCallback(
+    CAD_OverlayScrollFn callback, void* user);
+
 // ── Win32 호스트(MFC 등) 편의용 키 입력 ──
 // 엔진 단축키는 GLFW 키코드 기준인데 Win32 는 VK_* 코드를 준다. WM_KEYDOWN/WM_KEYUP 의
 // nChar(VK 코드)를 그대로 넘기면 내부에서 GLFW 키코드로 변환 + Ctrl/Shift/Alt 수정자를

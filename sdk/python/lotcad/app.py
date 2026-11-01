@@ -9,7 +9,7 @@ from typing import Any, Callable, Sequence  # noqa: F401  (형식 힌트)
 from . import _native as _n
 from ._types import *  # noqa: F401,F403
 
-__all__ = ['CAD_OVERLAY_CAPTURE_POINTER', 'CAD_OVERLAY_CAPTURE_KEYBOARD', 'CAD_GetVersion', 'CAD_SetUserDataPath', 'CAD_GetUserDataPath', 'CAD_CreateEngine', 'CAD_DestroyEngine', 'CAD_Tick', 'CAD_Post', 'CAD_IsEngineThread', 'CAD_ShouldClose', 'CAD_SetIgnoreCloseRequest', 'CAD_SetRuntimeAssetPath', 'CAD_AttachView', 'CAD_ResizeView', 'CAD_DetachView', 'CAD_OnMouseDown', 'CAD_OnMouseUp', 'CAD_OnMouseMove', 'CAD_OnMouseWheel', 'CAD_OnKeyDown', 'CAD_OnKeyUp', 'CAD_SetOverlayRenderCallback', 'CAD_SetOverlayInputCallback', 'CAD_OnKeyDownVK', 'CAD_OnKeyUpVK', 'CAD_GizmoHitTest', 'CAD_SetGizmoTouchMode', 'CAD_SetSnapTouchMode', 'CAD_SetOnCopyText', 'CAD_SetOnCopyText_cb', 'CAD_PasteText', 'CAD_ShowMessage']
+__all__ = ['CAD_OVERLAY_CAPTURE_POINTER', 'CAD_OVERLAY_CAPTURE_KEYBOARD', 'CAD_GetVersion', 'CAD_SetUserDataPath', 'CAD_GetUserDataPath', 'CAD_CreateEngine', 'CAD_DestroyEngine', 'CAD_Tick', 'CAD_Post', 'CAD_IsEngineThread', 'CAD_ShouldClose', 'CAD_SetIgnoreCloseRequest', 'CAD_SetRuntimeAssetPath', 'CAD_AttachView', 'CAD_ResizeView', 'CAD_DetachView', 'CAD_OnMouseDown', 'CAD_OnMouseUp', 'CAD_OnMouseMove', 'CAD_OnMouseWheel', 'CAD_OnKeyDown', 'CAD_OnKeyUp', 'CAD_SetOverlayRenderCallback', 'CAD_SetOverlayInputCallback', 'CAD_SetOverlayScrollCallback', 'CAD_OnKeyDownVK', 'CAD_OnKeyUpVK', 'CAD_GizmoHitTest', 'CAD_SetGizmoTouchMode', 'CAD_SetSnapTouchMode', 'CAD_SetOnCopyText', 'CAD_SetOnCopyText_cb', 'CAD_PasteText', 'CAD_ShowMessage']
 
 _f = _n.native
 
@@ -40,6 +40,7 @@ _n.bind("CAD_OnKeyDown", None, [_c.c_int, _c.c_int])
 _n.bind("CAD_OnKeyUp", None, [_c.c_int, _c.c_int])
 _n.bind("CAD_SetOverlayRenderCallback", _c.c_int32, [CAD_OverlayRenderFn, _c.c_void_p])
 _n.bind("CAD_SetOverlayInputCallback", _c.c_int32, [CAD_OverlayInputFn, _c.c_void_p])
+_n.bind("CAD_SetOverlayScrollCallback", _c.c_int32, [CAD_OverlayScrollFn, _c.c_void_p])
 _n.bind("CAD_OnKeyDownVK", None, [_c.c_int])
 _n.bind("CAD_OnKeyUpVK", None, [_c.c_int])
 _n.bind("CAD_GizmoHitTest", _c.c_int32, [_c.c_double, _c.c_double, _c.POINTER(_c.c_bool)])
@@ -274,6 +275,14 @@ def CAD_SetOverlayInputCallback(callback: Callable | None, user: int | None) -> 
     _cb_callback = _n.callback(CAD_OverlayInputFn, callback, ())
     _n.keep("CAD_SetOverlayInputCallback.callback", _cb_callback, replace=True)
     return _f.CAD_SetOverlayInputCallback(_cb_callback, user)
+
+
+def CAD_SetOverlayScrollCallback(callback: Callable | None, user: int | None) -> int:
+    """C: CAD_Status CAD_SetOverlayScrollCallback( CAD_OverlayScrollFn callback, void* user)
+    """
+    _cb_callback = _n.callback(CAD_OverlayScrollFn, callback, ())
+    _n.keep("CAD_SetOverlayScrollCallback.callback", _cb_callback, replace=True)
+    return _f.CAD_SetOverlayScrollCallback(_cb_callback, user)
 
 
 def CAD_OnKeyDownVK(vkCode: int) -> None:

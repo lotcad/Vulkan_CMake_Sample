@@ -133,7 +133,7 @@ def CAD_GetParticleLiveCount(id: int) -> int:
 def CAD_GetParticlePresetCount() -> int:
     """C: int32_t CAD_GetParticlePresetCount(void)
 
-    프리셋 목록 — effects/*.json 이름 순, 처음 쓸 때 읽는다(패널 불필요, iOS 도). 경로 = 절대 UTF-8(CreateParticleEmitterFromPreset 에 그대로).
+    프리셋 목록 — effects 폴더의 .json 이름 순, 처음 쓸 때 읽는다(패널 불필요, iOS 도). 경로 = 절대 UTF-8(CreateParticleEmitterFromPreset 에 그대로).
     Effekseer 파일은 안 나온다. 번호 범위 밖 = CAD_E_OUT_OF_RANGE
     """
     return _f.CAD_GetParticlePresetCount()
@@ -142,7 +142,7 @@ def CAD_GetParticlePresetCount() -> int:
 def CAD_GetParticlePresetName(index: int) -> str | None:
     """C: int32_t CAD_GetParticlePresetName(int32_t index, char* buf, uint32_t capacity)
 
-    프리셋 목록 — effects/*.json 이름 순, 처음 쓸 때 읽는다(패널 불필요, iOS 도). 경로 = 절대 UTF-8(CreateParticleEmitterFromPreset 에 그대로).
+    프리셋 목록 — effects 폴더의 .json 이름 순, 처음 쓸 때 읽는다(패널 불필요, iOS 도). 경로 = 절대 UTF-8(CreateParticleEmitterFromPreset 에 그대로).
     Effekseer 파일은 안 나온다. 번호 범위 밖 = CAD_E_OUT_OF_RANGE
     """
     _cap = 256
@@ -160,7 +160,7 @@ def CAD_GetParticlePresetName(index: int) -> str | None:
 def CAD_GetParticlePresetPath(index: int) -> str | None:
     """C: int32_t CAD_GetParticlePresetPath(int32_t index, char* buf, uint32_t capacity)
 
-    프리셋 목록 — effects/*.json 이름 순, 처음 쓸 때 읽는다(패널 불필요, iOS 도). 경로 = 절대 UTF-8(CreateParticleEmitterFromPreset 에 그대로).
+    프리셋 목록 — effects 폴더의 .json 이름 순, 처음 쓸 때 읽는다(패널 불필요, iOS 도). 경로 = 절대 UTF-8(CreateParticleEmitterFromPreset 에 그대로).
     Effekseer 파일은 안 나온다. 번호 범위 밖 = CAD_E_OUT_OF_RANGE
     """
     _cap = 256

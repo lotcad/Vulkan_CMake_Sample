@@ -9,7 +9,7 @@ from typing import Any, Callable, Sequence  # noqa: F401  (형식 힌트)
 from . import _native as _n
 from ._types import *  # noqa: F401,F403
 
-__all__ = ['CAD_AddUiItem', 'CAD_RemoveUiItem', 'CAD_RemoveUiItemsByOwner', 'CAD_GetUiItemCount', 'CAD_SetOverlayRibbonHeight', 'CAD_GetOverlayRibbonTop', 'CAD_GetUiItemId', 'CAD_GetUiItemKind', 'CAD_GetUiItemPath', 'CAD_GetUiItemTitle', 'CAD_GetUiItemCommand', 'CAD_GetUiItemIcon', 'CAD_AddUiControl', 'CAD_SetUiControlValue', 'CAD_GetUiControlValue', 'CAD_LoadPlugins', 'CAD_UnloadPlugin', 'CAD_GetPluginCount', 'CAD_GetPluginId', 'CAD_GetPluginName', 'CAD_SetPluginTag', 'CAD_ClearPluginTag', 'CAD_HasPluginTag', 'CAD_GetPluginTagOwner', 'CAD_GetPluginTagType', 'CAD_GetPluginTagData', 'CAD_SetOnPluginEntityLoaded', 'CAD_SetOnPluginEntityLoaded_cb', 'CAD_SetOnConfirm', 'CAD_SetOnConfirm_cb', 'CAD_AddEntityProperty', 'CAD_RemoveEntityPropertiesByOwner', 'CAD_SetOnPluginEntityChanged', 'CAD_SetOnPluginEntityChanged_cb', 'CAD_GetImGuiContext', 'CAD_GetImGuiAllocators', 'CAD_SetOnDrawPanel', 'CAD_SetOnDrawPanel_cb']
+__all__ = ['CAD_AddUiItem', 'CAD_RemoveUiItem', 'CAD_RemoveUiItemsByOwner', 'CAD_GetUiItemCount', 'CAD_SetOverlayRibbonHeight', 'CAD_GetOverlayRibbonTop', 'CAD_GetUiItemId', 'CAD_GetUiItemKind', 'CAD_GetUiItemPath', 'CAD_GetUiItemTitle', 'CAD_GetUiItemCommand', 'CAD_GetUiItemIcon', 'CAD_SetSceneTreePanelVisible', 'CAD_AddUiControl', 'CAD_SetUiControlValue', 'CAD_GetUiControlValue', 'CAD_LoadPlugins', 'CAD_UnloadPlugin', 'CAD_GetPluginCount', 'CAD_GetPluginId', 'CAD_GetPluginName', 'CAD_SetPluginTag', 'CAD_ClearPluginTag', 'CAD_HasPluginTag', 'CAD_GetPluginTagOwner', 'CAD_GetPluginTagType', 'CAD_GetPluginTagData', 'CAD_SetOnPluginEntityLoaded', 'CAD_SetOnPluginEntityLoaded_cb', 'CAD_SetOnConfirm', 'CAD_SetOnConfirm_cb', 'CAD_AddEntityProperty', 'CAD_RemoveEntityPropertiesByOwner', 'CAD_SetOnPluginEntityChanged', 'CAD_SetOnPluginEntityChanged_cb', 'CAD_GetImGuiContext', 'CAD_GetImGuiAllocators', 'CAD_SetOnDrawPanel', 'CAD_SetOnDrawPanel_cb']
 
 _f = _n.native
 
@@ -30,6 +30,7 @@ _n.bind("CAD_GetUiItemPath", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_char), _c
 _n.bind("CAD_GetUiItemTitle", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_char), _c.c_uint32])
 _n.bind("CAD_GetUiItemCommand", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_char), _c.c_uint32])
 _n.bind("CAD_GetUiItemIcon", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_char), _c.c_uint32])
+_n.bind("CAD_SetSceneTreePanelVisible", _c.c_int32, [_c.c_bool])
 _n.bind("CAD_AddUiControl", _c.c_int32, [_c.c_int32, _c.c_char_p, _c.c_char_p, _c.c_char_p, _c.c_double, _c.c_double, _c.c_double, _c.c_uint32, _c.POINTER(_c.c_uint32)])
 _n.bind("CAD_SetUiControlValue", _c.c_int32, [_c.c_uint32, _c.c_double])
 _n.bind("CAD_GetUiControlValue", _c.c_int32, [_c.c_uint32, _c.POINTER(_c.c_double), _c.POINTER(_c.c_double), _c.POINTER(_c.c_double)])
@@ -250,6 +251,14 @@ def CAD_GetUiItemIcon(index: int) -> str | None:
             _cap = max(_r + 1, _cap * 2)
             continue
         return _n.decode(_buf.value)
+
+
+def CAD_SetSceneTreePanelVisible(visible: bool) -> int:
+    """C: CAD_Status CAD_SetSceneTreePanelVisible(bool visible)
+
+    기본 ImGui 트리 패널 표시 여부
+    """
+    return _f.CAD_SetSceneTreePanelVisible(visible)
 
 
 def CAD_AddUiControl(kind: int, path: str | None, title: str | None, command: str | None, minimum: float, maximum: float, value: float, owner: int) -> tuple[int, int]:

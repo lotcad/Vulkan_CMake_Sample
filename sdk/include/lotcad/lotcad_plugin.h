@@ -45,6 +45,9 @@ CAD_API int32_t    CAD_GetUiItemTitle(uint32_t index, char* buf, uint32_t capaci
 CAD_API int32_t    CAD_GetUiItemCommand(uint32_t index, char* buf, uint32_t capacity);
 CAD_API int32_t    CAD_GetUiItemIcon(uint32_t index, char* buf, uint32_t capacity);
 
+// ── 외부 장면 트리 오버레이 ──
+CAD_API CAD_Status CAD_SetSceneTreePanelVisible(bool visible); /* 기본 ImGui 트리 패널 표시 여부 */
+
 /* 리본 조작 항목 — kind 5 = 체크 상자(값 0/1, 범위 무시), 6 = 슬라이더(유한한 minimum < maximum, 값은 그 안으로).
  * path = "탭/그룹". 사용자가 바꾸면 command 가 불리고, 그 명령이 CAD_GetUiControlValue(id) 로 새 값을 읽는다.
  * 잘못된 값·범위 CAD_E_INVALID_ARG, 없는 id CAD_E_NOT_FOUND. 플러그인은 언로드 때 엔진이 owner 로 지운다. */

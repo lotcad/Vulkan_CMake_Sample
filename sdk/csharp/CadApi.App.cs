@@ -52,6 +52,9 @@ namespace LotCAD
     public delegate uint CAD_OverlayInputFn(IntPtr pointer, IntPtr user);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)] public delegate bool CAD_OverlayScrollFn(double x, double y, double deltaX, double deltaY, IntPtr user);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void CAD_SetOnCopyText_cb(IntPtr utf8);
 
     public static partial class CadApi
@@ -127,6 +130,9 @@ namespace LotCAD
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int CAD_SetOverlayInputCallback(CAD_OverlayInputFn callback, IntPtr user);
+
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int CAD_SetOverlayScrollCallback(CAD_OverlayScrollFn callback, IntPtr user);
 
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void CAD_OnKeyDownVK(int vkCode);

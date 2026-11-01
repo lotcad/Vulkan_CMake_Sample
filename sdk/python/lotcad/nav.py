@@ -165,7 +165,9 @@ def CAD_NavSetAgentParams(agentId: int, json: str | None) -> int:
 def CAD_NavSetGoal(agentId: int, goal: CAD_GeVec3) -> int:
     """C: CAD_Status CAD_NavSetGoal(uint32_t agentId, CAD_GeVec3 goal)
 
-    목적지 — 경로 계획까지(출발은 Start). 길이 없음·대상 없음 = CAD_E_FAILED + 이유
+    목적지 — 경로 계획까지(출발은 Start). 지도가 없거나 마지막으로 구운 뒤 장면이 바뀌었으면 먼저 굽는다(아무도 안 달릴 때 — BuildMap 없이도 됨).
+    길이 없음·대상 없음·지도를 못 만듦 = CAD_E_FAILED + 이유.
+    사다리: 객체 속성 navLink 가 있거나, 이름이 "사다리"·"ladder" 이거나, 얇고 높은 몸에 고른 간격 가로대가 셋 이상이면 오르내리는 길로 쓴다
     """
     return _f.CAD_NavSetGoal(agentId, goal)
 
