@@ -15,6 +15,10 @@ struct ContentView: View {
     // "그리기" 줄 (선/사각형/원/호/폴리선/다각형)
     @State private var showDrawMenu = false
     @State private var showViewMenu = false
+    // "더보기" 줄 (도면층·NURBS·메시 수리·분해도·블록·이미지·동적 입력) · "저장" 줄 (.lot/.step/.dxf → 공유 시트)
+    @State private var showMoreMenu = false
+    @State private var showSaveMenu = false
+    @State private var showLayers = false
     // 숫자 입력 — CAD 정밀도는 "정확히 가리키기" 가 아니라 **숫자**에서 온다.
     // 전체 키보드는 3D 뷰를 덮어 못 쓰므로 좁은 숫자패드만 띄운다.
     @State private var numInput = ""
@@ -75,6 +79,7 @@ struct ContentView: View {
                 controller.statusText = "열기 실패: \(url.lastPathComponent)"
             }
         }
+        .sheet(isPresented: $showLayers) { layerSheet }
         .onChange(of: scenePhase) { newPhase in
             switch newPhase {
             case .active:
@@ -93,7 +98,7 @@ struct ContentView: View {
     // ⚠️ .gltf(분리형)는 .bin·텍스처가 같은 폴더에 있어야 해서 모바일에선 잘 안 열린다.
     //    단일 파일인 .glb 를 쓰는 것이 안전하다.
     private static let openableTypes: [UTType] = {
-        let exts = ["glb", "gltf", "obj", "stl", "dxf", "ply", "lot"]
+        let exts = ["glb", "gltf", "obj", "stl", "dxf", "dwg", "step", "stp", "ply", "lot"]
         let types = exts.compactMap { UTType(filenameExtension: $0) }
         return types.isEmpty ? [.data] : types + [.data]
     }()
@@ -104,6 +109,8 @@ struct ContentView: View {
             if showDrawMenu { drawMenuRow }
             if showDimMenu { dimMenuRow }
             if showViewMenu { viewMenuRow }
+            if showMoreMenu { moreMenuRow }
+            if showSaveMenu { saveMenuRow }
             if controller.graphMode && !controller.graphPrompt.isEmpty { graphInputRow }
             if controller.cursorToolActive {
                 if !controller.promptText.isEmpty { promptLabel }
@@ -129,6 +136,70 @@ struct ContentView: View {
             }
             .padding(.horizontal, 4)
         }
+    }
+
+    // 더보기 — 고른 것에 하는 일(바로 끝남)과 켜고 끄기. 배경 지우기만 이미지에서 배경을 찍는 커서 도구.
+    private var moreMenuRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                toolButton("도면층")   { showLayers = true; showMoreMenu = false }
+                toolButton("NURBS")    { controller.convertToNurbs() }
+                toolButton("메시수리") { controller.repairMeshes() }
+                toolButton(controller.explodeOpen ? "분해도 ●" : "분해도") { controller.toggleExplodeView() }
+                toolButton("블록")     { controller.makeBlock() }
+                toolButton("이미지회전") { controller.engine.executeCommand("imagerotate 90") }
+                toolButton("배경지우기") { showMoreMenu = false; startTool { controller.engine.startCommand("imagebg") } }
+                toolButton(controller.dynamicInputOn ? "동적입력 ●" : "동적입력") { controller.toggleDynamicInput() }
+                toolButton("✕")       { showMoreMenu = false }
+            }
+            .padding(.horizontal, 4)
+        }
+    }
+
+    // 저장 — 앱 임시 폴더에 쓰고 공유 시트(파일 앱에 저장·메일·에어드롭)로 넘긴다. 확장자로 포맷이 정해진다.
+    private var saveMenuRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                toolButton(".lot")  { controller.export("lot");  showSaveMenu = false }
+                toolButton(".step") { controller.export("step"); showSaveMenu = false }
+                toolButton(".dxf")  { controller.export("dxf");  showSaveMenu = false }
+                toolButton("✕")     { showSaveMenu = false }
+            }
+            .padding(.horizontal, 4)
+        }
+    }
+
+    // 도면층 시트 — 켜기·잠금, [이리로] = 고른 객체를 그 도면층으로. 바꾸면 표를 다시 읽는다.
+    private var layerSheet: some View {
+        NavigationView {
+            List {
+                ForEach(controller.layerRows) { l in
+                    HStack(spacing: 12) {
+                        Circle()
+                            .fill(Color(red: l.color.r, green: l.color.g, blue: l.color.b))
+                            .frame(width: 14, height: 14)
+                        VStack(alignment: .leading) {
+                            Text(l.name).font(.body.weight(.medium))
+                            Text("객체 \(l.objectCount)").font(.caption).foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Button(l.visible ? "켜짐" : "꺼짐") { controller.setLayerVisible(l, !l.visible) }
+                            .buttonStyle(.bordered).disabled(l.fixed)
+                        Button(l.locked ? "잠김" : "풀림") { controller.setLayerLocked(l, !l.locked) }
+                            .buttonStyle(.bordered).disabled(l.fixed)
+                        Button("이리로") { controller.assignSelection(to: l) }
+                            .buttonStyle(.borderedProminent)
+                    }
+                }
+            }
+            .navigationTitle("도면층")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) { Button("새 도면층") { controller.addLayer() } }
+                ToolbarItem(placement: .navigationBarTrailing) { Button("닫기") { showLayers = false } }
+            }
+        }
+        .onAppear { controller.reloadLayers() }
     }
 
     // 치수 종류 — 전부 "점 찍기" 방식이라 대화상자 없이 모바일에서 그대로 동작한다.
@@ -303,10 +374,12 @@ struct ContentView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 toolButton("열기")   { showOpenPicker = true }
-                toolButton("그리기") { showDrawMenu.toggle(); showDimMenu = false; showViewMenu = false }
-                toolButton("측정")   { showDimMenu.toggle(); showDrawMenu = false; showViewMenu = false }
-                toolButton("뷰")     { showViewMenu.toggle(); showDrawMenu = false; showDimMenu = false }
+                toolButton("저장")   { let on = !showSaveMenu; closeMenus(); showSaveMenu = on }
+                toolButton("그리기") { let on = !showDrawMenu; closeMenus(); showDrawMenu = on }
+                toolButton("측정")   { let on = !showDimMenu; closeMenus(); showDimMenu = on }
+                toolButton("뷰")     { let on = !showViewMenu; closeMenus(); showViewMenu = on }
                 toolButton(controller.graphMode ? "그래프 ●" : "그래프") { controller.toggleGraph() }
+                toolButton("더보기") { let on = !showMoreMenu; closeMenus(); showMoreMenu = on }
                 toolButton("큐브")   { controller.engine.addCube() }
                 toolButton("전체선택") { controller.engine.selectAll() }
                 toolButton("삭제")   { controller.engine.deleteSelected() }
@@ -315,6 +388,11 @@ struct ContentView: View {
             }
             .padding(.horizontal, 4)
         }
+    }
+
+    /// 위로 뜨는 줄은 하나만 — 둘이 겹쳐 뜨면 뷰가 좁아진다.
+    private func closeMenus() {
+        showDrawMenu = false; showDimMenu = false; showViewMenu = false; showMoreMenu = false; showSaveMenu = false
     }
 
     private func toolButton(_ label: String, _ action: @escaping () -> Void) -> some View {
@@ -352,6 +430,71 @@ final class LotCADController: ObservableObject {
     // 앱은 길게 누르기(메뉴)와 글 입력(값 상자·노드 찾기)만 — 엔진이 글을 기다리면 프롬프트가 생긴다.
     @Published private(set) var graphMode = false
     @Published private(set) var graphPrompt = ""
+
+    // ─── 더보기 · 저장 ─────────────────────────────────────────
+    @Published private(set) var explodeOpen = false
+    @Published private(set) var dynamicInputOn = true   // 엔진 기본 = 켬(dyn)
+    @Published private(set) var layerRows: [LotCADEngine.Layer] = []
+
+    func convertToNurbs() {
+        let n = engine.convertSelectionToNurbs()
+        if n >= 0 { statusText = "NURBS 스플라인 \(n)개로 바꿈 (폴리선은 그대로)" }   // -1 = SubD — 엔진이 직접 안내
+    }
+
+    func repairMeshes() {
+        let n = engine.repairSelectedMeshes()
+        statusText = n > 0 ? "메시 \(n)개 수리" : n == 0 ? "고칠 메시가 없습니다" : "메시 수리 실패: \(engine.lastError)"
+    }
+
+    /// 펼치기 = 빼는 순서 풀기(solve) → 0 에서 1 로 재생, 다시 누르면 되감기(back).
+    func toggleExplodeView() {
+        if explodeOpen {
+            engine.explodeView(#"{"op":"back"}"#)
+            explodeOpen = false
+            return
+        }
+        let r = engine.explodeView(#"{"op":"solve"}"#)
+        guard r["ok"] as? Bool == true else { statusText = "분해도: \(r["error"] as? String ?? engine.lastError)"; return }
+        engine.explodeView(#"{"op":"amount","t":0}"#)
+        engine.explodeView(#"{"op":"play","seconds":1.5}"#)
+        explodeOpen = true
+        statusText = "분해도 \(r["solved_steps"] as? Int ?? 0)단계"
+    }
+
+    func makeBlock() {
+        if let name = engine.createBlockFromSelection() { statusText = "블록 \(name)" }
+        else { statusText = engine.selectedCount() == 0 ? "블록: 먼저 객체를 고르세요" : "블록 실패: \(engine.lastError)" }
+    }
+
+    func toggleDynamicInput() {
+        dynamicInputOn.toggle()
+        engine.executeCommand(dynamicInputOn ? "dyn on" : "dyn off")
+    }
+
+    func reloadLayers() {
+        layerRows = engine.layers().layers
+    }
+    func setLayerVisible(_ l: LotCADEngine.Layer, _ on: Bool) { engine.setLayerVisible(l.id, on); reloadLayers() }
+    func setLayerLocked(_ l: LotCADEngine.Layer, _ on: Bool)  { engine.setLayerLocked(l.id, on); reloadLayers() }
+    func addLayer() { engine.createLayer(); reloadLayers() }
+    func assignSelection(to l: LotCADEngine.Layer) {
+        let n = engine.assignSelectionToLayer(l.id)
+        statusText = n > 0 ? "\(n)개 → 도면층 \(l.name)" : "고른 객체가 없습니다"
+        reloadLayers()
+    }
+
+    /// 임시 폴더에 저장 → 공유 시트. .step 은 B-Rep 솔리드(조립 포함)만 들어간다.
+    func export(_ ext: String) {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("LotCAD.\(ext)")
+        try? FileManager.default.removeItem(at: url)
+        guard engine.saveAs(url.path) else { statusText = "저장 실패: \(engine.lastError)"; return }
+        statusText = "저장: \(url.lastPathComponent)"
+        guard let root = metalView?.window?.rootViewController else { return }
+        let share = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+        share.popoverPresentationController?.sourceView = root.view   // 아이패드는 팝오버 자리가 있어야 한다
+        share.popoverPresentationController?.sourceRect = CGRect(x: root.view.bounds.midX, y: root.view.bounds.maxY - 80, width: 1, height: 1)
+        (root.presentedViewController ?? root).present(share, animated: true)
+    }
 
     func toggleGraph() {
         graphMode.toggle()

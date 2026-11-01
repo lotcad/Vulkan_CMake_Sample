@@ -63,6 +63,27 @@ swift run RobotArmMac                      # 로봇 팔 (ROBOT_AUTOPLAY=1 이면
 - 확인 기준: 예제 외팔보 3 × 0.4 × 0.4 m, 왼끝 고정 · 오른끝 −5 kN(패널의 "예제 조건") → 최대 응력 ≈ 1.99 MPa · 변위 ≈ 0.101 mm · 안전율 ≈ 138.
 - 시험용: `LOTCAD_ANALYSIS=sim LOTCAD_PRESS="예제 외팔보 만들기;열기;실행" LOTCAD_SHOT=/tmp/x swift run LotCADSwiftNativeViewTest`
 
+### 형식 · 삽입 · 솔리드 · 뷰 (엔진 0.1.1)
+
+| 메뉴 | 항목 | C API / 명령 |
+|------|------|--------------|
+| 파일 | 열기·저장에 `.dwg` `.step` `.stp` | `CAD_OpenDocument` · `CAD_SaveAs` (확장자로 포맷 — STEP 은 B-Rep 솔리드·조립) |
+| 형식 | 도면층… (떠 있는 창: 켜기·잠금·색·선종류, [이리로] = 고른 것을 그 층으로, 새 도면층) | `CAD_GetLayersJson` · `CAD_SetLayer*` · `CAD_CreateLayer` · `CAD_AssignSelectedToLayer` |
+| | 선종류 축척… | `CAD_SetLinetypeScale` |
+| | 문자 글꼴… (고른 문자 — OS 글꼴 가족 이름) | `CAD_SetObjectProperty(id, "font", …)` |
+| 삽입 | 블록 만들기… (기준점 = 고른 것의 왼쪽 아래) | `CAD_CreateBlock` |
+| | 블록 배치 (장면의 블록 참조 하나를 골라 복사 명령 `cp`) | `CAD_GetBlocksJson` · `CAD_QueryObjects` |
+| | 외부 참조… (다시 읽기·결합·떼기) | `CAD_XrefReload` · `CAD_XrefBind` · `CAD_XrefDetach` |
+| 솔리드 | NURBS 로 변환 — 곡선(선·원·호·타원) → 스플라인, 곡선이 없으면 SubD → NURBS 솔리드 | `CAD_CurveGetGeCurve` → `CAD_GeCurveToNurbs` → `CAD_CreateCurveFromGe` / 명령 `tonurbs` |
+| | 메시 수리 | `CAD_CheckMesh` · `CAD_RepairMeshes` |
+| | 분해도 > 자동 펼치기 · 접기 | `CAD_ExplodeView` (`solve` → `amount` 0 → `play` / `back`) |
+| 수정 | 이미지 > 배경 지우기 · 90° 회전 | 명령 `imagebg` · `imagerotate 90` |
+| 뷰 | 노드 그래프 ✓ (오른쪽에 그래프 칸) · 동적 입력 ✓ | 명령 `graph on/off` · `dyn on/off` |
+
+- `CAD_GeCurveCreateNurbs` 로 NURBS 를 직접 만드는 예는 콘솔 샘플 `LotCADSwiftApiTest`(원 → NURBS 정보도 찍는다).
+- 시험용: `LOTCAD_TOOLS="cmd:selectall;tonurbs;exv_open;graph" LOTCAD_SHOT=/tmp/x swift run LotCADSwiftNativeViewTest` —
+  도구 id(메뉴와 같은 입구, `cmd:` = 명령행)를 0.5초 간격으로 누르고 화면을 `tools.png` 로 찍은 뒤 끝난다(묻는 창이 뜨는 도구는 빼고).
+
 ### 버튼 하나가 엔진까지 가는 길
 
 ```

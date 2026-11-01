@@ -62,6 +62,12 @@ final class ToolCatalog {
     private(set) var navigateTools: [CADTool] = []
     private(set) var materialTools: [CADTool] = []
     private(set) var analysisTools: [CADTool] = []
+    private(set) var formatTools: [CADTool] = []
+    private(set) var insertTools: [CADTool] = []
+    private(set) var convertTools: [CADTool] = []
+    private(set) var explodeViewTools: [CADTool] = []
+    private(set) var imageTools: [CADTool] = []
+    private(set) var paneTools: [CADTool] = []
     private(set) var uiTools: [CADTool] = []
     private(set) var helpTools: [CADTool] = []
 
@@ -74,9 +80,9 @@ final class ToolCatalog {
         // ── 파일 ── (대화상자는 호스트가 띄운다 — 엔진 명령 open/save 는 ImGui 대화상자라 임베드에선 못 쓴다)
         fileTools = [
             api("new",    "새로 만들기",          "doc.badge.plus",          "새 빈 문서(탭)", key: "n") { $0.newDocument() },
-            api("open",   "열기 (새 탭)…",        "folder",                  ".lot .obj .stl .dxf .ply .gltf .glb .fbx", key: "o") { $0.openDocumentDialog(asNewTab: true) },
+            api("open",   "열기 (새 탭)…",        "folder",                  ".lot .dwg .dxf .step .stp .obj .stl .ply .gltf .glb .fbx", key: "o") { $0.openDocumentDialog(asNewTab: true) },
             api("import", "가져오기 (현재 탭)…",  "tray.and.arrow.down",     "현재 문서에 파일 내용을 추가", key: "o", mask: [.command, .shift]) { $0.openDocumentDialog(asNewTab: false) },
-            api("save",   "다른 이름으로 저장…",  "square.and.arrow.down.on.square", ".lot(프로젝트) 또는 .stl .dxf .obj .glb 로 내보내기", key: "s") { $0.saveDialog(selectedOnly: false) },
+            api("save",   "다른 이름으로 저장…",  "square.and.arrow.down.on.square", ".lot(프로젝트) 또는 .dwg .dxf .step .stl .obj .glb 로 내보내기", key: "s") { $0.saveDialog(selectedOnly: false) },
             api("export", "내보내기 (선택)…",     "square.and.arrow.up",     "선택한 객체만 파일로", key: "e") { $0.saveDialog(selectedOnly: true) },
         ]
 
@@ -163,6 +169,44 @@ final class ToolCatalog {
         edgeTools = tinted(.systemGreen, [
             api("ef", "모서리 필렛",   "rectangle.roundedtop",          "솔리드 볼록 모서리 둥글리기 (거리 자동)") { $0.engine.edgeFillet() },
             api("ec", "모서리 모따기", "rectangle.tophalf.inset.filled", "솔리드 볼록 모서리 평면 모따기 (거리 자동)") { $0.engine.edgeChamfer() },
+        ])
+
+        // ── 솔리드 > 바꾸기 · 분해도 ──
+        convertTools = tinted(.systemGreen, [
+            api("tonurbs",    "NURBS 로 변환", "point.bottomleft.forward.to.point.topright.scurvepath",
+                "곡선(선·원·호·폴리선) → NURBS 스플라인 · SubD 객체 → NURBS 솔리드") { $0.convertToNurbs() },
+            api("meshrepair", "메시 수리",     "bandage", "고른 메시 — 정점 붙이기·뒤집힌 면·구멍 메움") { $0.repairMeshes() },
+        ])
+        explodeViewTools = tinted(.systemGreen, [
+            api("exv_open",  "자동 펼치기", "square.3.layers.3d.top.filled", "고른 솔리드(없으면 전부)의 빼는 순서를 풀어 펼친다") { $0.explodeView(open: true) },
+            api("exv_close", "접기",        "square.3.layers.3d.bottom.filled", "펼친 분해도를 조립 자리로") { $0.explodeView(open: false) },
+        ])
+
+        // ── 수정 > 이미지 (붙인 이미지 — 그리기 > 이미지 또는 .png 가져오기) ──
+        imageTools = tinted(.systemOrange, [
+            cmd("imagebg", "배경 지우기", "wand.and.rays", "고른 이미지에서 지울 배경을 클릭 — 비슷한 색이 투명해진다"),
+            api("imagerotate", "90° 회전", "rotate.right", "고른 이미지를 시계 방향으로 90°") { $0.engine.execute("imagerotate 90") },
+        ])
+
+        // ── 형식 (도면층·선종류·문자 글꼴) ──
+        formatTools = tinted(.systemIndigo, [
+            api("layers",   "도면층…",       "square.3.layers.3d",  "도면층 창 — 켜기·잠금·색·선종류, 고른 것을 이 층으로") { $0.showLayerPanel() },
+            api("ltscale",  "선종류 축척…",  "line.3.horizontal.decrease", "파선·중심선 무늬 크기(전역 LTSCALE)") { $0.askLinetypeScale() },
+            api("textfont", "문자 글꼴…",    "textformat",          "고른 문자의 글꼴 — OS 글꼴(TrueType) 이름") { $0.askTextFont() },
+        ])
+
+        // ── 삽입 (블록·외부 참조) ──
+        insertTools = tinted(.systemIndigo, [
+            api("block_make",  "블록 만들기…", "cube.box",          "고른 객체로 블록 정의 + 그 자리에 블록 참조") { $0.askCreateBlock() },
+            api("block_place", "블록 배치",    "square.on.square.dashed", "블록을 골라 기준점 → 놓을 자리(반복)") { $0.askPlaceBlock() },
+            api("xrefs",       "외부 참조…",   "link.badge.plus",   "DXF·DWG 에 딸린 외부 참조 — 다시 읽기·결합·떼기") { $0.showXrefs() },
+        ])
+
+        // ── 뷰 > 칸·입력 (노드 그래프 · 동적 입력) ──
+        paneTools = tinted(.systemPurple, [
+            api("graph", "노드 그래프", "point.3.filled.connected.trianglepath.dotted",
+                "화면 오른쪽에 노드 그래프 칸 — 오른쪽 클릭으로 노드 넣기, 포트를 끌어 잇기") { $0.toggleNodeGraph() },
+            api("dyn",   "동적 입력",   "character.cursor.ibeam", "그리는 중 커서 옆에 길이·각도·반지름 (F12)") { $0.toggleDynamicInput() },
         ])
 
         // ── 뷰 ──

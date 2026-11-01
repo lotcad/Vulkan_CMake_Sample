@@ -210,6 +210,20 @@ iOS 만 깨지는** 일이 잦다. 증상별 대응:
 값 상자·노드 목록이 열리면 엔진 프롬프트가 생기고 아래에 입력 줄 + 화면 키보드가 뜬다(`ContentView.graphInputRow`).
 친 글은 `CAD_ExecuteCommand` 로 — 값 상자면 그 값, 노드 목록이면 거르기 + 첫 줄 넣기. ✕ = 취소.
 
+### [더보기] · [저장] (엔진 0.1.1)
+
+| 버튼 | 하는 일 | C API / 명령 |
+|------|---------|--------------|
+| [열기] | `.dwg` `.step` `.stp` 도 | `CAD_OpenFile` |
+| [저장] → .lot · .step · .dxf | 앱 임시 폴더에 쓰고 공유 시트(파일 앱·에어드롭·메일) | `CAD_SaveAs` |
+| [더보기] → 도면층 | 시트: 켜짐/꺼짐 · 잠김/풀림 · [이리로] = 고른 것을 그 층으로 · 새 도면층 | `CAD_GetLayersJson` · `CAD_SetLayer*` · `CAD_AssignSelectedToLayer` |
+| NURBS | 곡선 → 스플라인, 곡선이 없으면 SubD → NURBS 솔리드 | `CAD_GeCurveToNurbs` · `CAD_CreateCurveFromGe` / `tonurbs` |
+| 메시수리 | 고른 메시 | `CAD_RepairMeshes` |
+| 분해도 ● | 펼치기 / 다시 누르면 접기 | `CAD_ExplodeView` |
+| 블록 | 고른 것으로 블록(이름 자동 "블록N") | `CAD_CreateBlock` |
+| 이미지회전 · 배경지우기 | 고른 이미지 90° / 배경을 찍어 투명하게(커서 도구) | `imagerotate 90` · `imagebg` |
+| 동적입력 ● | 그리는 중 커서 옆 길이·각도 | `dyn on/off` |
+
 ---
 
 ## 현재 동작 / 남은 작업

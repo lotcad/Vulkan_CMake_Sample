@@ -270,6 +270,123 @@ final class LotCADEngine {
         guard isCreated else { return false }
         return CAD_OpenFile(path) == 0   // 결과 코드 — 0 = CAD_OK, 음수 = 실패(이유는 CAD_GetLastError)
     }
+    /// 확장자로 포맷이 갈린다 — .lot(프로젝트) · .step(B-Rep 솔리드·조립) · .dxf · .dwg · .stl · .obj · .glb
+    @discardableResult
+    func saveAs(_ path: String) -> Bool {
+        guard isCreated else { return false }
+        return CAD_SaveAs(path, false) == 0
+    }
+    /// 직전 실패 이유(CAD_GetLastError). 없으면 빈 문자열.
+    var lastError: String {
+        guard isCreated else { return "" }
+        var buf = [CChar](repeating: 0, count: 512)
+        let n = CAD_GetLastError(&buf, UInt32(buf.count))
+        return n > 0 ? String(decoding: buf.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self) : ""
+    }
+
+    // ─── 더보기 — NURBS · 메시 수리 · 분해도 · 블록 · 도면층 ───
+    /// NURBS 로 — 고른 것에 곡선(선·원·호·타원)이 있으면 기하 곡선 → NURBS → 스플라인 객체로 바꿔 끼우고(원본 지움),
+    /// 곡선이 없으면 명령 tonurbs 로 SubD 객체를 NURBS 솔리드로. 반환 = 바꾼 곡선 수(-1 = tonurbs 로 넘김).
+    /// 폴리선은 여러 조각이라 NURBS 하나가 안 된다 — 그대로 둔다.
+    @discardableResult
+    func convertSelectionToNurbs() -> Int {
+        guard isCreated else { return 0 }
+        var converted = 0
+        var sawCurve = false
+        for id in selectedIds {
+            var curve: UInt64 = 0
+            guard CAD_CurveGetGeCurve(id, &curve) == 0 else { continue }   // 곡선이 아님 = CAD_E_WRONG_TYPE
+            sawCurve = true
+            var nurbs: UInt64 = 0
+            var made: UInt32 = 0
+            if CAD_GeCurveToNurbs(curve, &nurbs) == 0, CAD_CreateCurveFromGe(nurbs, nil, &made) == 0 {
+                _ = CAD_DeleteObject(id)
+                converted += 1
+            }
+            if nurbs != 0 { _ = CAD_GeCurveFree(nurbs) }
+            _ = CAD_GeCurveFree(curve)
+        }
+        if !sawCurve { startCommand("tonurbs"); return -1 }
+        return converted
+    }
+    /// 고른 메시 수리 — 메시가 아닌 것(B-Rep 솔리드·곡선)이 섞이면 통째로 거부하므로 검사가 되는 것만. 반환 = 고친 수, 음수 = 이유 코드.
+    func repairSelectedMeshes() -> Int32 {
+        guard isCreated else { return 0 }
+        let ids = selectedIds.filter { var info = CAD_MeshCheckInfo(); return CAD_CheckMesh($0, &info) == 0 }
+        guard !ids.isEmpty else { return 0 }
+        return CAD_RepairMeshes(ids, UInt32(ids.count), nil)
+    }
+    /// 분해도 — {"op":"solve"} 처럼 JSON 을 넘기고 결과 JSON(ok·error·steps…).
+    @discardableResult
+    func explodeView(_ argsJson: String) -> [String: Any] {
+        guard isCreated else { return [:] }
+        return readJson { CAD_ExplodeView(argsJson, $0, $1) }
+    }
+    /// 고른 것으로 블록(이름 자동 "블록N") — 기준점 = 고른 것 전체 상자의 왼쪽 아래. 반환 = 이름, 실패 nil(이유 lastError).
+    func createBlockFromSelection() -> String? {
+        guard isCreated else { return nil }
+        let ids = selectedIds
+        guard !ids.isEmpty else { return nil }
+        var lo = CAD_GeVec3(x: .infinity, y: .infinity, z: .infinity)
+        for id in ids {
+            var a = CAD_GeVec3(), b = CAD_GeVec3()
+            if CAD_GetBoundsWorld(id, &a, &b) == 0 { lo = CAD_GeVec3(x: min(lo.x, a.x), y: min(lo.y, a.y), z: min(lo.z, a.z)) }
+        }
+        if !lo.x.isFinite { lo = CAD_GeVec3() }
+        let taken = Set((readJson { CAD_GetBlocksJson($0, $1) }["blocks"] as? [[String: Any]] ?? []).compactMap { $0["name"] as? String })
+        let name = (1...).lazy.map { "블록\($0)" }.first { !taken.contains($0) }!
+        var insert: UInt32 = 0
+        return CAD_CreateBlock(name, ids, UInt32(ids.count), lo, &insert) == 0 ? name : nil
+    }
+
+    struct Layer: Identifiable {
+        let id: UInt32
+        let name: String
+        let visible: Bool
+        let locked: Bool
+        let fixed: Bool          // 도면층 "0" — 켜기·잠금을 못 바꾼다
+        let color: (r: Double, g: Double, b: Double)
+        let objectCount: Int
+    }
+    /// 도면층 표 — CAD_GetLayersJson 한 번에(revision 이 바뀌면 다시 읽을 때).
+    func layers() -> (revision: Int, layers: [Layer]) {
+        guard isCreated else { return (0, []) }
+        let json = readJson { CAD_GetLayersJson($0, $1) }
+        let rows = (json["layers"] as? [[String: Any]] ?? []).map { l -> Layer in
+            let c = (l["color"] as? [Double]) ?? [1, 1, 1]
+            return Layer(id: UInt32(l["id"] as? Int ?? 0), name: l["name"] as? String ?? "",
+                         visible: l["visible"] as? Bool ?? true, locked: l["locked"] as? Bool ?? false,
+                         fixed: l["fixed"] as? Bool ?? false, color: (c[0], c[1], c[2]),
+                         objectCount: l["objectCount"] as? Int ?? 0)
+        }
+        return (json["revision"] as? Int ?? 0, rows)
+    }
+    func setLayerVisible(_ id: UInt32, _ on: Bool) { guard isCreated else { return }; _ = CAD_SetLayerVisible(id, on) }
+    func setLayerLocked(_ id: UInt32, _ on: Bool)  { guard isCreated else { return }; _ = CAD_SetLayerLocked(id, on) }
+    /// 새 도면층 "도면층N" — 같은 이름이면 번호를 올린다.
+    func createLayer() {
+        guard isCreated else { return }
+        var k = layers().layers.count
+        var id: UInt32 = 0
+        while CAD_CreateLayer("도면층\(k)", &id) != 0, k < 1000 { k += 1 }
+    }
+    /// 고른 것을 그 도면층으로. 반환 = 옮긴 수(잠긴 도면층 것은 건너뜀).
+    func assignSelectionToLayer(_ id: UInt32) -> Int {
+        guard isCreated else { return 0 }
+        var changed: UInt32 = 0
+        return CAD_AssignSelectedToLayer(id, &changed) == 0 ? Int(changed) : 0
+    }
+
+    /// 긴 JSON 출력 — 길이를 먼저 묻고(nil, 0) 그만큼 칸을 잡아 한 번 더. 실패·빈 글 = [:].
+    private func readJson(_ read: (UnsafeMutablePointer<CChar>?, UInt32) -> Int32) -> [String: Any] {
+        let n = read(nil, 0)
+        guard n > 0 else { return [:] }
+        var buf = [CChar](repeating: 0, count: Int(n) + 1)
+        _ = buf.withUnsafeMutableBufferPointer { read($0.baseAddress, UInt32($0.count)) }
+        let data = Data(buf.prefix(Int(n)).map { UInt8(bitPattern: $0) })
+        return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
+    }
+
     // viewType: 0=Front 1=Top 2=Right 3=Iso
     func setView(_ viewType: Int32) { guard isCreated else { return }; CAD_SetView(viewType) }
     func undo()             { guard isCreated else { return }; _ = CAD_Undo() }   // 되돌릴 것이 없으면 CAD_E_NOT_READY

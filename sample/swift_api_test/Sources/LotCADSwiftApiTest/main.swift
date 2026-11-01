@@ -44,6 +44,30 @@ CAD_SetPosition(boxId, CAD_GeVec3(x: 1.0, y: 0.0, z: 1.5))
 CAD_SetScale(boxId, CAD_GeVec3(x: 0.8, y: 0.8, z: 0.8))
 CAD_SetRotationAxisAngle(boxId, CAD_GeVec3(x: 0.0, y: 0.0, z: 1.0), 0.7853982)
 CAD_SetSelection(&boxId, 1, Int32(CAD_SELECT_REPLACE))   // REPLACE = 이것 하나만 고름
+
+// NURBS 곡선 — 기하 곡선 핸들(CAD_GeCurve*)로 만들고 장면에 스플라인 객체로. 매듭 수 = 제어점 + 차수 + 1, 무게 0개 = 다항
+let control: [Double] = [-2, -1, 0,  -1, 1, 0,  1, -1, 0,  2, 1, 0]
+let knots: [Double] = [0, 0, 0, 0, 1, 1, 1, 1]
+var nurbs: UInt64 = 0
+var splineId: UInt32 = 0
+if CAD_GeCurveCreateNurbs(3, knots, UInt32(knots.count), control, 4, nil, 0, &nurbs) == 0 {
+    CAD_CreateCurveFromGe(nurbs, nil, &splineId)
+    var length = 0.0, t0 = 0.0, t1 = 0.0
+    CAD_GeCurveGetInterval(nurbs, &t0, &t1)
+    CAD_GeCurveLength(nurbs, t0, t1, &length)
+    print("[swift_api_test] nurbs spline id \(splineId), length \(length)")
+    CAD_GeCurveFree(nurbs)
+}
+// 원 → NURBS(정확 — 유리 2차): 같은 곡선을 NURBS 로 바꿔 제어점·매듭 수를 본다
+var circle: UInt64 = 0, circleNurbs: UInt64 = 0
+if CAD_GeCurveCreateCircle(CAD_GeVec3(x: 0, y: 0, z: 0), CAD_GeVec3(x: 0, y: 0, z: 1), 1.5, &circle) == 0,
+   CAD_GeCurveToNurbs(circle, &circleNurbs) == 0 {
+    var degree: Int32 = 0, cps: UInt32 = 0, kn: UInt32 = 0, rational = false
+    CAD_GeCurveGetNurbsInfo(circleNurbs, &degree, &cps, &kn, &rational)
+    print("[swift_api_test] circle → nurbs degree \(degree), control \(cps), knots \(kn), rational \(rational)")
+}
+if circleNurbs != 0 { CAD_GeCurveFree(circleNurbs) }
+if circle != 0 { CAD_GeCurveFree(circle) }
 CAD_ZoomExtents()
 
 var p = CAD_GeVec3()

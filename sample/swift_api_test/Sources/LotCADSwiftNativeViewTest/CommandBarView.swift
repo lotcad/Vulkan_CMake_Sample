@@ -16,7 +16,7 @@ final class CommandBarView: NSView, NSTextFieldDelegate {
     private let promptLabel = NSTextField(labelWithString: "")
     private let selectionLabel = NSTextField(labelWithString: "")
     private var prompt = ""
-    private var transient = ""
+    private(set) var transient = ""
     private var history: [String] = []
     private var historyCursor = 0
 

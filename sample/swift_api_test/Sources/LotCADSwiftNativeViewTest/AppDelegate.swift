@@ -50,6 +50,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
     private static let layoutRightKey = "LotCAD.toolbars.right"
 
     private var gridEnabled = true
+    private var nodeGraphOn = false
+    private var dynamicInputOn = true   // 엔진 기본 = 켬(dyn · F12)
+    private var layerPanel: LayerPanelController?
     private var visualStyle: Int32 = 0
     private var lastTransient = ""
     private var pluginMenuItems: [NSMenuItem] = []
@@ -202,6 +205,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         if tickCount == 150, ProcessInfo.processInfo.environment["LOTCAD_LAYOUT_DUMP"] != nil {
             showLayoutDiagnostics()
         }
+        if tickCount % 15 == 0 { layerPanel?.refreshIfChanged() }
+        runToolTestHooks()   // 도면층 표 revision 이 바뀌었을 때만 다시 채운다
         if analysisOpen {
             if tickCount % 6 == 0 { analysisPanel.refresh() }   // 패널 값·문구 ≈10Hz
             runAnalysisTestHooks()
@@ -276,6 +281,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
             return engine.selectedCount > 0
         case "grid":
             item.state = gridEnabled ? .on : .off
+        case "graph":
+            item.state = nodeGraphOn ? .on : .off
+        case "dyn":
+            item.state = dynamicInputOn ? .on : .off
+        case "tonurbs", "meshrepair", "block_make", "textfont":
+            return engine.selectedCount > 0
         case "ui_ribbon":
             item.state = ribbon.isHidden ? .off : .on
         case "layout1", "layout2", "layout3", "layout4":
@@ -441,7 +452,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
     func openDocumentDialog(asNewTab: Bool) {
         let panel = NSOpenPanel()
         panel.title = asNewTab ? "열기 (새 탭)" : "가져오기 (현재 탭에 추가)"
-        panel.allowedContentTypes = contentTypes(["lot", "obj", "stl", "dxf", "ply", "gltf", "glb", "fbx"])
+        panel.allowedContentTypes = contentTypes(["lot", "dwg", "dxf", "step", "stp", "obj", "stl", "ply", "gltf", "glb", "fbx"])
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         guard panel.runModal() == .OK, let url = panel.url else { return }
@@ -463,11 +474,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         }
         let panel = NSSavePanel()
         panel.title = selectedOnly ? "선택 내보내기" : "다른 이름으로 저장"
-        panel.allowedContentTypes = contentTypes(["lot", "stl", "dxf", "obj", "glb", "gltf"])
+        panel.allowedContentTypes = contentTypes(["lot", "dwg", "dxf", "step", "stp", "stl", "obj", "glb", "gltf"])
         panel.allowsOtherFileTypes = true
         panel.canCreateDirectories = true
         panel.nameFieldStringValue = selectedOnly ? "selection.stl" : "untitled.lot"
-        panel.message = "확장자로 포맷이 정해집니다 — .lot(프로젝트) .stl .dxf .obj .glb .gltf"
+        panel.message = "확장자로 포맷이 정해집니다 — .lot(프로젝트) .dwg .dxf .step(B-Rep 솔리드·조립) .stl .obj .glb .gltf"
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
         if !engine.saveAs(path: url.path, selectedOnly: selectedOnly) {
@@ -565,6 +576,134 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
                                 : count < 0 ? "플러그인 불러오기 실패: \(engine.lastError)" : "올린 플러그인이 없습니다")
     }
 
+    // MARK: - 솔리드 > 바꾸기 · 분해도
+
+    func convertToNurbs() {
+        let n = engine.convertSelectionToNurbs()
+        if n >= 0 { commandBar.setTransient("NURBS 스플라인 \(n)개로 바꿈 (폴리선은 그대로)") }   // -1 = SubD — tonurbs 가 직접 안내한다
+    }
+
+    func repairMeshes() {
+        let n = engine.repairSelectedMeshes()
+        commandBar.setTransient(n > 0 ? "메시 \(n)개 수리" : n == 0 ? "고칠 것이 없습니다" : "메시 수리 실패: \(engine.lastError)")
+    }
+
+    /// 펼치기 = 빼는 순서 풀기(solve) → 0 에서 1 로 재생. 접기 = 되감기(back).
+    func explodeView(open: Bool) {
+        guard open else { engine.explodeView(#"{"op":"back"}"#); return }
+        let r = engine.explodeView(#"{"op":"solve"}"#)
+        guard r["ok"] as? Bool == true else {
+            commandBar.setTransient("분해도: \(r["error"] as? String ?? engine.lastError)")
+            return
+        }
+        engine.explodeView(#"{"op":"amount","t":0}"#)
+        engine.explodeView(#"{"op":"play","seconds":1.5}"#)
+        commandBar.setTransient("분해도 \(r["solved_steps"] as? Int ?? 0)단계 — 솔리드 > 분해도 > 접기")
+    }
+
+    // MARK: - 뷰 > 노드 그래프 · 동적 입력
+
+    func toggleNodeGraph() {
+        nodeGraphOn.toggle()
+        engine.execute(nodeGraphOn ? "graph on" : "graph off")
+    }
+
+    func toggleDynamicInput() {
+        dynamicInputOn.toggle()
+        engine.execute(dynamicInputOn ? "dyn on" : "dyn off")
+    }
+
+    // MARK: - 형식 (도면층 · 선종류 · 글꼴)
+
+    func showLayerPanel() {
+        if layerPanel == nil { layerPanel = LayerPanelController(engine: engine) { [weak self] in self?.commandBar.setTransient($0) } }
+        layerPanel?.show(relativeTo: window)
+    }
+
+    func askLinetypeScale() {
+        let field = NSTextField(string: String(format: "%g", engine.linetypeScale))
+        field.frame = NSRect(x: 0, y: 0, width: 160, height: 24)
+        guard ask("선종류 축척", detail: "파선·중심선 무늬에 곱하는 값(LTSCALE, 0 보다 큼)", accessory: field),
+              let v = Double(field.stringValue), v > 0 else { return }
+        engine.linetypeScale = v
+    }
+
+    func askTextFont() {
+        let box = NSComboBox(frame: NSRect(x: 0, y: 0, width: 260, height: 26))
+        box.addItems(withObjectValues: NSFontManager.shared.availableFontFamilies)
+        box.completes = true
+        box.stringValue = engine.selectedTextFont
+        guard ask("문자 글꼴", detail: "고른 문자에 쓸 글꼴 — OS 글꼴 가족 이름(없으면 엔진이 비슷한 글꼴로 대신)", accessory: box),
+              !box.stringValue.isEmpty else { return }
+        let n = engine.setSelectedTextFont(box.stringValue)
+        commandBar.setTransient(n > 0 ? "문자 \(n)개 → \(box.stringValue)" : "고른 것 중 문자가 없습니다")
+    }
+
+    // MARK: - 삽입 (블록 · 외부 참조)
+
+    func askCreateBlock() {
+        let field = NSTextField(string: "블록\(engine.blockNames().count + 1)")
+        field.frame = NSRect(x: 0, y: 0, width: 220, height: 24)
+        guard ask("블록 만들기", detail: "고른 객체 \(engine.selectedCount)개로 블록 정의 — 기준점은 고른 것의 왼쪽 아래", accessory: field) else { return }
+        if engine.createBlock(named: field.stringValue) == nil {
+            alert("블록을 만들지 못했습니다", detail: engine.lastError)
+        } else {
+            commandBar.setTransient("블록 \(field.stringValue) — 삽입 > 블록 배치로 더 놓기")
+        }
+    }
+
+    /// 블록 참조 하나를 골라 복사 명령(기준점 → 놓을 자리, 반복)으로 — 이름으로 넣는 C API 가 없어 장면에 있는 참조를 복사한다.
+    func askPlaceBlock() {
+        let names = engine.blockNames().filter { engine.blockReference(named: $0) != nil }
+        guard !names.isEmpty else {
+            alert("놓을 블록이 없습니다", detail: "삽입 > 블록 만들기로 먼저 만들거나, 블록이 든 DXF·DWG 를 여세요.")
+            return
+        }
+        let popup = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 220, height: 26))
+        popup.addItems(withTitles: names)
+        guard ask("블록 배치", detail: "기준점을 찍고 놓을 자리를 찍습니다(계속 찍으면 반복, Esc 끝)", accessory: popup),
+              let name = popup.titleOfSelectedItem, var id = engine.blockReference(named: name) else { return }
+        _ = CAD_SetSelection(&id, 1, Int32(CAD_SELECT_REPLACE))
+        engine.startCommand("cp")
+    }
+
+    func showXrefs() {
+        let xrefs = engine.xrefs()
+        guard !xrefs.isEmpty else {
+            alert("외부 참조가 없습니다", detail: "외부 참조(XREF)가 든 DXF·DWG 를 열면 여기 나옵니다 — 다시 읽기·결합(보통 블록으로)·떼기.")
+            return
+        }
+        let popup = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 360, height: 26))
+        popup.addItems(withTitles: xrefs.map { "\($0.name) — \($0.found ? "찾음" : "없음") · 참조 \($0.references) · \($0.path)" })
+        let a = NSAlert()
+        a.messageText = "외부 참조 \(xrefs.count)개"
+        a.informativeText = "고른 외부 참조에 할 일"
+        a.accessoryView = popup
+        ["다시 읽기", "결합", "떼기", "닫기"].forEach { a.addButton(withTitle: $0) }
+        let r = a.runModal()
+        let x = xrefs[popup.indexOfSelectedItem]
+        let action: LotCADEngine.XrefAction
+        switch r {
+        case .alertFirstButtonReturn:  action = .reload
+        case .alertSecondButtonReturn: action = .bind
+        case .alertThirdButtonReturn:  action = .detach
+        default: return
+        }
+        if !engine.xref(action, x.name) { alert("외부 참조 \(x.name)", detail: engine.lastError) }
+    }
+
+    /// 확인·취소 + 입력 칸 하나짜리 모달. 프레임 타이머는 .common 이라 그동안도 엔진이 돈다.
+    private func ask(_ message: String, detail: String, accessory: NSView) -> Bool {
+        let a = NSAlert()
+        a.messageText = message
+        a.informativeText = detail
+        a.accessoryView = accessory
+        a.addButton(withTitle: "확인")
+        a.addButton(withTitle: "취소")
+        a.window.initialFirstResponder = accessory
+        return a.runModal() == .alertFirstButtonReturn
+    }
+
     // MARK: - 해석 패널
 
     /// "wind" | "water" | "sim". 다른 해석으로 바꿔도 앞 해석은 계속 돈다(정지는 패널 버튼).
@@ -613,6 +752,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         for i in 0..<DemoKit_ControlCount() where DemoKit_ControlKind(i) == 6 {
             print("[test]   \(String(cString: DemoKit_ControlLabel(i))) = \(String(cString: DemoKit_GetText(i)))")
         }
+        shutdownEngine()
+        exit(0)
+    }
+
+    // 시험용 (자동 확인) — LOTCAD_TOOLS="selectall;tonurbs;layers" 처럼 주면 1초 뒤부터 0.5초 간격으로 그 id 의 도구를 누른다
+    //   (메뉴·리본과 같은 입구 — ToolCatalog id, "cmd:명령" 은 명령행에 친 것과 같다). 묻는 창이 뜨는 도구는 빼고.
+    //   LOTCAD_SHOT=/경로/폴더 — 다 누르고 2초 뒤 화면을 tools.png 로 찍고 안내 글을 출력한 뒤 종료
+    private lazy var testTools: [String] = (ProcessInfo.processInfo.environment["LOTCAD_TOOLS"] ?? "")
+        .split(separator: ";").map(String.init)
+    private var testToolsShotTick = 0
+
+    private func runToolTestHooks() {
+        guard ProcessInfo.processInfo.environment["LOTCAD_TOOLS"] != nil, !analysisOpen, tickCount > 60 else { return }
+        if !testTools.isEmpty {
+            if tickCount % 30 == 0 {
+                let id = testTools.removeFirst()
+                if id.hasPrefix("cmd:") { engine.execute(String(id.dropFirst(4))) } else { catalog.byId[id]?.run(self) }
+                print("[test] tool \(id) → \(engine.transientMessage) / \(commandBar.transient)")
+            }
+            return
+        }
+        guard let shotDir = ProcessInfo.processInfo.environment["LOTCAD_SHOT"] else { return }
+        if testToolsShotTick == 0 { testToolsShotTick = tickCount + 120 }
+        guard tickCount == testToolsShotTick else { return }
+        if layerPanel != nil { print("[test] layers: \(engine.layers().layers.map { "\($0.name)(\($0.objectCount))" })") }
+        print("[test] capture: \(CAD_CaptureViewport("\(shotDir)/tools.png", false))")
+        print("[test] prompt: \(engine.statusMessage) | transient: \(engine.transientMessage)")
         shutdownEngine()
         exit(0)
     }
@@ -744,4 +910,127 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
             .deletingLastPathComponent() // sample
             .deletingLastPathComponent() // 3dEngine_Sample
     }
+}
+
+/// 도면층 창 — 줄마다 [켜기] [잠금] [색] 이름(객체 수) [선종류] [이리로]. 표는 CAD_GetLayersJson 한 번에 읽고,
+/// revision 이 바뀌었을 때만 다시 채운다(창에서 바꾼 것도, 명령·DXF 열기로 바뀐 것도 같은 길).
+@MainActor
+final class LayerPanelController: NSObject {
+    private let engine: LotCADEngine
+    private let report: (String) -> Void
+    private let panel: NSPanel
+    private let rows = NSStackView()
+    private var revision = -1
+    private var layerIds: [UInt32] = []
+    private var linetypes: [(id: UInt32, name: String)] = []
+
+    init(engine: LotCADEngine, report: @escaping (String) -> Void) {
+        self.engine = engine
+        self.report = report
+        panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 520, height: 360),
+                        styleMask: [.titled, .closable, .resizable, .utilityWindow], backing: .buffered, defer: true)
+        super.init()
+        panel.title = "도면층"
+        panel.isFloatingPanel = true
+        panel.hidesOnDeactivate = false
+
+        rows.orientation = .vertical
+        rows.alignment = .leading
+        rows.spacing = 4
+        rows.edgeInsets = NSEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        let scroll = NSScrollView()
+        scroll.hasVerticalScroller = true
+        scroll.drawsBackground = false
+        let doc = FlippedView()
+        doc.translatesAutoresizingMaskIntoConstraints = false
+        rows.translatesAutoresizingMaskIntoConstraints = false
+        doc.addSubview(rows)
+        scroll.documentView = doc
+        NSLayoutConstraint.activate([
+            rows.leadingAnchor.constraint(equalTo: doc.leadingAnchor),
+            rows.trailingAnchor.constraint(equalTo: doc.trailingAnchor),
+            rows.topAnchor.constraint(equalTo: doc.topAnchor),
+            rows.bottomAnchor.constraint(equalTo: doc.bottomAnchor),
+            doc.widthAnchor.constraint(equalTo: scroll.contentView.widthAnchor),
+        ])
+
+        let add = NSButton(title: "새 도면층", target: self, action: #selector(addLayer))
+        let hint = NSTextField(labelWithString: "[이리로] = 고른 객체를 그 도면층으로")
+        hint.textColor = .secondaryLabelColor
+        let bottom = NSStackView(views: [add, hint])
+        let content = NSStackView(views: [scroll, bottom])
+        content.orientation = .vertical
+        content.edgeInsets = NSEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
+        scroll.setContentHuggingPriority(.defaultLow, for: .vertical)
+        panel.contentView = content
+    }
+
+    func show(relativeTo window: NSWindow?) {
+        revision = -1
+        refreshIfChanged()
+        if !panel.isVisible, let w = window {
+            panel.setFrameTopLeftPoint(NSPoint(x: w.frame.maxX - panel.frame.width - 60, y: w.frame.maxY - 160))
+        }
+        panel.makeKeyAndOrderFront(nil)
+    }
+
+    func refreshIfChanged() {
+        guard panel.isVisible || revision < 0 else { return }
+        let (rev, layers) = engine.layers()
+        guard rev != revision else { return }
+        revision = rev
+        linetypes = engine.linetypes()
+        layerIds = layers.map(\.id)
+        rows.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        for (i, l) in layers.enumerated() { rows.addArrangedSubview(row(l, index: i)) }
+    }
+
+    private func row(_ l: LotCADEngine.Layer, index: Int) -> NSView {
+        let on = NSButton(checkboxWithTitle: "켜기", target: self, action: #selector(toggleVisible(_:)))
+        on.state = l.visible ? .on : .off
+        let lock = NSButton(checkboxWithTitle: "잠금", target: self, action: #selector(toggleLocked(_:)))
+        lock.state = l.locked ? .on : .off
+        let well = NSColorWell(frame: NSRect(x: 0, y: 0, width: 36, height: 22))
+        well.color = l.color
+        well.target = self
+        well.action = #selector(colorChanged(_:))
+        let name = NSTextField(labelWithString: "\(l.name)  (\(l.objectCount))")
+        name.widthAnchor.constraint(equalToConstant: 150).isActive = true
+        name.lineBreakMode = .byTruncatingTail
+        let lt = NSPopUpButton(frame: .zero, pullsDown: false)
+        lt.addItems(withTitles: linetypes.map(\.name))
+        if let k = linetypes.firstIndex(where: { $0.id == l.linetypeId }) { lt.selectItem(at: k) }
+        lt.target = self
+        lt.action = #selector(linetypeChanged(_:))
+        let here = NSButton(title: "이리로", target: self, action: #selector(assignHere(_:)))
+        for c in [on, lock, well, lt, here] as [NSControl] {
+            c.tag = index
+            if l.fixed && c !== here { c.isEnabled = false }   // 도면층 0 — 늘 켜짐·안 잠김·흰색·실선
+        }
+        let h = NSStackView(views: [on, lock, well, name, lt, here])
+        h.spacing = 8
+        return h
+    }
+
+    @objc private func toggleVisible(_ b: NSButton) { engine.setLayerVisible(layerIds[b.tag], b.state == .on) }
+    @objc private func toggleLocked(_ b: NSButton)  { engine.setLayerLocked(layerIds[b.tag], b.state == .on) }
+    @objc private func colorChanged(_ w: NSColorWell) { engine.setLayerColor(layerIds[w.tag], w.color) }
+    @objc private func linetypeChanged(_ p: NSPopUpButton) {
+        engine.setLayerLinetype(layerIds[p.tag], linetypes[p.indexOfSelectedItem].id)
+    }
+    @objc private func assignHere(_ b: NSButton) {
+        let n = engine.assignSelectionToLayer(layerIds[b.tag])
+        report(n > 0 ? "\(n)개를 도면층으로 옮김" : "고른 객체가 없습니다(잠긴 도면층 것은 건너뜀)")
+        revision = -1
+        refreshIfChanged()
+    }
+    @objc private func addLayer() {
+        var k = layerIds.count
+        while engine.createLayer("도면층\(k)") == nil { k += 1; if k > layerIds.count + 100 { return } }
+        revision = -1
+        refreshIfChanged()
+    }
+
+    /// 줄이 위에서부터 쌓이게(스크롤 문서 뷰 기본은 아래부터).
+    private final class FlippedView: NSView { override var isFlipped: Bool { true } }
 }

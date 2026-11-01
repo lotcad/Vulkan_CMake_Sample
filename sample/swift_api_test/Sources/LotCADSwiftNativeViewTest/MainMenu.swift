@@ -52,6 +52,8 @@ enum MainMenuBuilder {
         add(view, catalog.displayTools, target: target)
         view.addItem(submenu("탐색 모드", menu("탐색 모드", catalog.navigateTools, target: target)))
         view.addItem(.separator())
+        add(view, catalog.paneTools, target: target)
+        view.addItem(.separator())
         add(view, catalog.pick("ui_ribbon"), target: target)
         // 도구모음 목록은 열 때마다 AppDelegate(menuNeedsUpdate) 가 채운다 — 플러그인 도구모음이 나중에 생기므로
         let toolbars = NSMenu(title: "도구모음")
@@ -71,6 +73,7 @@ enum MainMenuBuilder {
         add(modify, catalog.modifyTools, target: target)
         modify.addItem(.separator())
         modify.addItem(submenu("폴리선 편집", menu("폴리선 편집", catalog.polylineTools, target: target)))
+        modify.addItem(submenu("이미지", menu("이미지", catalog.imageTools, target: target)))
         main.addItem(submenu("수정", modify))
 
         // ── 솔리드 ──
@@ -82,7 +85,14 @@ enum MainMenuBuilder {
         add(solid, catalog.booleanTools, target: target)
         solid.addItem(.separator())
         add(solid, catalog.edgeTools, target: target)
+        solid.addItem(.separator())
+        add(solid, catalog.convertTools, target: target)
+        solid.addItem(submenu("분해도", menu("분해도", catalog.explodeViewTools, target: target)))
         main.addItem(submenu("솔리드", solid))
+
+        // ── 형식 · 삽입 ── (도면층·선종류·글꼴 / 블록·외부 참조 — 창은 호스트가 띄우고 바꾸기는 C API)
+        main.addItem(submenu("형식", menu("형식", catalog.formatTools, target: target)))
+        main.addItem(submenu("삽입", menu("삽입", catalog.insertTools, target: target)))
 
         // ── 재질 ──
         main.addItem(submenu("재질", menu("재질", catalog.materialTools, target: target)))
