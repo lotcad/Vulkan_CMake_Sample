@@ -38,10 +38,14 @@ final class CommandBarView: NSView, NSTextFieldDelegate {
         refresh()
     }
 
-    /// 일회성 안내. 빈 문자열이면 프롬프트로 돌아간다.
+    /// 일회성 안내. 빈 문자열이면 프롬프트로 돌아간다. 4초 뒤 저절로 프롬프트로(그 사이 다른 안내가 오면 그것이 남는다).
     func setTransient(_ text: String) {
         transient = text
         refresh()
+        guard !text.isEmpty else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
+            if self?.transient == text { self?.setTransient("") }
+        }
     }
 
     func setSelectionCount(_ count: Int) {

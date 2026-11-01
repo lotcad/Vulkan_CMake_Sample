@@ -216,7 +216,7 @@ iOS 만 깨지는** 일이 잦다. 증상별 대응:
 |------|---------|--------------|
 | [열기] | `.dwg` `.step` `.stp` 도 | `CAD_OpenFile` |
 | [저장] → .lot · .step · .dxf | 앱 임시 폴더에 쓰고 공유 시트(파일 앱·에어드롭·메일) | `CAD_SaveAs` |
-| [더보기] → 도면층 | 시트: 켜짐/꺼짐 · 잠김/풀림 · [이리로] = 고른 것을 그 층으로 · 새 도면층 | `CAD_GetLayersJson` · `CAD_SetLayer*` · `CAD_AssignSelectedToLayer` |
+| [더보기] → 도면층 | 시트: 켜짐/꺼짐 · 잠김/풀림 · [이리로] = 고른 것을 그 층으로(색도 도면층 것) · 새 도면층 | `CAD_GetLayersJson` · `CAD_SetLayer*` · `CAD_AssignSelectedToLayer` · `CAD_SetSelectedColorByLayer` |
 | NURBS | 곡선 → 스플라인, 곡선이 없으면 SubD → NURBS 솔리드 | `CAD_GeCurveToNurbs` · `CAD_CreateCurveFromGe` / `tonurbs` |
 | 메시수리 | 고른 메시 | `CAD_RepairMeshes` |
 | 분해도 ● | 펼치기 / 다시 누르면 접기 | `CAD_ExplodeView` |

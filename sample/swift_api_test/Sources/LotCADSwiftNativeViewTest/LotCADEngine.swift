@@ -458,11 +458,14 @@ final class LotCADEngine {
         _ = CAD_SetLayerColor(id, CAD_Color(r: Double(c.redComponent), g: Double(c.greenComponent), b: Double(c.blueComponent)))
     }
     func setLayerLinetype(_ id: UInt32, _ linetypeId: UInt32) { guard isCreated else { return }; _ = CAD_SetLayerLinetype(id, linetypeId) }
-    /// 고른 것을 그 도면층으로. 반환 = 옮긴 수(잠긴 도면층 것은 건너뜀).
+    /// 고른 것을 그 도면층으로 — 색도 '도면층을 따름'으로(새로 그린 객체는 자기 색이라 도면층 색이 안 보인다).
+    /// 반환 = 바뀐 수(잠긴 도면층 것은 건너뜀).
     func assignSelectionToLayer(_ id: UInt32) -> Int {
         guard isCreated else { return 0 }
-        var changed: UInt32 = 0
-        return CAD_AssignSelectedToLayer(id, &changed) == 0 ? Int(changed) : 0
+        var moved: UInt32 = 0, recolored: UInt32 = 0
+        guard CAD_AssignSelectedToLayer(id, &moved) == 0 else { return 0 }
+        _ = CAD_SetSelectedColorByLayer(true, &recolored)
+        return Int(max(moved, recolored))
     }
     /// 선종류 표(0 = Continuous, 1..8 표준, 100~ 사용자) — (id, 이름).
     func linetypes() -> [(id: UInt32, name: String)] {

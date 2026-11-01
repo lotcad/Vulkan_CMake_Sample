@@ -68,7 +68,7 @@ swift run RobotArmMac                      # 로봇 팔 (ROBOT_AUTOPLAY=1 이면
 | 메뉴 | 항목 | C API / 명령 |
 |------|------|--------------|
 | 파일 | 열기·저장에 `.dwg` `.step` `.stp` | `CAD_OpenDocument` · `CAD_SaveAs` (확장자로 포맷 — STEP 은 B-Rep 솔리드·조립) |
-| 형식 | 도면층… (떠 있는 창: 켜기·잠금·색·선종류, [이리로] = 고른 것을 그 층으로, 새 도면층) | `CAD_GetLayersJson` · `CAD_SetLayer*` · `CAD_CreateLayer` · `CAD_AssignSelectedToLayer` |
+| 형식 | 도면층… (떠 있는 창: 켜기·잠금·색·선종류, [이리로] = 고른 것을 그 층으로 — 색도 도면층 것, 새 도면층) | `CAD_GetLayersJson` · `CAD_SetLayer*` · `CAD_CreateLayer` · `CAD_AssignSelectedToLayer` · `CAD_SetSelectedColorByLayer` |
 | | 선종류 축척… | `CAD_SetLinetypeScale` |
 | | 문자 글꼴… (고른 문자 — OS 글꼴 가족 이름) | `CAD_SetObjectProperty(id, "font", …)` |
 | 삽입 | 블록 만들기… (기준점 = 고른 것의 왼쪽 아래) | `CAD_CreateBlock` |

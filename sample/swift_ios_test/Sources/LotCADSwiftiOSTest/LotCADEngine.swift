@@ -370,11 +370,14 @@ final class LotCADEngine {
         var id: UInt32 = 0
         while CAD_CreateLayer("도면층\(k)", &id) != 0, k < 1000 { k += 1 }
     }
-    /// 고른 것을 그 도면층으로. 반환 = 옮긴 수(잠긴 도면층 것은 건너뜀).
+    /// 고른 것을 그 도면층으로 — 색도 '도면층을 따름'으로(새로 그린 객체는 자기 색이라 도면층 색이 안 보인다).
+    /// 반환 = 바뀐 수(잠긴 도면층 것은 건너뜀).
     func assignSelectionToLayer(_ id: UInt32) -> Int {
         guard isCreated else { return 0 }
-        var changed: UInt32 = 0
-        return CAD_AssignSelectedToLayer(id, &changed) == 0 ? Int(changed) : 0
+        var moved: UInt32 = 0, recolored: UInt32 = 0
+        guard CAD_AssignSelectedToLayer(id, &moved) == 0 else { return 0 }
+        _ = CAD_SetSelectedColorByLayer(true, &recolored)
+        return Int(max(moved, recolored))
     }
 
     /// 긴 JSON 출력 — 길이를 먼저 묻고(nil, 0) 그만큼 칸을 잡아 한 번 더. 실패·빈 글 = [:].

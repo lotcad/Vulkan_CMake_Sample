@@ -314,9 +314,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
 
     private func runCommandLine(_ text: String) {
         if text.isEmpty {
-            // 빈 Enter — 엔진 명령행과 같게 Enter 키를 넘긴다(진행 중 도구 확정 / 마지막 명령 반복)
-            engine.keyDown(257, modifiers: 0)
-            engine.keyUp(257, modifiers: 0)
+            // 빈 Enter — 진행 중 도구가 받으면 거기서 끝(배경 지우기·OCR 등은 키가 아니라 이 입구로 받는다),
+            // 받을 도구가 없으면(CAD_E_NOT_READY) Enter 키를 넘긴다(마지막 명령 반복)
+            if !engine.execute("") {
+                engine.keyDown(257, modifiers: 0)
+                engine.keyUp(257, modifiers: 0)
+            }
             return
         }
         if !engine.execute(text) {
@@ -955,7 +958,7 @@ final class LayerPanelController: NSObject {
         ])
 
         let add = NSButton(title: "새 도면층", target: self, action: #selector(addLayer))
-        let hint = NSTextField(labelWithString: "[이리로] = 고른 객체를 그 도면층으로")
+        let hint = NSTextField(labelWithString: "[이리로] = 고른 객체를 그 도면층으로(색도 도면층 것)")
         hint.textColor = .secondaryLabelColor
         let bottom = NSStackView(views: [add, hint])
         let content = NSStackView(views: [scroll, bottom])
