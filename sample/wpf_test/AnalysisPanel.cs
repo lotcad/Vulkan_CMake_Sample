@@ -70,9 +70,13 @@ namespace LotCadWpf
             Visibility = Visibility.Collapsed;
         }
 
+        /// <summary>지금 보이는 페이지 — 리본의 켜짐 표시가 본다.</summary>
+        public int Page { get; private set; }
+
         /// <summary>0 = 바람 터널, 1 = 물, 2 = 구조 해석.</summary>
         public void ShowPage(int page)
         {
+            Page = page;
             for (int i = 0; i < 3; i++)
             {
                 _pages[i].Visibility = i == page ? Visibility.Visible : Visibility.Collapsed;

@@ -6,7 +6,7 @@
         Background="#1E1F22">
 
     <Window.Resources>
-        <!-- 툴바 납작 버튼 -->
+        <!-- 납작 버튼 — 오른쪽 패널(해석·도면·도구)이 쓴다 -->
         <Style x:Key="ToolBtn" TargetType="Button">
             <Setter Property="Background" Value="#2B2D31"/>
             <Setter Property="Foreground" Value="#E6E6E6"/>
@@ -35,28 +35,6 @@
             </Setter>
         </Style>
 
-        <!-- 강조(primary) 버튼 -->
-        <Style x:Key="ToolBtnAccent" TargetType="Button" BasedOn="{StaticResource ToolBtn}">
-            <Setter Property="Background" Value="#2D6CDF"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
-
-        <!-- 섹션 라벨 -->
-        <Style x:Key="GroupLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#7C818B"/>
-            <Setter Property="FontSize" Value="10.5"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="10,0,6,0"/>
-        </Style>
-
-        <!-- 구분선 -->
-        <Style x:Key="VSep" TargetType="Border">
-            <Setter Property="Width" Value="1"/>
-            <Setter Property="Background" Value="#3A3E44"/>
-            <Setter Property="Margin" Value="8,7"/>
-        </Style>
-
         <!-- 메뉴바 다크 -->
         <Style TargetType="Menu">
             <Setter Property="Background" Value="#1E1F22"/>
@@ -68,6 +46,10 @@
         <!-- 메뉴바 -->
         <Menu DockPanel.Dock="Top" Padding="4,2" FontSize="12.5">
             <MenuItem Header="파일(_F)" Foreground="#E6E6E6">
+                <MenuItem Header="열기..." Foreground="#1B1B1B" Click="OnOpen"/>
+                <MenuItem Header="다른 이름으로 저장..." Foreground="#1B1B1B" Click="OnSaveAs"/>
+                <MenuItem Header="내보내기..." Foreground="#1B1B1B" Click="OnExport"/>
+                <Separator/>
                 <MenuItem Header="모두 지움" Foreground="#1B1B1B" Click="OnClearAll"/>
                 <Separator/>
                 <MenuItem Header="종료" Foreground="#1B1B1B" Click="OnExit"/>
@@ -87,6 +69,31 @@
                 <MenuItem Header="줌 맞춤" Foreground="#1B1B1B" Click="OnZoom"/>
                 <MenuItem Header="투영 전환 (Ortho/Persp)" Foreground="#1B1B1B" Click="OnToggleProj"/>
             </MenuItem>
+            <!-- 도면 — 엔진에선 ImGui 창이 여는 것들. 블록 만들기·편집은 명령행이 이름·기준점을 묻는 엔진 명령 -->
+            <MenuItem Header="도면(_D)" Foreground="#E6E6E6">
+                <MenuItem Header="도면층" Foreground="#1B1B1B" Click="OnLayers"/>
+                <MenuItem Header="선종류" Foreground="#1B1B1B" Click="OnLinetypes"/>
+                <Separator/>
+                <MenuItem Header="블록 만들기 (선택한 객체로)" Foreground="#1B1B1B" Click="OnBlockCreate"/>
+                <MenuItem Header="블록 편집 (선택한 블록 참조)" Foreground="#1B1B1B" Click="OnBlockEdit"/>
+                <MenuItem Header="블록·외부 참조" Foreground="#1B1B1B" Click="OnBlocks"/>
+            </MenuItem>
+            <!-- 도구 — 이미지 편집은 선택한 이미지에 먹는 엔진 명령, 붙이기만 호스트 파일 창 -->
+            <MenuItem Header="도구(_T)" Foreground="#E6E6E6">
+                <MenuItem x:Name="GraphItem" Header="노드 그래프" Foreground="#1B1B1B" Click="OnGraph"/>
+                <MenuItem Header="분해도" Foreground="#1B1B1B" Click="OnExplode"/>
+                <MenuItem Header="메시 수리" Foreground="#1B1B1B" Click="OnMesh"/>
+                <Separator/>
+                <MenuItem Header="이미지" Foreground="#1B1B1B">
+                    <MenuItem Header="붙이기..." Click="OnImageAttach"/>
+                    <MenuItem Header="90° 회전" Click="OnImageRotate"/>
+                    <MenuItem Header="좌우 뒤집기" Click="OnImageFlip"/>
+                    <MenuItem Header="배경 지우기 (클릭)" Click="OnImageBackground"/>
+                    <MenuItem Header="자르기 (두 구석)" Click="OnImageCrop"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem x:Name="DynItem" Header="동적 입력" InputGestureText="F12" IsChecked="True" Foreground="#1B1B1B" Click="OnDynInput"/>
+            </MenuItem>
             <MenuItem Header="해석(_A)" Foreground="#E6E6E6">
                 <MenuItem Header="바람 터널" Foreground="#1B1B1B" Click="OnWindTunnel"/>
                 <MenuItem Header="물" Foreground="#1B1B1B" Click="OnWater"/>
@@ -94,38 +101,8 @@
             </MenuItem>
         </Menu>
 
-        <!-- 툴바 -->
-        <Border DockPanel.Dock="Top" Background="#232529" BorderBrush="#111214" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Margin="8,7">
-                <TextBlock Text="그리기" Style="{StaticResource GroupLabel}"/>
-                <Button Content="큐브"     Style="{StaticResource ToolBtnAccent}" Click="OnAddCube"/>
-                <Button Content="선"       Style="{StaticResource ToolBtn}" Click="OnLine"/>
-                <Button Content="사각형"   Style="{StaticResource ToolBtn}" Click="OnRect"/>
-                <Button Content="원"       Style="{StaticResource ToolBtn}" Click="OnCircle"/>
-                <Button Content="폴리라인" Style="{StaticResource ToolBtn}" Click="OnPolyline"/>
-
-                <Border Style="{StaticResource VSep}"/>
-                <TextBlock Text="편집" Style="{StaticResource GroupLabel}"/>
-                <Button Content="전체선택" Style="{StaticResource ToolBtn}" Click="OnSelectAll"/>
-                <Button Content="삭제"     Style="{StaticResource ToolBtn}" Click="OnDelete"/>
-                <Button Content="↶ Undo"   Style="{StaticResource ToolBtn}" Click="OnUndo"/>
-                <Button Content="↷ Redo"   Style="{StaticResource ToolBtn}" Click="OnRedo"/>
-
-                <Border Style="{StaticResource VSep}"/>
-                <TextBlock Text="뷰" Style="{StaticResource GroupLabel}"/>
-                <Button Content="정면"   Style="{StaticResource ToolBtn}" Click="OnViewFront"/>
-                <Button Content="평면"   Style="{StaticResource ToolBtn}" Click="OnViewTop"/>
-                <Button Content="Iso"    Style="{StaticResource ToolBtn}" Click="OnViewIso"/>
-                <Button Content="줌맞춤" Style="{StaticResource ToolBtn}" Click="OnZoom"/>
-                <Button Content="투영"   Style="{StaticResource ToolBtn}" Click="OnToggleProj"/>
-
-                <Border Style="{StaticResource VSep}"/>
-                <TextBlock Text="해석" Style="{StaticResource GroupLabel}"/>
-                <Button Content="바람 터널" Style="{StaticResource ToolBtn}" Click="OnWindTunnel"/>
-                <Button Content="물"        Style="{StaticResource ToolBtn}" Click="OnWater"/>
-                <Button Content="구조 해석" Style="{StaticResource ToolBtn}" Click="OnStructural"/>
-            </StackPanel>
-        </Border>
+        <!-- 리본 — 탭·그룹·버튼은 MainWindow.Ribbon.cs 가 채운다(MFC 샘플과 같은 구성) -->
+        <local:RibbonBar DockPanel.Dock="Top" x:Name="Ribbon"/>
 
         <!-- 상태바 -->
         <Border DockPanel.Dock="Bottom" Background="#232529" BorderBrush="#111214" BorderThickness="0,1,0,0">
@@ -135,7 +112,7 @@
             </DockPanel>
         </Border>
 
-        <!-- 좌: 정보, 가운데: Vulkan 렌더, 우: 해석 패널(툴바·메뉴 "해석" 이 연다) -->
+        <!-- 좌: 정보, 가운데: Vulkan 렌더, 우: 패널 하나(해석 · 도면 · 도구 — 메뉴가 연다) -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="230"/>
@@ -144,6 +121,8 @@
             </Grid.ColumnDefinitions>
 
             <local:AnalysisPanel Grid.Column="2" x:Name="Analysis"/>
+            <local:LayerPanel Grid.Column="2" x:Name="Layers"/>
+            <local:ToolsPanel Grid.Column="2" x:Name="Tools"/>
 
             <Border Grid.Column="0" Background="#1E1F22" BorderBrush="#111214" BorderThickness="0,0,1,0">
                 <StackPanel Margin="14">

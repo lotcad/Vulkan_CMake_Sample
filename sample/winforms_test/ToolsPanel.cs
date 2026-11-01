@@ -76,7 +76,7 @@ namespace LotCadWinForms
             if (!Visible) return;
             var s = Explode(new { op = "status" });
             double t = Analysis.Number(s["t"]) ?? 0;
-            if (Analysis.Bool(s, "animating")) _amount.Value = (int)Math.Round(Math.Clamp(t, 0, 1) * 100);   // 재생 중엔 막대가 따라간다
+            _amount.Value = (int)Math.Round(Math.Clamp(t, 0, 1) * 100);   // 재생·방사형·자동 순서로 바뀐 정도에 막대가 따라간다(Scroll 은 안 온다)
             _explodeState.Text = $"분해 {t * 100:0}% · 단계 {Analysis.Num(s["steps"], "0")} · 부품 {(s["parts"] as JsonArray)?.Count ?? 0}" +
                                  (Analysis.Bool(s, "animating") ? " · 재생 중" : "");
         }

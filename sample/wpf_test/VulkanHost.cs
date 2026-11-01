@@ -19,6 +19,7 @@ namespace LotCadWpf
         const uint WM_MBUTTONDOWN = 0x0207, WM_MBUTTONUP = 0x0208;
         const uint WM_MOUSEMOVE = 0x0200, WM_MOUSEWHEEL = 0x020A;
         const uint WM_KEYDOWN = 0x0100, WM_KEYUP = 0x0101;
+        const int VK_F12 = 0x7B;
 
         IntPtr _hwnd;
         HostWndProcDelegate _wndProcKeepAlive;   // GC 방지 (네이티브가 포인터 보유)
@@ -26,6 +27,9 @@ namespace LotCadWpf
         int _lastW, _lastH;   // 마지막으로 엔진에 알린 픽셀 크기
 
         public bool EngineReady => _engineReady;
+
+        /// <summary>렌더 영역에서 F12 — 엔진에 넘기지 않고 창(MainWindow)이 동적 입력 메뉴 체크와 함께 처리한다.</summary>
+        public event Action F12Pressed;
 
         protected override HandleRef BuildWindowCore(HandleRef hwndParent)
         {
@@ -62,6 +66,12 @@ namespace LotCadWpf
                 _engineReady = false;
             }
             if (_hwnd != IntPtr.Zero) { DestroyWindow(_hwnd); _hwnd = IntPtr.Zero; }
+        }
+
+        /// <summary>키보드를 렌더 창(엔진)으로 — 메뉴로 시작한 명령에 이름·값을 바로 칠 수 있게.</summary>
+        public void FocusView()
+        {
+            if (_hwnd != IntPtr.Zero) SetFocus(_hwnd);
         }
 
         public void Tick()
@@ -108,6 +118,8 @@ namespace LotCadWpf
                         CadApi.CAD_OnMouseWheel(p.X, p.Y, 0, delta / 120.0);
                         return IntPtr.Zero;
                     }
+                    case WM_KEYDOWN when (int)wParam == VK_F12: F12Pressed?.Invoke(); return IntPtr.Zero;
+                    case WM_KEYUP when (int)wParam == VK_F12: return IntPtr.Zero;
                     case WM_KEYDOWN: CadApi.CAD_OnKeyDownVK((int)wParam); return IntPtr.Zero;
                     case WM_KEYUP:   CadApi.CAD_OnKeyUpVK((int)wParam); return IntPtr.Zero;
                 }

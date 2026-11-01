@@ -113,6 +113,7 @@ namespace LotCadWinForms
                 case CadApi.CAD_EVENT_OBJECT_DELETED: _eventDeleted++; break;
                 case CadApi.CAD_EVENT_COMMAND_STARTED:
                     _eventCommand = CadApi.ReadText(CadApi.CAD_EdGetCommandName);   // 명령행에 친 첫 낱말(소문자)
+                    _eventCreated = _eventDeleted = 0;   // 명령 밖(C API 로 만든 것 등)에서 센 것은 버린다
                     break;
                 case CadApi.CAD_EVENT_COMMAND_ENDED:
                 case CadApi.CAD_EVENT_COMMAND_CANCELLED:

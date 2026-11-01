@@ -111,7 +111,7 @@ void CLotCADMFCDlg::OpenExplodePanel()
 	p.onTick = [this, st] {
 		const MiniJson::Value s = Explode("{\"op\":\"status\"}");
 		const double t = s["t"].Num();
-		if (s["animating"].Bool()) m_panel.SetSliderValue(st->amountSlider, (float)(t * 100));   // 재생 중엔 막대가 따라간다
+		m_panel.SetSliderValue(st->amountSlider, (float)(t * 100));   // 재생·방사형·자동 순서로 바뀐 정도에 막대가 따라간다
 		wchar_t line[128];
 		swprintf_s(line, L"\n\n분해 %.0f%% · 단계 %d · 부품 %d%s", t * 100, s["steps"].Int(0),
 		           (int)s["parts"].Items().size(), s["animating"].Bool() ? L" · 재생 중" : L"");
@@ -258,6 +258,7 @@ void CLotCADMFCDlg::OnEngineEvent(int kind, uint32_t, void* user)
 		char name[64] = {};
 		CAD_EdGetCommandName(name, (uint32_t)sizeof(name));   // 명령행에 친 첫 낱말(소문자)
 		self->m_eventCommand = Utf8ToWide(name);
+		self->m_eventCreated = self->m_eventDeleted = 0;   // 명령 밖(C API 로 만든 것 등)에서 센 것은 버린다
 		break;
 	}
 	case CAD_EVENT_COMMAND_ENDED:
