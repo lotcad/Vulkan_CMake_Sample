@@ -211,11 +211,12 @@ class MainWindow(QMainWindow):
         ids = selected_ids()
         if not ids:
             return self.command_line.append("메시 수리: 3D 뷰에서 메시를 먼저 선택하세요")
-        st = lotcad.CAD_RepairMeshes(ids, len(ids))   # 점 붙이기·찌그러진/겹친 면 지우기·방향 맞추기·구멍 메우기
-        self.command_line.append(f"메시 수리: {len(ids)}개" if st == lotcad.CAD_OK
-                                 else f"메시 수리 실패: {lotcad.CAD_GetLastError() or st}")
-        if st == lotcad.CAD_OK:
-            self.check_meshes()
+        # 점 붙이기·찌그러진/겹친 면 지우기·방향 맞추기·구멍 메우기. 반환 = 바꾼 메시 수(0 = 고칠 것 없음), 음수 = 오류
+        changed = lotcad.CAD_RepairMeshes(ids, len(ids))
+        if changed < 0:
+            return self.command_line.append(f"메시 수리 실패: {lotcad.CAD_GetLastError() or changed}")
+        self.command_line.append(f"메시 수리: {changed}개 고침")
+        self.check_meshes()
 
     # ── 해석 — 엔진 해석 패널 대신 호스트 패널(analysis.py) ──
     def open_analysis(self, page):
