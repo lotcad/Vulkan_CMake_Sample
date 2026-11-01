@@ -75,4 +75,14 @@ object CadNative {
     external fun nativeBeginOcrLines(imageId: Int)
     external fun nativeAddOcrLine(text: String, x0: Int, y0: Int, x1: Int, y1: Int)
     external fun nativeEndOcrLines()
+
+    // ── 분해도 — {"op": "auto"|"play"|"back"|"clear"|"balloons"|"bom"|"status", …} → 결과 JSON ──
+    external fun nativeExplodeView(argsJson: String): String
+
+    // ── 도면층 ──
+    external fun nativeLayersJson(): String            // {"layers":[{id,name,visible,locked,objectCount,selectedCount,…}]}
+    external fun nativeCreateLayer(name: String): Int  // 새 id, 실패면 -1
+    external fun nativeSetLayerVisible(id: Int, visible: Boolean): Boolean
+    external fun nativeSetLayerLocked(id: Int, locked: Boolean): Boolean
+    external fun nativeAssignSelectedToLayer(id: Int): Int   // 옮긴 개수, 실패면 -1
 }

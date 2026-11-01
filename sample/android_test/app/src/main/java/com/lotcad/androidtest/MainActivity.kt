@@ -1,6 +1,7 @@
 package com.lotcad.androidtest
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -19,6 +20,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import java.io.File
+import org.json.JSONObject
 
 // 상단 툴바(버튼) + Vulkan SurfaceView. 에셋(모델/폰트/텍스처)을 filesDir 로 추출한 뒤
 // nativeSetAssetPath 로 엔진에 알려준다(엔진은 상대경로 fopen 사용).
@@ -199,6 +201,31 @@ class MainActivity : Activity() {
             text = "✕"; setOnClickListener { viewBar.visibility = View.GONE }
         })
 
+        // 더보기 줄 — 분해도 · 도면층 · 사진 편집 (그리기·측정·뷰와 같은 점진적 노출)
+        //   분해도: CAD_ExplodeView(auto = 겹치지 않게 벌리기 → play/back 으로 펼치기·접기, clear = 끄기)
+        //   사진:   고른 사진에 imagebg a(네 귀퉁이 색을 배경으로 지움) → 빈 Enter 로 끝, imagerotate 90/-90
+        val moreBar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            visibility = View.GONE
+        }
+        fun addMoreBtn(label: String, action: () -> Unit) {
+            moreBar.addView(Button(this).apply { text = label; setOnClickListener { action() } })
+        }
+        addMoreBtn("분해")     { explode("auto") }
+        addMoreBtn("펼치기")   { explode("play") }
+        addMoreBtn("접기")     { explode("back") }
+        addMoreBtn("분해 끄기") { explode("clear") }
+        addMoreBtn("도면층")   { showLayers() }
+        addMoreBtn("사진 배경 지우기") {
+            CadNative.startCommand("imagebg a")
+            renderView?.postDelayed({ CadNative.nativeExecuteCommand(" ") }, 150)   // 다음 프레임에 빈 Enter = 끝(되돌리기 한 번)
+        }
+        addMoreBtn("사진 ↻90°") { CadNative.startCommand("imagerotate 90") }
+        addMoreBtn("사진 ↺90°") { CadNative.startCommand("imagerotate -90") }
+        moreBar.addView(Button(this).apply {
+            text = "✕"; setOnClickListener { moreBar.visibility = View.GONE }
+        })
+
         val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         fun addBtn(label: String, action: () -> Unit) {
             bar.addView(Button(this).apply { text = label; setOnClickListener { action() } })
@@ -208,11 +235,13 @@ class MainActivity : Activity() {
         fun toggleOnly(target: LinearLayout) {
             val open = target.visibility == View.GONE
             drawBar.visibility = View.GONE; dimBar.visibility = View.GONE; viewBar.visibility = View.GONE
+            moreBar.visibility = View.GONE
             if (open) target.visibility = View.VISIBLE
         }
         addBtn("그리기")   { toggleOnly(drawBar) }
         addBtn("측정")     { toggleOnly(dimBar) }
         addBtn("뷰")       { toggleOnly(viewBar) }
+        addBtn("더보기")   { toggleOnly(moreBar) }
         val graphBtn = Button(this).apply { text = "그래프" }
         bar.addView(graphBtn)
         addBtn("큐브")     { CadNative.nativeAddCube() }
@@ -236,6 +265,9 @@ class MainActivity : Activity() {
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         root.addView(HorizontalScrollView(this).apply { addView(viewBar) },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        root.addView(HorizontalScrollView(this).apply { addView(moreBar) },
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
@@ -375,6 +407,67 @@ class MainActivity : Activity() {
 
         setContentView(root)
     }
+
+    // ── 분해도 ──
+    private fun explode(op: String) {
+        val r = try { JSONObject(CadNative.nativeExplodeView("{\"op\":\"$op\"}")) } catch (e: Exception) { JSONObject() }
+        when {
+            !r.optBoolean("ok") -> toast("분해도: " + r.optString("error", "실패"))
+            op == "auto" -> toast("분해도: 부품 ${r.optJSONArray("parts")?.length() ?: 0}개 — 펼치기·접기")
+        }
+    }
+
+    // ── 도면층 — 목록에서 고르면 보이기·잠금·선택 옮기기, [새 도면층] ──
+    private fun showLayers() {
+        val layers = try { JSONObject(CadNative.nativeLayersJson()).optJSONArray("layers") } catch (e: Exception) { null }
+            ?: return toast("도면층을 읽지 못했습니다")
+        val names = Array(layers.length()) { i ->
+            val L = layers.getJSONObject(i)
+            (if (L.optBoolean("visible", true)) "● " else "○ ") + L.optString("name") +
+                (if (L.optBoolean("locked")) " 🔒" else "") + "  (${L.optInt("objectCount")}개)"
+        }
+        AlertDialog.Builder(this)
+            .setTitle("도면층")
+            .setItems(names) { _, i -> layerActions(layers.getJSONObject(i)) }
+            .setNeutralButton("새 도면층") { _, _ -> newLayer() }
+            .setNegativeButton("닫기", null)
+            .show()
+    }
+
+    private fun layerActions(L: JSONObject) {
+        val id = L.optInt("id")
+        val visible = L.optBoolean("visible", true)
+        val locked = L.optBoolean("locked")
+        val actions = arrayOf(if (visible) "숨기기" else "보이기", if (locked) "잠금 풀기" else "잠그기", "선택한 객체를 이 도면층으로")
+        AlertDialog.Builder(this)
+            .setTitle(L.optString("name"))
+            .setItems(actions) { _, k ->
+                when (k) {
+                    0 -> CadNative.nativeSetLayerVisible(id, !visible)
+                    1 -> CadNative.nativeSetLayerLocked(id, !locked)
+                    else -> {
+                        val n = CadNative.nativeAssignSelectedToLayer(id)
+                        toast(if (n > 0) "$n 개를 '${L.optString("name")}' 으로" else "옮길 객체가 없습니다 — 먼저 선택")
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun newLayer() {
+        val edit = EditText(this).apply { isSingleLine = true; hint = "이름" }
+        AlertDialog.Builder(this)
+            .setTitle("새 도면층")
+            .setView(edit)
+            .setPositiveButton("만들기") { _, _ ->
+                val name = edit.text.toString().trim()
+                if (name.isNotEmpty() && CadNative.nativeCreateLayer(name) < 0) toast("만들지 못했습니다 — 같은 이름이 있는지")
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    private fun toast(text: String) = Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
 
     // ── 파일 열기 (SAF) ──
     // 엔진은 fopen 기반이라 content:// URI 를 그대로 못 쓴다. 고른 문서를 filesDir 로

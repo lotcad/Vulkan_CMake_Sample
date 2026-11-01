@@ -9,6 +9,8 @@
 #include "LotCAD_API.h"
 
 #include <algorithm>
+#include <cstring>
+#include <functional>
 #include <string>   // 클립보드 보관
 #include <cstdio>
 #include <thread>
@@ -252,6 +254,52 @@ JNI(void, nativeAddOcrLine)(JNIEnv* env, jobject, jstring text,
     if (s) { CAD_AddOcrLine(s, x0, y0, x1, y1); env->ReleaseStringUTFChars(text, s); }
 }
 JNI(void, nativeEndOcrLines)(JNIEnv*, jobject) { CAD_EndOcrLines(); }
+
+// ── JSON 을 돌려주는 API — 2회 호출 규약(NULL 로 길이 → 같은 인자로 버퍼) ──
+namespace {
+    jstring jsonResult(JNIEnv* env, const std::function<int32_t(char*, uint32_t)>& call) {
+        const int32_t need = call(nullptr, 0u);
+        if (need < 0) return env->NewStringUTF("");
+        std::string buf(static_cast<size_t>(need) + 1, '\0');
+        call(buf.data(), static_cast<uint32_t>(buf.size()));
+        buf.resize(std::strlen(buf.c_str()));
+        return env->NewStringUTF(buf.c_str());
+    }
+    std::string jstr(JNIEnv* env, jstring s) {
+        if (!s) return {};
+        const char* c = env->GetStringUTFChars(s, nullptr);
+        std::string out = c ? c : "";
+        if (c) env->ReleaseStringUTFChars(s, c);
+        return out;
+    }
+}
+
+// ── 분해도 — {"op": auto|play|back|clear|balloons|bom|status, …} → 결과 JSON(ok·error·parts·steps…) ──
+JNI(jstring, nativeExplodeView)(JNIEnv* env, jobject, jstring argsJson) {
+    const std::string args = jstr(env, argsJson);
+    return jsonResult(env, [&](char* buf, uint32_t cap) { return CAD_ExplodeView(args.c_str(), buf, cap); });
+}
+
+// ── 도면층 — 목록은 JSON(id·name·visible·locked·color·objectCount·selectedCount) ──
+JNI(jstring, nativeLayersJson)(JNIEnv* env, jobject) {
+    return jsonResult(env, [](char* buf, uint32_t cap) { return CAD_GetLayersJson(buf, cap); });
+}
+// 새 도면층 — 새 id, 실패(같은 이름 등)면 -1
+JNI(jint, nativeCreateLayer)(JNIEnv* env, jobject, jstring name) {
+    uint32_t id = 0;
+    return CAD_CreateLayer(jstr(env, name).c_str(), &id) == CAD_OK ? static_cast<jint>(id) : -1;
+}
+JNI(jboolean, nativeSetLayerVisible)(JNIEnv*, jobject, jint id, jboolean visible) {
+    return CAD_SetLayerVisible(static_cast<uint32_t>(id), visible) == CAD_OK ? JNI_TRUE : JNI_FALSE;
+}
+JNI(jboolean, nativeSetLayerLocked)(JNIEnv*, jobject, jint id, jboolean locked) {
+    return CAD_SetLayerLocked(static_cast<uint32_t>(id), locked) == CAD_OK ? JNI_TRUE : JNI_FALSE;
+}
+// 선택한 객체를 그 도면층으로 — 옮긴 개수, 실패면 -1
+JNI(jint, nativeAssignSelectedToLayer)(JNIEnv*, jobject, jint id) {
+    uint32_t changed = 0;
+    return CAD_AssignSelectedToLayer(static_cast<uint32_t>(id), &changed) == CAD_OK ? static_cast<jint>(changed) : -1;
+}
 
 #undef JNI
 } // extern "C"

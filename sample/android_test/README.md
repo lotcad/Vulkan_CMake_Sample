@@ -131,6 +131,15 @@ $ADB shell screencap -p /sdcard/s.png && $ADB pull /sdcard/s.png   # 화면 캡�
   안드로이드는 슬롭을 넘기 전엔 누름을 엔진에 안 보내므로 엔진이 길게 누르기를 셀 수 없어 앱이 센다. 그래프 모드의 1손가락 끌기는 **누른 자리**부터 보낸다(노드·포트를 정확히 잡게).
 - 값 상자·노드 목록이 열리면(프롬프트가 생김) 입력 줄 + 화면 키보드(`MainActivity.showGraphInput`) → 친 글은 `nativeExecuteCommand`, 빈 글·✕ = 취소.
 
+## 더보기 — 분해도 · 도면층 · 사진 편집
+
+[더보기] 줄(그리기·측정·뷰와 같은 점진적 노출):
+- 분해 · 펼치기 · 접기 · 분해 끄기 = `CAD_ExplodeView`(auto · play · back · clear, JNI `nativeExplodeView` — 결과 JSON). 엔진 분해도 막대(▶ · %)가 아래에 뜬다.
+- 도면층 = `CAD_GetLayersJson` 목록 대화상자 → 고르면 보이기/숨기기(`CAD_SetLayerVisible`) · 잠그기(`CAD_SetLayerLocked`) ·
+  선택한 객체를 이 도면층으로(`CAD_AssignSelectedToLayer`), [새 도면층] = `CAD_CreateLayer`.
+- 사진 배경 지우기 = 고른 사진에 `imagebg a`(네 귀퉁이 색을 배경으로) → 다음 프레임에 빈 Enter 로 끝(되돌리기 한 번). 사진 ↻90° · ↺90° = `imagerotate 90` · `-90`.
+- STEP(.step · .stp)은 [열기]로 — 엔진이 확장자로 판별한다.
+
 ## 미구현 / 다음
 
 - 엔진 → UI 콜백(선택 알림 등), 멀티터치 제스처 매핑 정교화(핀치 줌/2손가락 팬)
