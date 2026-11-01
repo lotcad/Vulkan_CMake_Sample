@@ -45,7 +45,9 @@ public:
 	void AddButtonRow(const std::vector<std::pair<std::wstring, std::function<void()>>>& buttons);
 	// 목록(해석의 면 고르기 등) — 반환 = 목록 번호. 항목은 SetListItems 로 바꾼다. onSelect(-1) = 고른 줄 없음.
 	int  AddList(int lines, std::function<void(int)> onSelect);
-	void SetListItems(int list, const std::vector<std::wstring>& items, int selected);   // 콜백은 부르지 않는다
+	// 콜백은 부르지 않는다. swatches 를 주면 줄마다 그 색 네모를 앞에 그린다(도면층 색 등)
+	void SetListItems(int list, const std::vector<std::wstring>& items, int selected,
+	                  const std::vector<COLORREF>* swatches = nullptr);
 	// 숫자 입력란 한 줄(예: 힘 x · y · z) — 반환 = 줄 번호, 값은 GetNumbers 로 읽는다.
 	// button 을 주면 같은 줄 끝에 그 버튼을 둔다(예: [x][y][z][걸기]).
 	int  AddNumbers(const wchar_t* label, const std::vector<double>& values,
@@ -70,7 +72,8 @@ protected:
 	afx_msg BOOL   OnEraseBkgnd(CDC* pDC);
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg void   OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);   // 슬라이더
-	afx_msg void   OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDis);              // 다크 버튼
+	afx_msg void   OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDis);              // 다크 버튼 · 목록 줄
+	afx_msg void   OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMis);        // 목록 줄 높이
 	afx_msg void   OnLButtonUp(UINT nFlags, CPoint point);                        // 제목 줄 X
 	afx_msg void   OnTimer(UINT_PTR nIDEvent);
 	// 내용이 패널보다 길면 세로로 스크롤 (구조 해석처럼 컨트롤이 많은 패널)
@@ -121,4 +124,5 @@ private:
 	void UpdateScroll();     // 내용 높이(m_y)·창 높이로 스크롤바를 맞춘다
 	void ScrollTo(int pos);
 	std::wstring SliderText(const Slider& s, float value) const;
+	void DrawListItem(LPDRAWITEMSTRUCT lpDis);
 };

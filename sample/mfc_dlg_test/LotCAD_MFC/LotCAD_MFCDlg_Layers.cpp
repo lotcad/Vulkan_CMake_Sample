@@ -6,7 +6,8 @@
 // 도면층 표는 CAD_GetLayersJson 한 번으로 읽는다:
 //   {"revision","layers":[{"id","name","visible","locked","color":[r,g,b],"opacity","linetypeId","linetype",
 //                         "objectCount","selectedCount"(,"fixed":true — 도면층 0)}]}
-// 장면 번호(CAD_GetSceneRevision)가 바뀔 때만 다시 읽는다 — 0.25초마다 숫자 하나만 묻는다.
+// 장면 번호(CAD_GetSceneRevision)나 선택 개수가 바뀔 때만 다시 읽는다 — 0.25초마다 숫자 둘만 묻는다.
+// (선택만 바뀌면 장면 번호는 그대로라 목록의 '(선택 n)' 을 맞추려고 선택 개수도 본다)
 //
 // ⚠️ 지금 C API 에는 도면층 지우기와 "현재 도면층"(새로 그리는 객체가 들어갈 층) 정하기가 없다.
 //    새로 그린 객체는 엔진의 현재 도면층(처음엔 0)으로 들어가므로, 그린 뒤 '선택한 객체를 이 도면층으로' 를 누른다.
@@ -87,6 +88,7 @@ void CLotCADMFCDlg::OpenLayerPanel()
 		MiniJson::Value layers;            // CAD_GetLayersJson 의 "layers"
 		std::vector<std::pair<uint32_t, std::wstring>> linetypes;
 		uint64_t revision = ~0ull;         // 마지막으로 읽은 장면 번호 — 처음엔 꼭 읽게 없는 값
+		int32_t selected = -1;             // 그때의 선택 개수 — 선택만 바뀌면 장면 번호는 그대로라 따로 본다
 		int row = 0;                       // 고른 줄 (0 = 도면층 0)
 		int list = 0, colorChoice = 0, linetypeChoice = 0, nameRow = 0;
 		std::wstring msg = L"층을 고르고 아래 버튼으로 바꾼다";
@@ -103,7 +105,9 @@ void CLotCADMFCDlg::OpenLayerPanel()
 		const uint32_t keep = st->layers.Items().empty() ? 0 : st->CurrentId();
 		st->layers = MiniJson::Parse(CadReadJson(CAD_GetLayersJson))["layers"];
 		st->revision = SceneRevision();
+		st->selected = CAD_GetSelection(nullptr, 0);
 		std::vector<std::wstring> lines;
+		std::vector<COLORREF> colors;   // 줄 앞 색 네모 — 층 색(0~1)
 		st->row = 0;
 		for (size_t i = 0; i < st->layers.Items().size(); ++i) {
 			const MiniJson::Value& l = st->layers[i];
@@ -116,8 +120,10 @@ void CLotCADMFCDlg::OpenLayerPanel()
 			const int sel = l["selectedCount"].Int(0);
 			if (sel > 0) line += L" (선택 " + std::to_wstring(sel) + L")";
 			lines.push_back(line);
+			auto byte = [&](int c) { return (BYTE)(std::fmin(std::fmax(l["color"][c].Num(), 0.0), 1.0) * 255 + 0.5); };
+			colors.push_back(RGB(byte(0), byte(1), byte(2)));
 		}
-		m_panel.SetListItems(st->list, lines, st->row);
+		m_panel.SetListItems(st->list, lines, st->row, &colors);
 		if (st->layers.Items().empty()) return;
 		m_panel.SetChoice(st->colorChoice, ColorIndex(st->Current()["color"]));
 		m_panel.SetChoice(st->linetypeChoice, LinetypeIndex(st->linetypes, (uint32_t)st->Current()["linetypeId"].Num()));
@@ -157,17 +163,14 @@ void CLotCADMFCDlg::OpenLayerPanel()
 	});
 
 	p.AddSection(L"객체");
+	// 옮기면 색도 도면층 것(ByLayer)으로 — 안 하면 층을 옮겨도 원래 색 그대로라 옮긴 티가 안 난다(다른 샘플과 같은 동작)
 	p.AddButton(L"선택한 객체를 이 도면층으로", [st] {
-		uint32_t changed = 0;
+		uint32_t changed = 0, recolored = 0;
 		const CAD_Status s = CAD_AssignSelectedToLayer(st->CurrentId(), &changed);   // 잠긴 층의 객체는 건너뛴다
+		if (s == CAD_OK && changed > 0) CAD_SetSelectedColorByLayer(true, &recolored);
 		st->msg = s != CAD_OK      ? L"옮기기 실패: " + CadLastError()
 		        : changed == 0     ? L"옮긴 객체 없음 — 3D 뷰에서 먼저 선택하세요"
-		                           : L"객체 " + std::to_wstring(changed) + L"개를 옮겼습니다";
-	});
-	p.AddButton(L"선택한 객체 색 = 도면층 따름", [st] {
-		uint32_t changed = 0;
-		const CAD_Status s = CAD_SetSelectedColorByLayer(true, &changed);
-		st->msg = s == CAD_OK ? L"객체 " + std::to_wstring(changed) + L"개가 도면층 색을 따릅니다" : L"실패: " + CadLastError();
+		                           : L"객체 " + std::to_wstring(changed) + L"개를 옮겼습니다 (색도 도면층 것)";
 	});
 
 	p.AddSection(L"새 도면층");
@@ -182,7 +185,8 @@ void CLotCADMFCDlg::OpenLayerPanel()
 
 	reload();
 	p.onTick = [this, st, reload] {
-		if (SceneRevision() != st->revision) reload();   // 객체 추가·층 바꿈·선택 … 이 있을 때만
+		// 객체 추가·층 바꿈 …(장면 번호) 이나 선택 개수('(선택 n)' 칸)가 바뀔 때만
+		if (SceneRevision() != st->revision || CAD_GetSelection(nullptr, 0) != st->selected) reload();
 		m_panel.SetStatus(st->msg);
 	};
 	p.onClose = [this] { RelayoutNow(); };

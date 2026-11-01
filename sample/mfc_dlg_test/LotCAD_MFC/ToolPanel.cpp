@@ -22,6 +22,7 @@ BEGIN_MESSAGE_MAP(CToolPanel, CWnd)
 	ON_WM_CTLCOLOR()
 	ON_WM_HSCROLL()
 	ON_WM_DRAWITEM()
+	ON_WM_MEASUREITEM()
 	ON_WM_LBUTTONUP()
 	ON_WM_TIMER()
 	ON_WM_VSCROLL()
@@ -203,7 +204,9 @@ int CToolPanel::AddList(int lines, std::function<void(int)> onSelect)
 {
 	const UINT id = m_nextId++;
 	CListBox* list = Keep(new CListBox);
-	list->Create(WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT,
+	// 줄은 직접 그린다(DrawListItem) — 줄 앞에 색 네모(도면층 색)를 둘 수 있게
+	list->Create(WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT |
+	             LBS_OWNERDRAWFIXED | LBS_HASSTRINGS,
 	             CRect(ContentLeft(), m_y, ContentLeft() + ContentWidth(), m_y + lines * S(kLineH) + S(4)), this, id);
 	list->SetFont(&m_font);
 	SetWindowTheme(list->GetSafeHwnd(), L"DarkMode_Explorer", nullptr);   // 어두운 스크롤바
@@ -212,13 +215,20 @@ int CToolPanel::AddList(int lines, std::function<void(int)> onSelect)
 	return (int)id;
 }
 
-void CToolPanel::SetListItems(int list, const std::vector<std::wstring>& items, int selected)
+// 줄 데이터 = 색 네모 — 0 이면 없음, 아니면 kSwatch | RGB (COLORREF 는 아래 24비트만 쓴다)
+namespace { constexpr DWORD_PTR kSwatch = 0x01000000; }
+
+void CToolPanel::SetListItems(int list, const std::vector<std::wstring>& items, int selected,
+                               const std::vector<COLORREF>* swatches)
 {
 	auto* box = (CListBox*)GetDlgItem((UINT)list);
 	if (!box) return;
 	box->SetRedraw(FALSE);
 	box->ResetContent();
-	for (const std::wstring& item : items) box->AddString(item.c_str());
+	for (size_t i = 0; i < items.size(); ++i) {
+		const int row = box->AddString(items[i].c_str());
+		if (swatches && i < swatches->size()) box->SetItemData(row, kSwatch | ((*swatches)[i] & 0xFFFFFF));
+	}
 	box->SetCurSel(selected);   // SetCurSel 은 LBN_SELCHANGE 를 보내지 않는다 — 콜백이 안 불린다
 	box->SetRedraw(TRUE);
 	box->Invalidate();
@@ -523,8 +533,45 @@ HBRUSH CToolPanel::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	return m_bodyBrush;
 }
 
+void CToolPanel::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMis)
+{
+	if (lpMis->CtlType == ODT_LISTBOX) { lpMis->itemHeight = S(kLineH); return; }
+	CWnd::OnMeasureItem(nIDCtl, lpMis);
+}
+
+// 목록 한 줄 — 어두운 바탕, 고른 줄은 강조색, 색이 있으면 앞에 네모
+void CToolPanel::DrawListItem(LPDRAWITEMSTRUCT lpDis)
+{
+	CDC* dc = CDC::FromHandle(lpDis->hDC);
+	const CRect rc(lpDis->rcItem);
+	const bool selected = (lpDis->itemState & ODS_SELECTED) != 0;
+	dc->FillSolidRect(rc, selected ? RGB(45, 90, 140) : DarkTheme::InputBg);
+	if (lpDis->itemID == (UINT)-1) return;   // 빈 목록 — 바탕만
+
+	CListBox* box = (CListBox*)CWnd::FromHandle(lpDis->hwndItem);
+	CRect textRc = rc;
+	textRc.left += S(4);
+	const DWORD_PTR data = lpDis->itemData;
+	if (data & kSwatch) {
+		const int size = S(10);
+		const CRect sw(textRc.left, rc.CenterPoint().y - size / 2, textRc.left + size, rc.CenterPoint().y - size / 2 + size);
+		dc->FillSolidRect(sw, (COLORREF)(data & 0xFFFFFF));
+		CBrush edge(DarkTheme::TextDim);
+		dc->FrameRect(sw, &edge);
+		textRc.left = sw.right + S(6);
+	}
+	CString text;
+	box->GetText((int)lpDis->itemID, text);
+	CFont* old = dc->SelectObject(&m_font);
+	dc->SetBkMode(TRANSPARENT);
+	dc->SetTextColor(DarkTheme::Text);
+	dc->DrawText(text, &textRc, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS);
+	dc->SelectObject(old);
+}
+
 void CToolPanel::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDis)
 {
+	if (lpDis->CtlType == ODT_LISTBOX) { DrawListItem(lpDis); return; }
 	if (lpDis->CtlType != ODT_BUTTON) { CWnd::OnDrawItem(nIDCtl, lpDis); return; }
 
 	CDC* dc = CDC::FromHandle(lpDis->hDC);

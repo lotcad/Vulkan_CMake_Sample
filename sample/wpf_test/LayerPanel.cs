@@ -15,9 +15,10 @@ namespace LotCadWpf
     // XAML 없이 코드로만 만든다 — WinForms 샘플의 LayerPanel.cs 와 같은 구성·같은 이름.
     //
     //   도면층: CAD_GetLayersJson 한 번으로 표를 읽고, 고른 층에 CAD_SetLayer*·CAD_RenameLayer, 객체는 CAD_AssignSelectedToLayer
+    //           + CAD_SetSelectedColorByLayer(옮기면 색도 도면층 것)
     //   선종류: 선택한 객체에 CAD_SetObjectLinetype(도면층 따름 = CAD_LINETYPE_BYLAYER), 축척, 무늬로 새 선종류
     //   블록:   CAD_GetBlocksJson 으로 목록, 만들기·편집은 명령(block · bedit 이름 · bclose), 외부 참조는 CAD_Xref*
-    // 장면 번호(CAD_GetSceneRevision)가 바뀔 때만 목록을 다시 읽는다 — 0.5초마다 숫자 하나만 묻는다.
+    // 장면 번호(CAD_GetSceneRevision)나 선택 개수가 바뀔 때만 목록을 다시 읽는다 — 0.5초마다 숫자 둘만 묻는다.
     //
     // ⚠️ 지금 C API 에는 도면층 지우기·"현재 도면층" 정하기와, 있는 블록을 한 번 더 놓는 함수가 없다.
     //    새로 그린 객체는 '선택한 객체를 이 도면층으로' 로 옮기고, 블록은 블록 참조를 복사해 늘린다.
@@ -30,6 +31,7 @@ namespace LotCadWpf
         };
 
         ulong _revision = ulong.MaxValue;   // 마지막으로 읽은 장면 번호 — 처음엔 꼭 읽게 없는 값
+        int _selected = -1;                 // 그때의 선택 개수
         List<(uint Id, string Name)> _linetypes = new();
 
         // 패널은 엔진보다 먼저 만들어진다(XAML 이 창과 함께 만든다) — 엔진에 묻는 것은 처음 보일 때(Poll)부터
@@ -38,8 +40,11 @@ namespace LotCadWpf
         protected override void Poll()
         {
             if (_linetypes.Count == 0) FillLinetypes();   // 선종류 표 — 엔진이 준비된 뒤 한 번
-            if (CadApi.CAD_GetSceneRevision(out ulong rev) != 0 || rev == _revision) return;
+            // 선택만 바뀌면 장면 번호는 그대로다 — 목록의 '(선택 n)' 을 맞추려고 선택 개수도 같이 본다
+            int selected = CadApi.SelectedCount();
+            if (CadApi.CAD_GetSceneRevision(out ulong rev) != 0 || (rev == _revision && selected == _selected)) return;
             _revision = rev;
+            _selected = selected;
             FillLayers();
             FillBlocks();
         }
@@ -93,16 +98,13 @@ namespace LotCadWpf
                 Caption("선종류 (선·폴리선·원·호에 보인다)"), _layerLinetype,
                 Caption("이름"), Row(_layerName, Btn("바꾸기", () => Report("이름 바꿈", CadApi.CAD_RenameLayer(CurrentId, CadApi.Utf8(_layerName.Text))))),
                 Caption("객체"),
+                // 옮기면 색도 도면층 것(ByLayer)으로 — 안 하면 층을 옮겨도 원래 색 그대로라 옮긴 티가 안 난다(다른 샘플과 같은 동작)
                 Btn("선택한 객체를 이 도면층으로", () =>
                 {
-                    int r = CadApi.CAD_AssignSelectedToLayer(CurrentId, out uint changed);
+                    int r = CadApi.CAD_AssignSelectedToLayer(CurrentId, out uint changed);   // 잠긴 층의 객체는 건너뛴다
+                    if (r == 0 && changed > 0) CadApi.CAD_SetSelectedColorByLayer(true, out _);
                     Message = r != 0 ? "옮기기 실패: " + CadApi.LastError()
-                            : changed == 0 ? "옮긴 객체 없음 — 3D 뷰에서 먼저 선택하세요" : $"객체 {changed}개를 옮겼습니다";
-                }),
-                Btn("선택한 객체 색 = 도면층 따름", () =>
-                {
-                    int r = CadApi.CAD_SetSelectedColorByLayer(true, out uint changed);
-                    Message = r == 0 ? $"객체 {changed}개가 도면층 색을 따릅니다" : "실패: " + CadApi.LastError();
+                            : changed == 0 ? "옮긴 객체 없음 — 3D 뷰에서 먼저 선택하세요" : $"객체 {changed}개를 옮겼습니다 (색도 도면층 것)";
                 }),
                 Caption("새 도면층"),
                 Row(_newLayer, Btn("만들기", () =>
@@ -126,14 +128,33 @@ namespace LotCadWpf
                 var l = _layerRows[i];
                 if ((uint)(Analysis.Number(l?["id"]) ?? 0) == keep) select = i;
                 int sel = (int)(Analysis.Number(l?["selectedCount"]) ?? 0);
-                _layers.Items.Add(Analysis.Str(l, "name") +
-                                  (Analysis.Bool(l, "visible") ? "" : "  [숨김]") + (Analysis.Bool(l, "locked") ? "  [잠금]" : "") +
-                                  $"  · {Analysis.Str(l, "linetype")}  · 객체 {Analysis.Num(l?["objectCount"], "0")}" +
-                                  (sel > 0 ? $" (선택 {sel})" : ""));
+                string text = Analysis.Str(l, "name") +
+                              (Analysis.Bool(l, "visible") ? "" : "  [숨김]") + (Analysis.Bool(l, "locked") ? "  [잠금]" : "") +
+                              $"  · {Analysis.Str(l, "linetype")}  · 객체 {Analysis.Num(l?["objectCount"], "0")}" +
+                              (sel > 0 ? $" (선택 {sel})" : "");
+                _layers.Items.Add(LayerRow(l?["color"] as JsonArray, text));
             }
             if (_layers.Items.Count > 0) _layers.SelectedIndex = select;
             _filling = false;
             ShowCurrentLayer();
+        }
+
+        // 목록 한 줄 — 층 색 네모 + 글. 색은 JSON 의 0~1 [r,g,b]
+        static UIElement LayerRow(JsonArray rgb, string text)
+        {
+            byte C(int i) => (byte)Math.Round(Math.Clamp(rgb != null && rgb.Count == 3 ? Analysis.Number(rgb[i]) ?? 0 : 0, 0, 1) * 255);
+            var swatch = new Border
+            {
+                Width = 12, Height = 12, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center,
+                Background = new SolidColorBrush(Color.FromRgb(C(0), C(1), C(2))), BorderBrush = TextDim, BorderThickness = new Thickness(1),
+            };
+            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            row.Children.Add(swatch);
+            row.Children.Add(new TextBlock { Text = text });
+            // 줄을 ListBoxItem 으로 직접 감싸 이름을 단다 — 화면 낭독기·UI 자동화가 "StackPanel" 대신 글을 읽게
+            var item = new ListBoxItem { Content = row };
+            System.Windows.Automation.AutomationProperties.SetName(item, text);
+            return item;
         }
 
         // 고른 층의 색·선종류·이름을 아래 칸에 맞춘다
