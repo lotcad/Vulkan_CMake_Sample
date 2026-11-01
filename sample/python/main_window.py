@@ -8,13 +8,16 @@
    그 창이 그려지지 않는다. 명령행에서 값을 묻는 명령(3a, dim …)이나 C API 를 쓴다.
 """
 import ctypes
+import json
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMessageBox, QVBoxLayout, QWidget
 
 import analysis
+import layers
 import lotcad
+import node_graph
 from cad_view import CadView
 from command_line import CommandLine
 from ribbon import Ribbon
@@ -78,6 +81,12 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.analysis_dock)
         self.analysis_dock.hide()
 
+        # 도면층·선종류·블록, 노드 그래프 — 해석과 같은 오른쪽 독(탭으로 겹친다)
+        self.layers = layers.LayersPanel(self.command_line.append)
+        self.layers_dock = self._dock("도면층 · 블록", self.layers)
+        self.graph = node_graph.NodeGraphPanel(self.command_line.append)
+        self.graph_dock = self._dock("노드 그래프", self.graph)
+
         self.view.on_engine_ready = self._engine_ready
         self.view.on_key = self._view_key
 
@@ -89,11 +98,14 @@ class MainWindow(QMainWindow):
         self.status.refresh()
         self.ribbon.refresh()
         self.analysis.start_polling()
+        self.layers.start_polling()
 
     def closeEvent(self, event):
         # 창이 헐리기 **전에** 엔진을 정리해야 타이머가 사라진 화면에 그리지 않는다
         self.command_line.shutdown()
         self.analysis.shutdown()
+        self.layers.shutdown()
+        self.graph.shutdown()
         self.view.shutdown()
         super().closeEvent(event)
 
@@ -141,6 +153,70 @@ class MainWindow(QMainWindow):
         menu.addSeparator()
         menu.addAction("모든 해석 끄기", self._stop_analyses)   # 패널을 닫아도 해석은 계속 돈다(엔진 상태)
 
+    def _dock(self, title, widget):
+        dock = QDockWidget(title, self)
+        dock.setWidget(widget)
+        dock.setMinimumWidth(340)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+        self.tabifyDockWidget(self.analysis_dock, dock)
+        dock.hide()
+        return dock
+
+    def open_layers(self, page):
+        self.layers.show_page(page)
+        self.layers_dock.show()
+        self.layers_dock.raise_()
+        self.layers.refresh(force=True)
+
+    def open_graph(self):
+        self.graph_dock.show()
+        self.graph_dock.raise_()
+        self.graph.start_polling()   # 노드 종류는 엔진이 돈 뒤에 읽는다 — 처음 열 때
+
+    def graph_example(self):
+        self.open_graph()
+        self.graph.example()
+
+    # ── 분해도 — CAD_ExplodeView({"op": …}). 2회 호출 규약은 바인딩이 지킨다 ──
+    def explode(self, op, **args):
+        text = lotcad.CAD_ExplodeView(json.dumps({"op": op, **args}))
+        r = json.loads(text) if text else {"ok": False}
+        if not r.get("ok"):
+            self.command_line.append(f"분해도 {op} 실패: {r.get('error') or lotcad.CAD_GetLastError()}")
+        elif op == "auto":
+            self.command_line.append(f"분해도: 부품 {len(r.get('parts', []))}개 · 단계 {r.get('steps', 0)}")
+        return r
+
+    def toggle_explode(self, what):
+        state = self.explode("status")
+        self.explode(what, show=not state.get(what, False))
+
+    # ── 메시 점검·수리 ──
+    def check_meshes(self):
+        ids = selected_ids()
+        if not ids:
+            return self.command_line.append("메시 점검: 3D 뷰에서 메시를 먼저 선택하세요")
+        for i in ids:
+            st, m = lotcad.CAD_CheckMesh(i)
+            if st != lotcad.CAD_OK:
+                self.command_line.append(f"메시 #{i}: {lotcad.CAD_GetLastError() or st}")
+                continue
+            issues = [f"{name} {v}" for name, v in (("열린 모서리", m.openEdges), ("구멍", m.holes), ("겹친 면", m.duplicates),
+                                                     ("찌그러진 면", m.degenerate), ("비다양체 모서리", m.nonManifoldEdges),
+                                                     ("뒤집힌 모서리", m.flippedEdges)) if v]
+            self.command_line.append(f"메시 #{i}: 삼각형 {m.triangles} · 덩어리 {m.components} · "
+                                     + ("닫힘" if m.closed else "열림") + (" — " + ", ".join(issues) if issues else " — 문제 없음"))
+
+    def repair_meshes(self):
+        ids = selected_ids()
+        if not ids:
+            return self.command_line.append("메시 수리: 3D 뷰에서 메시를 먼저 선택하세요")
+        st = lotcad.CAD_RepairMeshes(ids, len(ids))   # 점 붙이기·찌그러진/겹친 면 지우기·방향 맞추기·구멍 메우기
+        self.command_line.append(f"메시 수리: {len(ids)}개" if st == lotcad.CAD_OK
+                                 else f"메시 수리 실패: {lotcad.CAD_GetLastError() or st}")
+        if st == lotcad.CAD_OK:
+            self.check_meshes()
+
     # ── 해석 — 엔진 해석 패널 대신 호스트 패널(analysis.py) ──
     def open_analysis(self, page):
         self.analysis.show_page(page)
@@ -158,7 +234,8 @@ class MainWindow(QMainWindow):
     def _open(self):
         path, _ = QFileDialog.getOpenFileName(
             self, "열기", "",
-            "CAD 파일 (*.lot *.obj *.stl *.dxf *.dwg *.ply *.gltf *.glb);;프로젝트 (*.lot);;모든 파일 (*)")
+            "CAD 파일 (*.lot *.step *.stp *.obj *.stl *.dxf *.dwg *.ply *.gltf *.glb);;프로젝트 (*.lot);;"
+            "STEP (*.step *.stp);;모든 파일 (*)")
         if not path:
             return
         # 결과 코드 — CAD_OK(0) = 성공, 음수 = 실패(이유는 CAD_GetLastError)
@@ -168,13 +245,21 @@ class MainWindow(QMainWindow):
             self._report("열기 실패")
 
     def _save_as(self):
-        path, _ = QFileDialog.getSaveFileName(self, "다른 이름으로 저장", "", "프로젝트 (*.lot)")
-        if path and lotcad.CAD_SaveAs(path if "." in path.split("/")[-1] else path + ".lot", False) != lotcad.CAD_OK:
+        # 형식은 확장자로 — .lot(프로젝트) · .step(B-Rep 솔리드) · .dwg(2018) · .dxf
+        filters = {"프로젝트 (*.lot)": ".lot", "STEP (*.step)": ".step", "DWG (*.dwg)": ".dwg", "DXF (*.dxf)": ".dxf"}
+        path, chosen = QFileDialog.getSaveFileName(self, "다른 이름으로 저장", "", ";;".join(filters))
+        if not path:
+            return
+        if "." not in path.split("/")[-1]:
+            path += filters.get(chosen, ".lot")
+        if lotcad.CAD_SaveAs(path, False) != lotcad.CAD_OK:
             self._report("저장 실패")
+        else:
+            self.command_line.append(f"저장: {path}")
 
     def _export(self):
         # 내보내기도 CAD_SaveAs 한 길(예전 CAD_ExportFile 은 지워졌다) — 확장자로 포맷이 정해진다
-        path, _ = QFileDialog.getSaveFileName(self, "내보내기", "", "STL (*.stl);;DXF (*.dxf);;OBJ (*.obj);;glTF (*.glb)")
+        path, _ = QFileDialog.getSaveFileName(self, "내보내기", "", "STEP (*.step);;DWG (*.dwg);;STL (*.stl);;DXF (*.dxf);;OBJ (*.obj);;glTF (*.glb)")
         if path and lotcad.CAD_SaveAs(path, False) != lotcad.CAD_OK:
             self._report("내보내기 실패")
 
@@ -263,6 +348,31 @@ class MainWindow(QMainWindow):
         g.add("차집합", self._subtract_step, is_on=lambda: bool(self._subtract_base),
               tip="기준 선택 → 차집합 → 뺄 것 선택 → 차집합")
         g.add("교집합", command("intersect"))
+        g = three_d.add_group("조립")                # 분해도 — CAD_ExplodeView
+        g.add("자동 분해", lambda: self.explode("auto"), tip="선택한 부품(없으면 전부)을 겹치지 않게 벌려 놓는다")
+        g.add("펼치기", lambda: self.explode("play"))
+        g.add("접기", lambda: self.explode("back"))
+        g.add("풍선", lambda: self.toggle_explode("balloons"), tip="품번 풍선 켜고 끔")
+        g.add("부품표", lambda: self.toggle_explode("bom"), tip="부품표 켜고 끔")
+        g.add("분해 끄기", lambda: self.explode("clear"))
+        g = three_d.add_group("메시")
+        g.add("점검", self.check_meshes, tip="열린 모서리·구멍·겹친 면 … (CAD_CheckMesh)")
+        g.add("수리", self.repair_meshes, tip="점 붙이기·찌그러진 면 지우기·방향 맞추기·구멍 메우기 (CAD_RepairMeshes)")
+
+        # 도면 — 도면층·선종류·블록 패널
+        drawing = r.add_tab("도면")
+        g = drawing.add_group("도면층")
+        g.add("도면층", lambda: self.open_layers("layers"))
+        g.add("선종류", lambda: self.open_layers("linetypes"))
+        g = drawing.add_group("블록")
+        g.add("블록", lambda: self.open_layers("blocks"))
+
+        # 그래프 — 노드 그래프 패널(엔진 편집기 대신 C API)
+        graph = r.add_tab("그래프")
+        g = graph.add_group("노드 그래프")
+        g.add("그래프 패널", self.open_graph)
+        g.add("예제", self.graph_example, tip="상자 → 선형 배열 → 출력")
+        g.add("계산", lambda: self.graph._evaluate())
 
         # 해석 — 엔진 리본의 해석 탭과 같은 버튼. 엔진은 자기 패널(ImGui)을 여는데 호스트 창에선 안 그려지므로
         # 호스트 해석 패널을 연다. 대상은 지금 선택한 솔리드.
