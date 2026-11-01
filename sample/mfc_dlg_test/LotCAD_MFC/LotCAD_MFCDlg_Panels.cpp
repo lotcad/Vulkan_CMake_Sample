@@ -119,6 +119,11 @@ void CLotCADMFCDlg::TogglePanel(int kind)
 	case kPanelWind:      OpenWindPanel();     break;   // 해석 — LotCAD_MFCDlg_Analysis.cpp
 	case kPanelWater:     OpenWaterPanel();    break;
 	case kPanelSim:       OpenSimPanel();      break;
+	case kPanelLayers:    OpenLayerPanel();    break;   // 관리 — LotCAD_MFCDlg_Layers.cpp
+	case kPanelLinetypes: OpenLinetypePanel(); break;
+	case kPanelBlocks:    OpenBlockPanel();    break;   // LotCAD_MFCDlg_Blocks.cpp
+	case kPanelExplode:   OpenExplodePanel();  break;   // 도구 — LotCAD_MFCDlg_Tools.cpp
+	case kPanelMesh:      OpenMeshPanel();     break;
 	}
 	RelayoutNow();
 }

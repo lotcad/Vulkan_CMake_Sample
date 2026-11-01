@@ -24,6 +24,12 @@ enum class RibbonIcon
 	Section, Navigation, Particles,
 	// 해석 (엔진 ui/lot_ribbon.cpp 의 SubdIcon::AnaWind · AnaWater · AnaStress 를 옮긴 것)
 	AnaWind, AnaWater, AnaStress,
+	// 도구 — 모델·이미지
+	Graph, Explode, MeshRepair,
+	ImageAttach, ImageRotate, ImageFlip, ImageBackground, ImageCrop,
+	// 관리 — 도면층·블록·파일
+	Layers, Linetype, Block, BlockEdit, Xref,
+	FileOpen, FileSave,
 };
 
 // (cx, cy) 를 중심으로 반지름 r 인 정사각형 안에 그린다. color = 선 색.

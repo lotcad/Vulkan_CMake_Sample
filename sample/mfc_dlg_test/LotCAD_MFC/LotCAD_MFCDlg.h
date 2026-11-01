@@ -10,6 +10,7 @@
 #include "ToolPanel.h"
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 // Render pane: engine embed target. Subclassed onto IDC_CAD_VIEW.
@@ -79,7 +80,8 @@ protected:
 	CCadStatusBar m_statusBar;          // 맨 아래 토글 줄 — 구성은 LotCAD_MFCDlg_StatusBar.cpp
 	CToolPanel    m_panel;              // 오른쪽 도구 패널 (단면·내비·파티클) — 내용은 LotCAD_MFCDlg_Panels.cpp
 
-	enum PanelKind { kPanelNone = 0, kPanelSection, kPanelNav, kPanelParticles, kPanelWind, kPanelWater, kPanelSim };
+	enum PanelKind { kPanelNone = 0, kPanelSection, kPanelNav, kPanelParticles, kPanelWind, kPanelWater, kPanelSim,
+	                 kPanelLayers, kPanelLinetypes, kPanelBlocks, kPanelExplode, kPanelMesh };
 	void TogglePanel(int kind);         // 리본 버튼 — 같은 패널이면 닫고 아니면 연다
 	void OpenSectionPanel();
 	void OpenNavPanel();
@@ -87,6 +89,24 @@ protected:
 	void OpenWindPanel();               // 해석 — LotCAD_MFCDlg_Analysis.cpp
 	void OpenWaterPanel();
 	void OpenSimPanel();
+	void OpenLayerPanel();              // 도면층·선종류 — LotCAD_MFCDlg_Layers.cpp
+	void OpenLinetypePanel();
+	void OpenBlockPanel();              // 블록·외부 참조 — LotCAD_MFCDlg_Blocks.cpp
+	void OpenExplodePanel();            // 분해도·메시 수리·이미지·이벤트 — LotCAD_MFCDlg_Tools.cpp
+	void OpenMeshPanel();
+	void AttachImage();                 // 리본 이미지 > 붙이기 — 파일은 호스트가 고르고 CAD_AttachImageFromFile
+	void ToggleGraph();                 // 노드 그래프 칸 켜기/끄기 (명령 graph on|off)
+	void StartEvents();                 // CAD_AddEventListener — 명령이 끝나면 만든·지운 객체 수를 명령행 기록에
+	void StopEvents();                  // 엔진을 헐기 전에
+	static void OnEngineEvent(int kind, uint32_t id, void* user);
+	static const UINT kEventLogMessage = WM_APP + 1;   // 명령 끝 기록을 그 틱이 다 끝난 뒤로 미룬다
+	afx_msg LRESULT OnEventLog(WPARAM cancelled, LPARAM);
+	uint32_t     m_eventHandle = 0;
+	std::wstring m_eventCommand;        // 지금 도는 명령 이름 (명령 시작 이벤트에서)
+	int          m_eventCreated = 0, m_eventDeleted = 0;
+	// 파일 — STEP 열기, 확장자를 정해 저장(DWG·STEP). 메뉴 열기·내보내기와 같은 길(CAD_OpenFile·CAD_SaveAs)
+	void OpenFileOfType(const TCHAR* filter);
+	void SaveAsType(const TCHAR* filter, const TCHAR* ext, const TCHAR* what);
 	void RelayoutNow();                 // 패널이 열리고 닫힐 때 — 3D 뷰 폭을 다시 정한다
 	int m_viewLeft = 0, m_viewTop = 0;  // view anchor (리본 아래)
 	int m_marginRight = 0;
@@ -96,6 +116,8 @@ protected:
 	bool m_ortho       = true;    // 투영: true=직교(Ortho) false=원근(Persp) — 엔진 기본은 CAD 식 직교
 	bool m_gridOn      = true;
 	int  m_visualStyle = 0;       // 0=셰이딩 1=셰이딩+모서리 2=와이어프레임 3=와이어(모서리) 4=숨은선
+	bool m_dynInput    = true;    // 동적 입력(명령 dyn, 커서 옆 길이·각도) — 엔진 기본 켜짐, 읽는 함수 없음
+	bool m_graphOn     = false;   // 노드 그래프 칸 — 읽는 함수 없음 (명령행에 graph 를 쳐서 바꾸면 어긋날 수 있다)
 
 	void BuildRibbon();                 // 탭·그룹·버튼 추가 (LotCAD_MFCDlg_Ribbon.cpp)
 	void SubtractStep();                // 리본 차집합 — 두 번 눌러 기준 → 뺄 것 (LotCAD_MFCDlg_Ribbon.cpp)
@@ -106,6 +128,7 @@ protected:
 	void ToggleOSnap();                 // 객체스냅(F3) — 상태바 메뉴·F3 키
 	void ToggleOrthoTracking();         // 직교(F8) — 상태바 버튼·F8 키
 	void TogglePolarTracking();         // 극좌표(F10) — 상태바 버튼·F10 키
+	void ToggleDynInput();              // 동적 입력(F12) — 상태바 버튼·F12 키
 public:
 	// ── 풀다운 메뉴 (IDR_MAINMENU) ──
 	// 그리기·편집 명령은 리본에, 파일 입출력은 메뉴에.

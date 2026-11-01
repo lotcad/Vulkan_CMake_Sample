@@ -1,7 +1,7 @@
 ﻿// LotCAD_MFCDlg_StatusBar.cpp: 상태바 구성 — 맨 아래 토글 버튼과 F3/F8/F10 키
 //
 // 엔진(3dEngine) 하단 상태바의 오른쪽 버튼 줄과 같은 순서·같은 기능이다.
-//   [치수] [그리드] [셰이딩 ▾] [Ortho] [직교(F8)] [극좌표(F10)] [객체스냅 ▾]
+//   [치수] [그리드] [셰이딩 ▾] [Ortho] [동적입력(F12)] [직교(F8)] [극좌표(F10)] [객체스냅 ▾]
 // 치수·직교·극좌표·객체스냅은 엔진에 Get 함수가 있어 상태를 매번 엔진에 묻는다 —
 // 명령행에 ortho off 처럼 쳐서 바꿔도 버튼이 따라간다. 그리드·스타일·투영은 Set 만 있어 호스트가 들고 있는다.
 
@@ -69,6 +69,11 @@ void CLotCADMFCDlg::BuildStatusBar()
 		[this](const CRect&) { SetOrtho(!m_ortho); },
 		L"원근(Persp) / 직교(Ortho) 투영 전환");
 
+	s.AddToggle(L"동적입력(F12)",
+		[this] { return m_dynInput; },
+		[this] { ToggleDynInput(); },
+		L"동적 입력 — 그리는 중 커서 옆에 길이·각도·반지름 (F12, 명령 dyn)");
+
 	s.AddToggle(L"직교(F8)",
 		[] { return OrthoOn(); },
 		[this] { ToggleOrthoTracking(); },
@@ -108,6 +113,23 @@ void CLotCADMFCDlg::ToggleOSnap()
 void CLotCADMFCDlg::ToggleOrthoTracking()
 {
 	CAD_SetOrthoEnabled(!OrthoOn());
+	m_statusBar.Refresh();
+}
+
+// 동적 입력은 읽는 함수가 없어 호스트가 상태를 들고 있는다. 명령이 없을 땐 dyn on|off 로 정확히 맞추고,
+// 그리는 중엔 명령행에 글을 넣으면 값으로 먹히므로 엔진에 F12 키를 보낸다(엔진의 F12 = 동적 입력 뒤집기.
+// 단 자르기·연장 중의 F12 는 EDGE 모드라 그때는 표시가 어긋날 수 있다).
+void CLotCADMFCDlg::ToggleDynInput()
+{
+	m_dynInput = !m_dynInput;
+	CAD_EdCommandState state{};
+	state.size = sizeof(state);
+	if (CAD_EdGetCommandState(&state) == CAD_OK && state.commandActive) {
+		CAD_OnKeyDownVK(VK_F12);
+		CAD_OnKeyUpVK(VK_F12);
+	} else {
+		CAD_ExecuteCommand(m_dynInput ? "dyn on" : "dyn off");
+	}
 	m_statusBar.Refresh();
 }
 

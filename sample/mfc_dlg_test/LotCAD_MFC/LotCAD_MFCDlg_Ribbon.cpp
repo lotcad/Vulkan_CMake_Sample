@@ -1,6 +1,6 @@
 ﻿// LotCAD_MFCDlg_Ribbon.cpp: 리본 구성 — 어떤 탭·그룹에 어떤 엔진 명령을 둘지
 //
-// 엔진(3dEngine) 리본과 같은 탭(홈 / 2D / 3D)·같은 그룹·같은 명령이다.
+// 엔진(3dEngine) 리본과 같은 탭(홈 / 2D / 3D)·같은 그룹·같은 명령이다. 도구·관리 탭은 엔진에서 자체 패널이 여는 기능을 모은 것.
 // 버튼을 더하거나 빼려면 이 파일만 고치면 된다 — 그리기·마우스는 RibbonBar.cpp 가 맡는다.
 //
 // ⚠️ 엔진 명령 중 **자체 패널·대화상자를 여는 것**(array, dp, section, nav, particle …)은
@@ -135,6 +135,43 @@ void CLotCADMFCDlg::BuildRibbon()
 	           [this] { return m_panel.Kind() == kPanelWater; });
 	r.AddLarge(L"구조 해석", I::AnaStress, [this] { TogglePanel(kPanelSim); },
 	           [this] { return m_panel.Kind() == kPanelSim; });
+
+	// 모델 — 그래프 칸·분해 막대는 엔진이 Vulkan 으로 3D 뷰에 그린다. 패널은 LotCAD_MFCDlg_Tools.cpp
+	r.AddGroup(L"모델");
+	r.AddLarge(L"노드 그래프", I::Graph,      [this] { ToggleGraph(); }, [this] { return m_graphOn; });
+	r.AddLarge(L"분해도",      I::Explode,    [this] { TogglePanel(kPanelExplode); },
+	           [this] { return m_panel.Kind() == kPanelExplode; });
+	r.AddLarge(L"메시 수리",   I::MeshRepair, [this] { TogglePanel(kPanelMesh); },
+	           [this] { return m_panel.Kind() == kPanelMesh; });
+
+	// 이미지 — 붙이기는 호스트 파일 창, 나머지는 선택한 이미지에 먹는 엔진 명령
+	r.AddGroup(L"이미지");
+	r.AddLarge(L"붙이기",      I::ImageAttach,     [this] { AttachImage(); });
+	r.AddSmall(L"회전",        I::ImageRotate,     Command("imagerotate 90"));
+	r.AddSmall(L"뒤집기",      I::ImageFlip,       Command("imageflip h"));
+	r.AddSmall(L"배경 지우기", I::ImageBackground, Command("imagebg"));     // 지울 배경을 클릭
+	r.AddSmall(L"자르기",      I::ImageCrop,       Command("imagecrop"));   // 남길 영역의 두 구석
+
+	// ── 관리 — 도면층·블록·파일. 엔진에선 ImGui 창이 여는 것을 호스트 패널(LotCAD_MFCDlg_Layers/Blocks.cpp)로 ──
+	r.AddTab(L"관리");
+
+	r.AddGroup(L"도면층");
+	r.AddLarge(L"도면층", I::Layers,   [this] { TogglePanel(kPanelLayers); },
+	           [this] { return m_panel.Kind() == kPanelLayers; });
+	r.AddLarge(L"선종류", I::Linetype, [this] { TogglePanel(kPanelLinetypes); },
+	           [this] { return m_panel.Kind() == kPanelLinetypes; });
+
+	r.AddGroup(L"블록");
+	r.AddLarge(L"블록 만들기",    I::Block,     Command("block"));   // 고른 객체로 — 이름·기준점은 명령행이 묻는다
+	r.AddSmall(L"블록 편집",      I::BlockEdit, Command("bedit"));   // 고른 블록 참조 하나를 편집 탭으로
+	r.AddSmall(L"블록·외부 참조", I::Xref,      [this] { TogglePanel(kPanelBlocks); },
+	           [this] { return m_panel.Kind() == kPanelBlocks; });
+
+	// 파일 — 메뉴 열기·내보내기와 같은 길(CAD_OpenFile · CAD_SaveAs). 포맷은 확장자로 엔진이 정한다.
+	r.AddGroup(L"파일");
+	r.AddLarge(L"STEP 열기", I::FileOpen, [this] { OpenFileOfType(_T("STEP (*.step;*.stp)|*.step;*.stp||")); });
+	r.AddSmall(L"STEP 저장", I::FileSave, [this] { SaveAsType(_T("STEP AP242 (*.step)|*.step;*.stp||"), _T(".step"), _T("STEP 저장")); });
+	r.AddSmall(L"DWG 저장",  I::FileSave, [this] { SaveAsType(_T("DWG R2018 (*.dwg)|*.dwg||"), _T(".dwg"), _T("DWG 저장")); });
 }
 
 // 차집합 — 엔진의 차집합은 기준(A)·빼기(B)를 고르는 대화상자를 여는데 임베드에선 그 창이 안 보인다.

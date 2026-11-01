@@ -89,6 +89,15 @@
     <ClCompile Include="LotCAD_MFCDlg_Analysis.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="LotCAD_MFCDlg_Layers.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LotCAD_MFCDlg_Blocks.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LotCAD_MFCDlg_Tools.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
     <ClCompile Include="LotCAD_MFCDlg_Panels.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>

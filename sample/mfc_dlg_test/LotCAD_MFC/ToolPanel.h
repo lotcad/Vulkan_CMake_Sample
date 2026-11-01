@@ -32,8 +32,10 @@ public:
 
 	void AddSection(const wchar_t* text);
 	void AddNote(const wchar_t* text, int lines = 1);   // 흐린 설명 글
-	void AddChoice(const wchar_t* label, const std::vector<std::wstring>& items, int selected,
+	// 반환 = 콤보 번호 — 밖에서 고른 항목을 바꿀 때 SetChoice 에 준다 (도면층을 고르면 그 층의 선종류로 등)
+	int  AddChoice(const wchar_t* label, const std::vector<std::wstring>& items, int selected,
 	               std::function<void(int)> onChange);
+	void SetChoice(int choice, int selected);       // 콜백은 부르지 않는다
 	// 반환 = 슬라이더 번호 — 밖에서 값을 바꿀 때 SetSliderValue 에 준다 (축을 바꾸면 위치를 가운데로 등)
 	int  AddSlider(const wchar_t* label, float min, float max, float value, int decimals,
 	               std::function<void(float)> onChange);
@@ -49,6 +51,11 @@ public:
 	int  AddNumbers(const wchar_t* label, const std::vector<double>& values,
 	                const wchar_t* button = nullptr, std::function<void()> onClick = nullptr);
 	std::vector<double> GetNumbers(int row) const;
+	// 글 입력란 한 줄(예: 새 도면층 이름) — 반환 = 줄 번호, 값은 GetText 로. button 을 주면 같은 줄 끝에 둔다.
+	int  AddText(const wchar_t* label, const wchar_t* value,
+	             const wchar_t* button = nullptr, std::function<void()> onClick = nullptr);
+	std::wstring GetText(int row) const;
+	void SetText(int row, const std::wstring& text);
 	void AddStatus(int lines = 5);        // 아래 상태 글 — SetStatus 로 바꾼다
 	void SetStatus(const std::wstring& text);
 	void SetSliderValue(int slider, float value);   // 콜백은 부르지 않는다
@@ -97,6 +104,7 @@ private:
 	std::map<UINT, Slider>                    m_sliders;
 	std::map<UINT, std::function<void(int)>>  m_lists;   // 목록 선택
 	std::map<int, std::vector<CEdit*>>        m_numbers; // 숫자 입력란 줄
+	std::map<int, CEdit*>                     m_texts;   // 글 입력란 줄
 	CStatic* m_status = nullptr;
 
 	float  m_scale = 1.0f;

@@ -56,10 +56,14 @@ namespace LotCadWinForms
         //    이벤트는 CAD_AddEventListener 하나로 듣는다(kind 로 갈라 처리) — 예전 한 칸짜리
         //    CAD_SetOnSelectionChanged·ObjectCreated·ObjectDeleted·DocumentDirty 는 지워졌다.
         //    kind: 1 객체 생성(id) · 2 객체 삭제(id) · 4 선택 변경(id 0) · 8 문서 변경(id = dirty ? 1 : 0)
+        //          16 명령 시작 · 32 명령 끝 · 64 명령 취소(id 0, 이름은 CAD_EdGetCommandName)
         public const uint CAD_EVENT_OBJECT_CREATED    = 1;
         public const uint CAD_EVENT_OBJECT_DELETED    = 2;
         public const uint CAD_EVENT_SELECTION_CHANGED = 4;
         public const uint CAD_EVENT_DOCUMENT_DIRTY    = 8;
+        public const uint CAD_EVENT_COMMAND_STARTED   = 16;
+        public const uint CAD_EVENT_COMMAND_ENDED     = 32;
+        public const uint CAD_EVENT_COMMAND_CANCELLED = 64;
         public delegate void EventCb(int kind, uint id, IntPtr user);
         public delegate void TextCb(IntPtr utf8);
 
@@ -90,7 +94,7 @@ namespace LotCadWinForms
         // ── 파일 ──
         // 경로는 UTF-8 로 넘긴다. C# 의 기본 문자열 마샬링(Ansi)은 한글 경로에서 깨지므로
         // CharSet 을 쓰지 않고 byte[] 로 직접 넘긴다 (Utf8 헬퍼 참고).
-        // 반환 0 = CAD_OK, 음수 = 이유 코드(글은 LastError()). 확장자로 포맷이 정해진다(.lot .dxf .dwg .stl .obj .glb) —
+        // 반환 0 = CAD_OK, 음수 = 이유 코드(글은 LastError()). 확장자로 포맷이 정해진다(.lot .step .dwg .dxf .stl .obj .glb) —
         // 예전 CAD_ExportFile 은 CAD_SaveAs(path, selectedOnly) 와 같은 길이라 지워졌다.
         [DllImport(DLL)] public static extern int CAD_SaveAs(byte[] pathUtf8, [MarshalAs(UnmanagedType.I1)] bool selectedOnly);
         [DllImport(DLL)] public static extern int CAD_OpenFile(byte[] pathUtf8);
@@ -113,6 +117,79 @@ namespace LotCadWinForms
             return ids;
         }
         [DllImport(DLL)] public static extern int CAD_GetLastError(byte[] outUtf8, uint capacity);   // 직전 실패 이유
+        // 선택 바꾸기 — mode 0 = 바꿔 고르기
+        [DllImport(DLL)] public static extern int CAD_SetSelection(uint[] ids, uint count, int mode);
+        // 장면이 바뀔 때마다 커지는 번호 — 같으면 목록을 다시 읽지 않아도 된다(폴링용)
+        [DllImport(DLL)] public static extern int CAD_GetSceneRevision(out ulong outRevision);
+
+        // ── 명령 상태 — 동적 입력 토글이 쓴다 ──
+        [StructLayout(LayoutKind.Sequential)]
+        public struct EdCommandState { public uint Size; [MarshalAs(UnmanagedType.I1)] public bool CommandActive; public int InputKind; }
+        [DllImport(DLL)] public static extern int CAD_EdGetCommandState(ref EdCommandState state);   // Size 를 채워 넘긴다
+        [DllImport(DLL)] public static extern int CAD_EdGetCommandName(byte[] buf, uint capacity);   // 진행 중(또는 마지막) 명령 이름
+
+        // ── 도면층·선종류 (LayerPanel.cs) ── 도면층 표 바꾸기는 되돌리기에 안 남는다. 도면층 0 은 고정(바꾸면 CAD_E_NOT_SUPPORTED)
+        [StructLayout(LayoutKind.Sequential)] public struct CadColor { public double R, G, B; public CadColor(double r, double g, double b) { R = r; G = g; B = b; } }
+        [DllImport(DLL)] public static extern int CAD_GetLayersJson(byte[] buf, uint capacity);   // {"layers":[{id,name,visible,locked,color,linetypeId,linetype,objectCount,selectedCount,fixed?}]}
+        [DllImport(DLL)] public static extern int CAD_CreateLayer(byte[] nameUtf8, out uint outLayerId);
+        [DllImport(DLL)] public static extern int CAD_RenameLayer(uint id, byte[] nameUtf8);
+        [DllImport(DLL)] public static extern int CAD_SetLayerColor(uint id, CadColor color);   // 0~1
+        [DllImport(DLL)] public static extern int CAD_SetLayerVisible(uint id, [MarshalAs(UnmanagedType.I1)] bool visible);
+        [DllImport(DLL)] public static extern int CAD_SetLayerLocked(uint id, [MarshalAs(UnmanagedType.I1)] bool locked);
+        [DllImport(DLL)] public static extern int CAD_SetLayerLinetype(uint layerId, uint linetypeId);
+        [DllImport(DLL)] public static extern int CAD_AssignSelectedToLayer(uint layerId, out uint outChanged);   // 잠긴 층 것은 건너뜀
+        [DllImport(DLL)] public static extern int CAD_SetSelectedColorByLayer([MarshalAs(UnmanagedType.I1)] bool byLayer, out uint outChanged);
+        public const uint CAD_LINETYPE_BYLAYER = 0xFFFFFFFF;   // 객체 선종류 = 도면층 따름
+        [DllImport(DLL)] public static extern int CAD_GetLinetypeIds(uint[] outIds, uint capacity);   // 0(Continuous) 포함 전체 개수
+        [DllImport(DLL)] public static extern int CAD_GetLinetypeName(uint id, byte[] buf, uint capacity);
+        [DllImport(DLL)] public static extern int CAD_GetLinetypePattern(uint id, double[] outPattern, uint capacity);   // 요소 수(실선 0)
+        // 무늬: 양수 = 선, 음수 = 빈칸, 0 = 점(.lin 규칙), 요소 1~8개
+        [DllImport(DLL)] public static extern int CAD_CreateLinetype(byte[] nameUtf8, double[] pattern, uint count, byte[] description, out uint outId);
+        [DllImport(DLL)] public static extern int CAD_SetObjectLinetype(uint[] ids, uint count, uint linetypeId, out uint outChanged);
+        [DllImport(DLL)] public static extern int CAD_SetObjectLinetypeScale(uint objectId, double scale);
+        [DllImport(DLL)] public static extern int CAD_SetLinetypeScale(double scale);   // 전역 LTSCALE
+
+        // ── 블록·외부 참조 (LayerPanel.cs) ── 만들기·편집은 명령(block · bedit 이름 · bclose save|discard · bbase)
+        [DllImport(DLL)] public static extern int CAD_GetBlocksJson(byte[] buf, uint capacity);   // {"blocks":[{name,objects,references,base,xref?,xrefFound?}]}
+        [DllImport(DLL)] public static extern int CAD_XrefReload(byte[] nameUtf8);
+        [DllImport(DLL)] public static extern int CAD_XrefBind(byte[] nameUtf8);
+        [DllImport(DLL)] public static extern int CAD_XrefDetach(byte[] nameUtf8);
+        [DllImport(DLL)] public static extern int CAD_XrefSetPath(byte[] nameUtf8, byte[] pathOrKindUtf8);   // "relative" | "absolute" | "none" | 새 경로
+
+        // ── 분해도 (ToolsPanel.cs) ── {"op": status|solve|auto|clear|amount|play|back|balloons|bom, …} → 결과 JSON. 2회 호출 규약(CallOnce)
+        [DllImport(DLL)] public static extern int CAD_ExplodeView(byte[] argsJson, byte[] outUtf8, uint capacity);
+
+        // ── 메시 수리 (ToolsPanel.cs) ── 반환 = 바꾼 메시 수(0 = 고칠 것 없음), 음수 = 이유 코드. B-Rep 솔리드는 대상 아님
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MeshCheckInfo
+        {
+            public uint Size, Triangles, Vertices, Degenerate, Duplicates, OpenEdges, NonManifoldEdges, FlippedEdges, Holes, Components;
+            [MarshalAs(UnmanagedType.I1)] public bool Closed;
+            [MarshalAs(UnmanagedType.I1)] public bool Ok;
+            public double Volume, Area;
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MeshRepairOptions { public uint Size; [MarshalAs(UnmanagedType.I1)] public bool NoFill; [MarshalAs(UnmanagedType.I1)] public bool FlatFill; }
+        [DllImport(DLL)] public static extern int CAD_CheckMesh(uint id, ref MeshCheckInfo info);   // Size 를 채워 넘긴다
+        [DllImport(DLL)] public static extern int CAD_RepairMeshes(uint[] ids, uint count, ref MeshRepairOptions opt);
+        [DllImport(DLL)] public static extern int CAD_SmoothMeshes(uint[] ids, uint count, int iterations);
+        [DllImport(DLL)] public static extern int CAD_DecimateMeshes(uint[] ids, uint count, double ratio);
+        [DllImport(DLL)] public static extern int CAD_StitchMeshes(uint[] ids, uint count, double tolerance);
+        [DllImport(DLL)] public static extern int CAD_ThickenMeshes(uint[] ids, uint count, double thickness);
+        [DllImport(DLL)] public static extern int CAD_RemeshMeshes(uint[] ids, uint count, double edgeLength);
+
+        // ── 이미지 ── widthWorld 0 = 긴 변 10 단위, origin = 왼쪽 아래, opt = IntPtr.Zero
+        [DllImport(DLL)] public static extern int CAD_AttachImageFromFile(byte[] pathUtf8, double widthWorld, GeVec3 origin, IntPtr opt, out uint outId);
+
+        /// <summary>(buf, capacity) 로 글을 주는 함수 — 길이를 먼저 묻고 그만큼 받는다. 실패면 "".</summary>
+        public static string ReadText(Func<byte[], uint, int> fn)
+        {
+            int n = fn(null, 0);
+            if (n < 0) return "";
+            var buf = new byte[n + 1];
+            fn(buf, (uint)buf.Length);
+            return FromUtf8(buf);
+        }
 
         // ── 해석 — 바람 터널 · 물 · 구조 해석 ── (Analysis.cs 가 쓴다)
         // argsJson = {"op": …} 를 UTF-8 로, 결과 JSON 이 outUtf8 에(capacity 바이트). 반환 = 전체 길이, 실패 = 음수 CAD_E_*(이유는 CAD_GetLastError).
@@ -143,7 +220,7 @@ namespace LotCadWinForms
             return FromUtf8(buf);
         }
 
-        static string FromUtf8(byte[] buf)
+        public static string FromUtf8(byte[] buf)
         {
             int len = Array.IndexOf(buf, (byte)0);
             return System.Text.Encoding.UTF8.GetString(buf, 0, len < 0 ? buf.Length : len);

@@ -97,6 +97,7 @@ void CToolPanel::ClearControls()
 	m_sliders.clear();
 	m_lists.clear();
 	m_numbers.clear();
+	m_texts.clear();
 	m_status = nullptr;
 }
 
@@ -128,8 +129,8 @@ void CToolPanel::AddNote(const wchar_t* text, int lines)
 	m_y += S(4);
 }
 
-void CToolPanel::AddChoice(const wchar_t* label, const std::vector<std::wstring>& items, int selected,
-                           std::function<void(int)> onChange)
+int CToolPanel::AddChoice(const wchar_t* label, const std::vector<std::wstring>& items, int selected,
+                          std::function<void(int)> onChange)
 {
 	AddLabel(label, S(18), DarkTheme::TextDim, &m_font);
 	const UINT id = m_nextId++;
@@ -146,6 +147,13 @@ void CToolPanel::AddChoice(const wchar_t* label, const std::vector<std::wstring>
 	CRect rc;
 	combo->GetWindowRect(&rc);
 	m_y += rc.Height() + S(6);
+	return (int)id;
+}
+
+void CToolPanel::SetChoice(int choice, int selected)
+{
+	if (auto* combo = (CComboBox*)GetDlgItem((UINT)choice))
+		combo->SetCurSel(selected);   // SetCurSel 은 CBN_SELCHANGE 를 보내지 않는다 — 콜백이 안 불린다
 }
 
 int CToolPanel::AddSlider(const wchar_t* label, float min, float max, float value, int decimals,
@@ -277,6 +285,48 @@ std::vector<double> CToolPanel::GetNumbers(int row) const
 		out.push_back(_wtof(text));
 	}
 	return out;
+}
+
+int CToolPanel::AddText(const wchar_t* label, const wchar_t* value,
+                        const wchar_t* buttonText, std::function<void()> onClick)
+{
+	AddLabel(label, S(18), DarkTheme::TextDim, &m_font);
+	const int row = (int)m_texts.size() + 1;
+	const int gap = S(4);
+	const int buttonW = buttonText ? S(64) : 0;   // 줄 끝 버튼 자리
+	if (buttonText) {
+		const UINT id = m_nextId++;
+		CButton* button = Keep(new CButton);
+		const int x = ContentLeft() + ContentWidth() - buttonW;
+		button->Create(buttonText, WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW,
+		               CRect(x, m_y - S(2), x + buttonW, m_y + S(24)), this, id);
+		button->SetFont(&m_font);
+		m_clicks[id] = std::move(onClick);
+	}
+	CEdit* edit = Keep(new CEdit);
+	edit->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_AUTOHSCROLL,
+	             CRect(ContentLeft(), m_y, ContentLeft() + ContentWidth() - buttonW - (buttonText ? gap : 0), m_y + S(22)),
+	             this, m_nextId++);
+	edit->SetFont(&m_font);
+	edit->SetWindowText(value ? value : L"");
+	m_texts[row] = edit;
+	m_y += S(28);
+	return row;
+}
+
+std::wstring CToolPanel::GetText(int row) const
+{
+	auto it = m_texts.find(row);
+	if (it == m_texts.end()) return L"";
+	CString text;
+	it->second->GetWindowText(text);
+	return (const wchar_t*)text;
+}
+
+void CToolPanel::SetText(int row, const std::wstring& text)
+{
+	auto it = m_texts.find(row);
+	if (it != m_texts.end()) it->second->SetWindowText(text.c_str());
 }
 
 void CToolPanel::AddStatus(int lines)

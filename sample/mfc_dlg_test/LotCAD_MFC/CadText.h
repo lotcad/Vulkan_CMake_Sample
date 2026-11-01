@@ -6,7 +6,9 @@
 
 #include "../../../sdk/include/LotCAD_API.h"
 
+#include <algorithm>
 #include <string>
+#include <vector>
 
 inline std::wstring Utf8ToWide(const char* s)
 {
@@ -56,6 +58,18 @@ inline std::string CadCallJson(CadJsonFn fn, const std::string& argsJson)
 	if (fn(argsJson.c_str(), &out[0], static_cast<uint32_t>(need) + 1) < 0) return {};   // 같은 인자 → 결과만
 	out.resize(strlen(out.c_str()));
 	return out;
+}
+
+// 지금 선택한 객체 id — 개수만 먼저(NULL, 0) 묻고 그만큼 칸을 잡아 한 번에 받는다
+inline std::vector<uint32_t> CadSelectedIds()
+{
+	const int32_t n = CAD_GetSelection(nullptr, 0);
+	std::vector<uint32_t> ids(n > 0 ? static_cast<size_t>(n) : 0);
+	if (!ids.empty()) {
+		const int32_t got = CAD_GetSelection(ids.data(), static_cast<uint32_t>(ids.size()));
+		ids.resize(got > 0 ? (std::min)(static_cast<size_t>(got), ids.size()) : 0);
+	}
+	return ids;
 }
 
 // "2회 호출 규약" JSON 읽기 — 먼저 길이를 묻고, 그만큼 버퍼를 잡아 다시 부른다.

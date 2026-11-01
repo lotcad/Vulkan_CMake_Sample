@@ -434,6 +434,121 @@ void DrawRibbonIcon(Graphics& g, RibbonIcon icon, float cx, float cy, float r, C
 		break;
 	}
 
+	// ── 도구: 모델 ──
+	case RibbonIcon::Graph:         // 노드 둘을 잇는 선 — 왼쪽 출력 → 오른쪽 입력
+		p.FillPoly({ { -0.9f, -0.75f }, { -0.2f, -0.75f }, { -0.2f, -0.15f }, { -0.9f, -0.15f } });
+		p.Rect(-0.9f, -0.75f, 0.7f, 0.6f);
+		p.Rect(0.2f, 0.15f, 0.7f, 0.6f);
+		p.Poly({ { -0.2f, -0.45f }, { 0.0f, -0.45f }, { 0.0f, 0.45f }, { 0.2f, 0.45f } });
+		p.Dot(-0.2f, -0.45f);
+		p.Dot(0.2f, 0.45f);
+		break;
+	case RibbonIcon::Explode:       // 가운데 상자에서 바깥으로 빠지는 세 조각
+		p.FillPoly({ { -0.25f, -0.25f }, { 0.25f, -0.25f }, { 0.25f, 0.25f }, { -0.25f, 0.25f } });
+		p.Rect(-0.25f, -0.25f, 0.5f, 0.5f);
+		p.Rect(-0.95f, -0.95f, 0.4f, 0.4f);
+		p.Rect(0.55f, -0.95f, 0.4f, 0.4f);
+		p.Rect(-0.2f, 0.6f, 0.4f, 0.35f);
+		p.Dashed(true);
+		p.Line(-0.3f, -0.3f, -0.55f, -0.55f);
+		p.Line(0.3f, -0.3f, 0.55f, -0.55f);
+		p.Line(0.0f, 0.3f, 0.0f, 0.6f);
+		p.Dashed(false);
+		break;
+	case RibbonIcon::MeshRepair:    // 삼각형 망 + 메운 구멍(강조색)
+		p.FillPoly({ { 0.0f, -0.1f }, { 0.45f, 0.55f }, { -0.45f, 0.55f } });
+		p.Poly({ { -0.9f, 0.55f }, { 0.0f, -0.9f }, { 0.9f, 0.55f } }, true);
+		p.Line(-0.45f, -0.18f, 0.45f, -0.18f);
+		p.Poly({ { -0.45f, -0.18f }, { 0.0f, -0.1f }, { 0.45f, -0.18f } });
+		p.Line(0.0f, -0.1f, -0.45f, 0.55f);
+		p.Line(0.0f, -0.1f, 0.45f, 0.55f);
+		p.Line(-0.9f, 0.55f, 0.9f, 0.55f);
+		break;
+
+	// ── 도구: 이미지 ──
+	case RibbonIcon::ImageAttach:   // 사진 틀(산 + 해)
+		p.Rect(-0.9f, -0.7f, 1.8f, 1.4f);
+		p.FillPoly({ { -0.8f, 0.6f }, { -0.25f, -0.05f }, { 0.1f, 0.3f }, { 0.4f, 0.05f }, { 0.8f, 0.6f } });
+		p.Poly({ { -0.8f, 0.6f }, { -0.25f, -0.05f }, { 0.1f, 0.3f }, { 0.4f, 0.05f }, { 0.8f, 0.6f } });
+		p.Ellipse(0.45f, -0.35f, 0.15f, 0.15f);
+		break;
+	case RibbonIcon::ImageRotate:   // 사진 틀 + 도는 화살표
+		p.Rect(-0.55f, -0.35f, 1.1f, 0.9f);
+		p.Arc(0.0f, 0.1f, 0.85f, 200.0f, 140.0f);
+		p.Arrow(0.8f, -0.2f, 0.4f, 0.9f);
+		break;
+	case RibbonIcon::ImageFlip:     // 가운데 점선 축 + 마주 보는 삼각형
+		p.Dashed(true);
+		p.Line(0.0f, -0.9f, 0.0f, 0.9f);
+		p.Dashed(false);
+		p.FillPoly({ { -0.15f, -0.6f }, { -0.15f, 0.6f }, { -0.85f, 0.6f } });
+		p.Poly({ { -0.15f, -0.6f }, { -0.15f, 0.6f }, { -0.85f, 0.6f } }, true);
+		p.Poly({ { 0.15f, -0.6f }, { 0.15f, 0.6f }, { 0.85f, 0.6f } }, true);
+		break;
+	case RibbonIcon::ImageBackground:   // 사진 틀 + 지우개로 지운 자리(점선)
+		p.Rect(-0.9f, -0.7f, 1.8f, 1.4f);
+		p.Dashed(true);
+		p.Ellipse(-0.2f, 0.0f, 0.45f, 0.4f);
+		p.Dashed(false);
+		p.FillPoly({ { 0.25f, 0.15f }, { 0.65f, -0.25f }, { 0.95f, 0.05f }, { 0.55f, 0.45f } });
+		p.Poly({ { 0.25f, 0.15f }, { 0.65f, -0.25f }, { 0.95f, 0.05f }, { 0.55f, 0.45f } }, true);
+		break;
+	case RibbonIcon::ImageCrop:     // 엇갈린 두 꺾쇠
+		p.Poly({ { -0.55f, -0.9f }, { -0.55f, 0.55f }, { 0.9f, 0.55f } });
+		p.Poly({ { -0.9f, -0.55f }, { 0.55f, -0.55f }, { 0.55f, 0.9f } });
+		p.FillPoly({ { -0.55f, -0.55f }, { 0.55f, -0.55f }, { 0.55f, 0.55f }, { -0.55f, 0.55f } });
+		break;
+
+	// ── 관리 ──
+	case RibbonIcon::Layers:        // 겹친 판 셋 — 맨 위가 강조
+		p.FillPoly({ { 0.0f, -0.85f }, { 0.9f, -0.45f }, { 0.0f, -0.05f }, { -0.9f, -0.45f } });
+		p.Poly({ { 0.0f, -0.85f }, { 0.9f, -0.45f }, { 0.0f, -0.05f }, { -0.9f, -0.45f } }, true);
+		p.Poly({ { -0.9f, -0.05f }, { 0.0f, 0.35f }, { 0.9f, -0.05f } });
+		p.Poly({ { -0.9f, 0.35f }, { 0.0f, 0.75f }, { 0.9f, 0.35f } });
+		break;
+	case RibbonIcon::Linetype:      // 실선 · 파선 · 일점쇄선
+		p.Line(-0.9f, -0.6f, 0.9f, -0.6f);
+		p.Dashed(true);
+		p.Line(-0.9f, 0.0f, 0.9f, 0.0f);
+		p.Dashed(false);
+		p.Line(-0.9f, 0.6f, -0.35f, 0.6f);
+		p.Dot(-0.15f, 0.6f);
+		p.Line(0.05f, 0.6f, 0.9f, 0.6f);
+		break;
+	case RibbonIcon::Block:         // 묶인 도형(원 + 사각형) + 기준점
+		p.Dashed(true);
+		p.Rect(-0.9f, -0.9f, 1.8f, 1.8f);
+		p.Dashed(false);
+		p.Rect(-0.6f, -0.1f, 0.7f, 0.65f);
+		p.FillEllipse(0.3f, -0.25f, 0.35f, 0.35f);
+		p.Ellipse(0.3f, -0.25f, 0.35f, 0.35f);
+		p.Dot(-0.6f, 0.55f);
+		break;
+	case RibbonIcon::BlockEdit:     // 블록 테두리 + 연필
+		p.Dashed(true);
+		p.Rect(-0.9f, -0.9f, 1.4f, 1.4f);
+		p.Dashed(false);
+		p.FillPoly({ { -0.2f, 0.75f }, { 0.65f, -0.1f }, { 0.9f, 0.15f }, { 0.05f, 1.0f } });
+		p.Poly({ { -0.2f, 0.75f }, { 0.65f, -0.1f }, { 0.9f, 0.15f }, { 0.05f, 1.0f }, { -0.25f, 1.0f } }, true);
+		break;
+	case RibbonIcon::Xref:          // 문서 + 고리(바깥 파일을 가리킴)
+		p.Poly({ { -0.8f, -0.9f }, { 0.2f, -0.9f }, { 0.5f, -0.6f }, { 0.5f, 0.2f } });
+		p.Poly({ { -0.8f, -0.9f }, { -0.8f, 0.9f }, { -0.1f, 0.9f } });
+		p.Ellipse(0.25f, 0.55f, 0.28f, 0.2f);
+		p.Ellipse(0.65f, 0.55f, 0.28f, 0.2f);
+		break;
+	case RibbonIcon::FileOpen:      // 열린 폴더
+		p.FillPoly({ { -0.7f, -0.1f }, { 0.95f, -0.1f }, { 0.7f, 0.7f }, { -0.95f, 0.7f } });
+		p.Poly({ { -0.9f, 0.7f }, { -0.9f, -0.7f }, { -0.35f, -0.7f }, { -0.2f, -0.5f }, { 0.6f, -0.5f }, { 0.6f, -0.1f } });
+		p.Poly({ { -0.7f, -0.1f }, { 0.95f, -0.1f }, { 0.7f, 0.7f }, { -0.95f, 0.7f } }, true);
+		break;
+	case RibbonIcon::FileSave:      // 디스켓
+		p.Poly({ { -0.85f, -0.85f }, { 0.55f, -0.85f }, { 0.85f, -0.55f }, { 0.85f, 0.85f }, { -0.85f, 0.85f } }, true);
+		p.Rect(-0.45f, -0.85f, 0.8f, 0.5f);
+		p.FillPoly({ { -0.55f, 0.15f }, { 0.55f, 0.15f }, { 0.55f, 0.85f }, { -0.55f, 0.85f } });
+		p.Rect(-0.55f, 0.15f, 1.1f, 0.7f);
+		break;
+
 	case RibbonIcon::None:
 	default:
 		break;

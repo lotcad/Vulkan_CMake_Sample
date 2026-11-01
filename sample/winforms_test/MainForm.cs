@@ -22,6 +22,16 @@ namespace LotCadWinForms
 
         readonly VulkanPanel _render = new VulkanPanel { Dock = DockStyle.Fill, BackColor = Color.Black };
         readonly AnalysisPanel _analysis = new AnalysisPanel { Dock = DockStyle.Right, Visible = false };   // 해석 — 툴바·메뉴가 연다
+        readonly LayerPanel _layers = new LayerPanel();   // 도면층·선종류·블록 — 메뉴 "도면"
+        readonly ToolsPanel _tools = new ToolsPanel();    // 분해도·메시 수리 — 메뉴 "도구"
+        // 엔진에 읽는 함수가 없는 상태 — 호스트가 들고 있는다(처음 값 = 엔진 기본값)
+        bool _dynInput = true, _graphOn;
+        ToolStripMenuItem _dynItem, _graphItem;
+        // 이벤트 — 델리게이트를 필드로 붙들어 둔다(GC 가 걷어가면 엔진이 사라진 함수를 부른다)
+        CadApi.EventCb _onEvent;
+        uint _eventHandle;
+        string _eventCommand = "";
+        int _eventCreated, _eventDeleted;
         readonly Label _status = new Label { Text = "준비", AutoSize = true, ForeColor = TextBody, Dock = DockStyle.Left };
         readonly Label _info = new Label { Text = "", AutoSize = true, ForeColor = TextInfo, Dock = DockStyle.Right };
         readonly Label _sceneInfo = new Label { Text = "객체 0 · 선택 0", AutoSize = true, ForeColor = TextInfo };
@@ -43,6 +53,8 @@ namespace LotCadWinForms
             // 도킹은 나중에 넣은 것부터 자리를 잡는다 → 채움(렌더)을 먼저, 메뉴를 마지막에.
             Controls.Add(_render);
             Controls.Add(_analysis);
+            Controls.Add(_layers);
+            Controls.Add(_tools);
             Controls.Add(BuildSidePanel());
             Controls.Add(BuildStatusBar());
             Controls.Add(BuildToolbar());
@@ -56,6 +68,7 @@ namespace LotCadWinForms
                              : assetsOk             ? "엔진 준비됨"
                                                     : "엔진 준비됨 (에셋 경로 실패 — 치수/문자 미동작)";
                 _info.Text = _render.EngineReady ? "● 렌더링" : "";
+                if (_render.EngineReady) StartEvents();
                 _render.Focus();
             };
 
@@ -64,7 +77,119 @@ namespace LotCadWinForms
             Application.Idle += OnIdle;
             FormClosed += (s, e) => Application.Idle -= OnIdle;
             // 해석 상태 폴링을 엔진 정리(렌더 영역 핸들 파괴)보다 **먼저** 멈춘다 — 헐린 엔진에 묻지 않게
-            FormClosing += (s, e) => _analysis.Shutdown();
+            FormClosing += (s, e) =>
+            {
+                _analysis.Shutdown();
+                _layers.Shutdown();
+                _tools.Shutdown();
+                if (_eventHandle != 0) CadApi.CAD_RemoveEventListener(_eventHandle);
+                _eventHandle = 0;
+            };
+        }
+
+        // 오른쪽 패널은 하나씩 — 다른 것을 닫고 연다
+        void ShowSide(Control panel, Action show)
+        {
+            foreach (var p in new Control[] { _analysis, _layers, _tools }) if (p != panel) p.Visible = false;
+            show();
+        }
+
+        // ── 이벤트 ── 콜백은 CAD_Tick 안(= UI 스레드)에서 프레임 끝에 불린다.
+        // 바로 끝나는 명령(cube 등)은 한 틱에 시작 → 끝 → 만들기 순으로 온다(만들기가 끝보다 늦다) —
+        // 그래서 '끝' 에선 BeginInvoke 로 미뤄, 그 틱의 이벤트가 다 온 뒤 상태바에 만든·지운 수를 적는다.
+        void StartEvents()
+        {
+            _onEvent = OnEngineEvent;
+            uint kinds = CadApi.CAD_EVENT_OBJECT_CREATED | CadApi.CAD_EVENT_OBJECT_DELETED |
+                         CadApi.CAD_EVENT_COMMAND_STARTED | CadApi.CAD_EVENT_COMMAND_ENDED | CadApi.CAD_EVENT_COMMAND_CANCELLED;
+            if (CadApi.CAD_AddEventListener(kinds, _onEvent, IntPtr.Zero, 0, out _eventHandle) != 0) _eventHandle = 0;   // 0 = 호스트
+        }
+
+        void OnEngineEvent(int kind, uint id, IntPtr user)
+        {
+            switch ((uint)kind)
+            {
+                case CadApi.CAD_EVENT_OBJECT_CREATED: _eventCreated++; break;
+                case CadApi.CAD_EVENT_OBJECT_DELETED: _eventDeleted++; break;
+                case CadApi.CAD_EVENT_COMMAND_STARTED:
+                    _eventCommand = CadApi.ReadText(CadApi.CAD_EdGetCommandName);   // 명령행에 친 첫 낱말(소문자)
+                    break;
+                case CadApi.CAD_EVENT_COMMAND_ENDED:
+                case CadApi.CAD_EVENT_COMMAND_CANCELLED:
+                    bool cancelled = kind == (int)CadApi.CAD_EVENT_COMMAND_CANCELLED;
+                    BeginInvoke(new Action(() =>
+                    {
+                        if (cancelled) _status.Text = $"[이벤트] {_eventCommand} 취소";
+                        else if (_eventCreated + _eventDeleted > 0)
+                            _status.Text = $"[이벤트] {_eventCommand} 끝 — 만든 객체 {_eventCreated} · 지운 객체 {_eventDeleted}";
+                        _eventCreated = _eventDeleted = 0;
+                    }));
+                    break;
+            }
+        }
+
+        // F12 = 동적 입력 — 렌더 영역이 키를 엔진에 넘기기 전에 여기서 받아 메뉴 체크와 맞춘다
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.F12) { ToggleDynInput(); return true; }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        // 동적 입력은 읽는 함수가 없어 호스트가 상태를 들고 있는다. 명령이 없을 땐 dyn on|off 로 정확히 맞추고,
+        // 그리는 중엔 명령행에 글을 넣으면 값으로 먹히므로 엔진에 F12 키를 보낸다(엔진의 F12 = 동적 입력 뒤집기.
+        // 단 자르기·연장 중의 F12 는 EDGE 모드라 그때는 체크가 어긋날 수 있다).
+        void ToggleDynInput()
+        {
+            _dynInput = !_dynInput;
+            var state = new CadApi.EdCommandState { Size = (uint)Marshal.SizeOf<CadApi.EdCommandState>() };
+            if (CadApi.CAD_EdGetCommandState(ref state) == 0 && state.CommandActive)
+            {
+                CadApi.CAD_OnKeyDownVK(0x7B);   // VK_F12
+                CadApi.CAD_OnKeyUpVK(0x7B);
+            }
+            else CadApi.CAD_ExecuteCommand(_dynInput ? "dyn on" : "dyn off");
+            _dynItem.Checked = _dynInput;
+        }
+
+        // 노드 그래프 칸 — 엔진이 Vulkan 으로 3D 뷰 오른쪽 칸에 그린다(호스트 창 안에서도 보인다). 읽는 함수가 없어 호스트가 상태를.
+        void ToggleGraph()
+        {
+            _graphOn = !_graphOn;
+            CadApi.StartCommand(_graphOn ? "graph on" : "graph off");
+            _graphItem.Checked = _graphOn;
+            _render.Focus();
+        }
+
+        // ── 파일 — 고르기는 호스트(대화상자), 엔진에는 경로만. 포맷은 확장자로 엔진이 정한다 ──
+        void OpenFile(string filter)
+        {
+            using var dlg = new OpenFileDialog { Filter = filter };
+            if (dlg.ShowDialog(this) != DialogResult.OK) return;
+            if (CadApi.CAD_OpenFile(CadApi.Utf8(dlg.FileName)) == 0) CadApi.CAD_ZoomExtents();   // 연 것이 화면 밖일 수 있다
+            else MessageBox.Show(this, CadApi.LastError() is { Length: > 0 } e ? e : "열기 실패", "LotCAD");
+        }
+
+        // 확장자가 없으면 DefaultExt(필터의 첫 확장자)가 붙는다 — 모르는 확장자는 엔진이 OBJ 로 저장하니 꼭 붙인다
+        void SaveFile(string filter, string what)
+        {
+            using var dlg = new SaveFileDialog { Filter = filter, AddExtension = true };
+            if (dlg.ShowDialog(this) != DialogResult.OK) return;
+            if (CadApi.CAD_SaveAs(CadApi.Utf8(dlg.FileName), false) != 0)
+                MessageBox.Show(this, CadApi.LastError() is { Length: > 0 } e ? e : what + " 실패", "LotCAD");
+        }
+
+        // 이미지 붙이기 — 원점에 긴 변 10 단위로 놓고 골라 둔다(이어서 회전·뒤집기·배경 지우기가 그 이미지에 먹는다)
+        void AttachImage()
+        {
+            using var dlg = new OpenFileDialog { Filter = "이미지 (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|모든 파일 (*.*)|*.*" };
+            if (dlg.ShowDialog(this) != DialogResult.OK) return;
+            if (CadApi.CAD_AttachImageFromFile(CadApi.Utf8(dlg.FileName), 0, new CadApi.GeVec3(0, 0, 0), IntPtr.Zero, out uint id) != 0)
+            {
+                MessageBox.Show(this, CadApi.LastError(), "LotCAD");
+                return;
+            }
+            CadApi.CAD_SetSelection(new[] { id }, 1, 0);
+            CadApi.CAD_ZoomExtents();
         }
 
         void OnIdle(object sender, EventArgs e)
@@ -83,6 +208,13 @@ namespace LotCadWinForms
         {
             var menu = new MenuStrip { BackColor = Bg, ForeColor = TextMain, Padding = new Padding(4, 2, 0, 2) };
             menu.Items.Add(Menu("파일(&F)",
+                Item("열기...", (s, e) => OpenFile(
+                    "CAD 파일|*.lot;*.step;*.stp;*.dwg;*.dxf;*.obj;*.stl;*.fbx;*.ply;*.gltf;*.glb|STEP (*.step;*.stp)|*.step;*.stp|" +
+                    "도면 (*.dwg;*.dxf)|*.dwg;*.dxf|모든 파일 (*.*)|*.*")),
+                Item("다른 이름으로 저장...", (s, e) => SaveFile("프로젝트 (*.lot)|*.lot", "저장")),
+                Item("내보내기...", (s, e) => SaveFile(
+                    "STEP AP242 (*.step)|*.step|DWG R2018 (*.dwg)|*.dwg|DXF (*.dxf)|*.dxf|STL (*.stl)|*.stl|OBJ (*.obj)|*.obj|glTF (*.glb)|*.glb", "내보내기")),
+                null,
                 Item("모두 지움", (s, e) => CadApi.CAD_ClearAll()),
                 null,
                 Item("종료", (s, e) => Close())));
@@ -99,10 +231,35 @@ namespace LotCadWinForms
                 null,
                 Item("줌 맞춤", (s, e) => CadApi.CAD_ZoomExtents()),
                 Item("투영 전환 (Ortho/Persp)", (s, e) => CadApi.ToggleProjection())));
+            // 도면 — 엔진에선 ImGui 창이 여는 것들. 블록 만들기·편집은 명령행이 이름·기준점을 묻는 엔진 명령
+            menu.Items.Add(Menu("도면(&D)",
+                Item("도면층", (s, e) => ShowSide(_layers, () => _layers.ShowPage(0))),
+                Item("선종류", (s, e) => ShowSide(_layers, () => _layers.ShowPage(1))),
+                null,
+                Item("블록 만들기 (선택한 객체로)", (s, e) => { CadApi.StartCommand("block"); _render.Focus(); }),
+                Item("블록 편집 (선택한 블록 참조)", (s, e) => { CadApi.StartCommand("bedit"); _render.Focus(); }),
+                Item("블록·외부 참조", (s, e) => ShowSide(_layers, () => _layers.ShowPage(2)))));
+            _graphItem = Item("노드 그래프", (s, e) => ToggleGraph());
+            _dynItem = Item("동적 입력\tF12", (s, e) => ToggleDynInput());
+            _dynItem.Checked = _dynInput;
+            // 이미지 편집은 선택한 이미지에 먹는 엔진 명령 — 붙이기만 호스트 파일 창
+            menu.Items.Add(Menu("도구(&T)",
+                _graphItem,
+                Item("분해도", (s, e) => ShowSide(_tools, () => _tools.ShowPage(0))),
+                Item("메시 수리", (s, e) => ShowSide(_tools, () => _tools.ShowPage(1))),
+                null,
+                Menu("이미지",
+                    Item("붙이기...", (s, e) => AttachImage()),
+                    Item("90° 회전", (s, e) => CadApi.StartCommand("imagerotate 90")),
+                    Item("좌우 뒤집기", (s, e) => CadApi.StartCommand("imageflip h")),
+                    Item("배경 지우기 (클릭)", (s, e) => { CadApi.StartCommand("imagebg"); _render.Focus(); }),
+                    Item("자르기 (두 구석)", (s, e) => { CadApi.StartCommand("imagecrop"); _render.Focus(); })),
+                null,
+                _dynItem));
             menu.Items.Add(Menu("해석(&A)",
-                Item("바람 터널", (s, e) => _analysis.ShowPage(0)),
-                Item("물", (s, e) => _analysis.ShowPage(1)),
-                Item("구조 해석", (s, e) => _analysis.ShowPage(2))));
+                Item("바람 터널", (s, e) => ShowSide(_analysis, () => _analysis.ShowPage(0))),
+                Item("물", (s, e) => ShowSide(_analysis, () => _analysis.ShowPage(1))),
+                Item("구조 해석", (s, e) => ShowSide(_analysis, () => _analysis.ShowPage(2)))));
             return menu;
         }
 
@@ -149,9 +306,9 @@ namespace LotCadWinForms
 
             bar.Controls.Add(Separator());
             bar.Controls.Add(GroupLabel("해석"));
-            bar.Controls.Add(ToolButton("바람 터널", (s, e) => _analysis.ShowPage(0)));
-            bar.Controls.Add(ToolButton("물", (s, e) => _analysis.ShowPage(1)));
-            bar.Controls.Add(ToolButton("구조 해석", (s, e) => _analysis.ShowPage(2)));
+            bar.Controls.Add(ToolButton("바람 터널", (s, e) => ShowSide(_analysis, () => _analysis.ShowPage(0))));
+            bar.Controls.Add(ToolButton("물", (s, e) => ShowSide(_analysis, () => _analysis.ShowPage(1))));
+            bar.Controls.Add(ToolButton("구조 해석", (s, e) => ShowSide(_analysis, () => _analysis.ShowPage(2))));
             return bar;
         }
 

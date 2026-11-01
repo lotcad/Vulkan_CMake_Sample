@@ -135,6 +135,7 @@ BEGIN_MESSAGE_MAP(CLotCADMFCDlg, CDialogEx)
 	ON_WM_SIZE()
 	ON_WM_DESTROY()
 	// 메뉴 명령은 ON_COMMAND — 버튼(ON_BN_CLICKED)과 달리 알림 코드가 없다.
+	ON_MESSAGE(CLotCADMFCDlg::kEventLogMessage, &CLotCADMFCDlg::OnEventLog)   // 엔진 이벤트 — LotCAD_MFCDlg_Tools.cpp
 	ON_COMMAND(ID_CAD_OPEN,       &CLotCADMFCDlg::OnCadOpen)
 	ON_COMMAND(ID_CAD_SAVEAS,     &CLotCADMFCDlg::OnCadSaveAs)
 	ON_COMMAND(ID_CAD_EXPORT,     &CLotCADMFCDlg::OnCadExport)
@@ -194,6 +195,7 @@ BOOL CLotCADMFCDlg::OnInitDialog()
 	LayoutChildren(dlgRc.Width(), dlgRc.Height());
 
 	m_view.AttachEngine();   // CAD_AttachView + CAD_CreateEngine + timer
+	if (m_view.m_engineReady) StartEvents();   // 명령 끝 → 명령행 기록 (LotCAD_MFCDlg_Tools.cpp)
 
 	// 상태바가 보여 주는 값과 엔진을 처음에 한 번 맞춘다 (SDK 에 읽는 함수가 없어 호스트 값이 기준).
 	CAD_SetProjection(m_ortho);
@@ -208,6 +210,7 @@ BOOL CLotCADMFCDlg::OnInitDialog()
 void CLotCADMFCDlg::OnDestroy()
 {
 	if (m_panel.GetSafeHwnd()) m_panel.Close();
+	StopEvents();   // 이벤트 구독도 엔진보다 먼저 푼다
 	CDialogEx::OnDestroy();
 }
 
@@ -253,13 +256,14 @@ void CLotCADMFCDlg::LayoutChildren(int cx, int cy)
 
 BOOL CLotCADMFCDlg::PreTranslateMessage(MSG* pMsg)
 {
-	// F3 객체스냅 · F8 직교 추적 · F10 극좌표 추적 — 엔진처럼 포커스가 어디 있든 (명령행에 값을 치는 중에도).
+	// F3 객체스냅 · F8 직교 추적 · F10 극좌표 추적 · F12 동적 입력 — 엔진처럼 포커스가 어디 있든 (명령행에 값을 치는 중에도).
 	// F10 은 윈도우가 메뉴 막대 키로 쓰는 시스템 키라 WM_SYSKEYDOWN 으로 온다 — 같이 막는다.
 	if (pMsg->message == WM_KEYDOWN || pMsg->message == WM_SYSKEYDOWN)
 	{
 		if (pMsg->wParam == VK_F3)  { ToggleOSnap();         return TRUE; }
 		if (pMsg->wParam == VK_F8)  { ToggleOrthoTracking(); return TRUE; }
 		if (pMsg->wParam == VK_F10) { TogglePolarTracking(); return TRUE; }
+		if (pMsg->wParam == VK_F12) { ToggleDynInput();      return TRUE; }
 	}
 
 	// 오토캐드처럼 3D 뷰를 보면서 바로 타이핑 — 뷰가 포커스를 쥔 채 친 키를 명령행으로 돌린다.
@@ -364,18 +368,33 @@ void CLotCADMFCDlg::OnCadOpen()
 {
 	// CAD_OpenFile 이 받는 확장자 그대로. .lot 은 씬 전체, 나머지는 현재 문서에 추가.
 	static const TCHAR kFilter[] =
-		_T("CAD 파일|*.lot;*.obj;*.stl;*.dxf;*.ply;*.gltf;*.glb|")
+		_T("CAD 파일|*.lot;*.step;*.stp;*.dwg;*.dxf;*.obj;*.stl;*.fbx;*.ply;*.gltf;*.glb|")
 		_T("프로젝트 (*.lot)|*.lot|")
-		_T("메시 (*.obj;*.stl;*.gltf;*.glb)|*.obj;*.stl;*.gltf;*.glb|")
-		_T("도면 (*.dxf)|*.dxf|")
+		_T("STEP (*.step;*.stp)|*.step;*.stp|")
+		_T("도면 (*.dwg;*.dxf)|*.dwg;*.dxf|")
+		_T("메시 (*.obj;*.stl;*.fbx;*.gltf;*.glb)|*.obj;*.stl;*.fbx;*.gltf;*.glb|")
 		_T("점군 (*.ply)|*.ply|")
 		_T("모든 파일 (*.*)|*.*||");
+	OpenFileOfType(kFilter);
+}
 
+// 리본 관리 > STEP 열기 도 이 길 — 필터만 다르다
+void CLotCADMFCDlg::OpenFileOfType(const TCHAR* filter)
+{
 	CString path;
-	if (!PickPath(false, kFilter, path)) return;
+	if (!PickPath(false, filter, path)) return;
 	// 결과 코드 — CAD_OK(0) = 성공, 음수 = 실패(이유는 CAD_GetLastError)
 	if (CAD_OpenFile(Utf8Path(path).buf) == CAD_OK) CAD_ZoomExtents();  // 연 것이 화면 밖일 수 있다
 	else                                            ReportFailure(_T("열기 실패"));
+}
+
+// 정한 형식으로 저장 — 확장자가 없으면 ext 를 붙인다(포맷은 확장자로 정해진다. 모르는 확장자는 OBJ 로 저장되니 꼭 붙인다).
+void CLotCADMFCDlg::SaveAsType(const TCHAR* filter, const TCHAR* ext, const TCHAR* what)
+{
+	CString path;
+	if (!PickPath(true, filter, path)) return;
+	if (path.Find(_T('.'), path.ReverseFind(_T('\\')) + 1) < 0) path += ext;
+	if (CAD_SaveAs(Utf8Path(path).buf, false) != CAD_OK) ReportFailure(CString(what) + _T(" 실패"));
 }
 
 void CLotCADMFCDlg::OnCadSaveAs()
@@ -393,6 +412,8 @@ void CLotCADMFCDlg::OnCadExport()
 	// 내보내기는 확장자로 포맷이 갈린다 — 필터 순서가 곧 기본 확장자다.
 	static const TCHAR kFilter[] =
 		_T("STL (*.stl)|*.stl|")
+		_T("STEP AP242 (*.step)|*.step|")
+		_T("DWG R2018 (*.dwg)|*.dwg|")
 		_T("DXF (*.dxf)|*.dxf|")
 		_T("OBJ (*.obj)|*.obj|")
 		_T("glTF (*.glb)|*.glb||");

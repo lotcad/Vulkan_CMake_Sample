@@ -241,6 +241,9 @@
     <ClCompile Include="RibbonIcons.cpp" />
     <ClCompile Include="LotCAD_MFCDlg.cpp" />
     <ClCompile Include="LotCAD_MFCDlg_Analysis.cpp" />
+    <ClCompile Include="LotCAD_MFCDlg_Layers.cpp" />
+    <ClCompile Include="LotCAD_MFCDlg_Blocks.cpp" />
+    <ClCompile Include="LotCAD_MFCDlg_Tools.cpp" />
     <ClCompile Include="LotCAD_MFCDlg_Panels.cpp" />
     <ClCompile Include="LotCAD_MFCDlg_Ribbon.cpp" />
     <ClCompile Include="LotCAD_MFCDlg_StatusBar.cpp" />
