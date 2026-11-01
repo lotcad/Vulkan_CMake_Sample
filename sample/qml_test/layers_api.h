@@ -76,8 +76,10 @@ public:
         check(CAD_SetLayerLinetype(uint32_t(id), uint32_t(linetypeId)), "도면층 선종류");
     }
     Q_INVOKABLE void assignSelected(int id, const QString& name) {
-        uint32_t changed = 0;
-        if (check(CAD_AssignSelectedToLayer(uint32_t(id), &changed), "도면층 옮기기"))
+        uint32_t changed = 0, recolored = 0;
+        const CAD_Status st = CAD_AssignSelectedToLayer(uint32_t(id), &changed);
+        CAD_SetSelectedColorByLayer(true, &recolored);   // 색도 도면층 것(ByLayer) — 안 하면 옮겨도 원래 색 그대로
+        if (check(st, "도면층 옮기기"))
             say(changed ? QString("%1개를 도면층 '%2' 으로").arg(changed).arg(name) : "옮길 객체가 없습니다 — 3D 뷰에서 먼저 선택");
     }
 

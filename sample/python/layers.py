@@ -187,6 +187,7 @@ class LayersPanel(QWidget):
         if not L:
             return self._log("도면층을 먼저 고르세요")
         st, changed = lotcad.CAD_AssignSelectedToLayer(L["id"])
+        lotcad.CAD_SetSelectedColorByLayer(True)   # 색도 도면층 것(ByLayer) — 안 하면 옮겨도 원래 색 그대로
         if self._check(st, "도면층 옮기기"):
             self._log(f"{changed}개를 도면층 '{L['name']}' 으로" if changed else "옮길 객체가 없습니다 — 3D 뷰에서 먼저 선택")
         self.refresh(force=True)

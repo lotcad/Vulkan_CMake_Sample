@@ -10,7 +10,7 @@ Qt6 QML 창에 LotCAD 엔진을 임베드하는 CMake 프로젝트입니다. Win
 ApplicationWindow (QML)
 ├── 상단 ToolBar → CadCommands → LotCAD C API
 ├── 좌측 도구 패널
-├── 우측 기능 패널 — 도면(DrawingApi) · 단면(SectionApi) · 해석(AnalysisApi, AnalysisPanel.qml)
+├── 우측 기능 패널 — 도면(DrawingApi) · 단면(SectionApi) · 해석(AnalysisApi) · 도면층·선종류·블록(LayersApi) · 노드 그래프(GraphApi)
 └── VulkanViewport (QQuickItem, C++)
     ├── 네이티브 자식 QWindow 생성
     ├── winId(HWND / XID / NSView) → CAD_AttachView
@@ -110,3 +110,22 @@ Windows의 Visual Studio 생성기에서는 실행파일이 `build/Debug` 또는
 - 구조 해석: 열기(면 목록) → 면 골라 고정 · 힘 · 압력(열전도면 온도 · 열 · 대류) → 실행 → 응력 · 변위 · 안전율
 
 해석 모듈(`libLotCADSim` · `libLotCADCfd`)이 엔진 라이브러리 옆(`sdk/`)에 있어야 합니다.
+
+## 도면층 · 선종류 · 블록 — [형식]
+
+![도면층 — 벽·기둥 두 층, 색은 도면층 따라](screenshots/layers.png)
+
+메뉴·리본 [형식] → 오른쪽 `LayersPanel.qml`(`LayersApi`, `layers_api.h`). 도면층 목록(●보임 · 🔒잠금 · 색 · 객체 수 — 칸을 누르면 바뀐다),
+새로 · 이름 · 도면층 선종류 · 선택한 객체를 이 도면층으로(색도 도면층 것), 선종류 적용 · ByLayer · LTSCALE · ltload, 블록 만들기 · 삽입 분해.
+
+## 노드 그래프 — [그래프]
+
+![노드 그래프 — 예제: 상자 → 선형 배열(5개) → 출력](screenshots/node_graph.png)
+
+메뉴·리본 [그래프] → `NodeGraphPanel.qml`(`GraphApi`, `graph_api.h`): 노드 넣기 · 입력 값(숫자 · 참/거짓 · 글자 · 점 x,y,z) · 잇기 · 끊기 · 계산 · 굽기,
+[예제] = 상자 → 선형 배열(5개) → 출력. 종류 목록은 패널을 처음 열 때 읽는다(첫 `CAD_Tick` 전엔 엔진이 죽는다).
+
+## 그 밖에
+
+- 3D 탭 [메시] · [형식] 메뉴 — 점검(`CAD_CheckMesh`) · 수리(`CAD_RepairMeshes`). 결과는 왼쪽 패널 아래(누르면 지워진다).
+- 파일 열기·저장 필터에 STEP(.step · .stp) · DWG.

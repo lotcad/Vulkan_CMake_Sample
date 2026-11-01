@@ -133,6 +133,8 @@ $ADB shell screencap -p /sdcard/s.png && $ADB pull /sdcard/s.png   # 화면 캡�
 
 ## 더보기 — 분해도 · 도면층 · 사진 편집
 
+<img src="screenshots/more.png" width="520" alt="분해 — 부품 6개·분해도 막대 / 도면층 대화상자">
+
 [더보기] 줄(그리기·측정·뷰와 같은 점진적 노출):
 - 분해 · 펼치기 · 접기 · 분해 끄기 = `CAD_ExplodeView`(auto · play · back · clear, JNI `nativeExplodeView` — 결과 JSON). 엔진 분해도 막대(▶ · %)가 아래에 뜬다.
 - 도면층 = `CAD_GetLayersJson` 목록 대화상자 → 고르면 보이기/숨기기(`CAD_SetLayerVisible`) · 잠그기(`CAD_SetLayerLocked`) ·

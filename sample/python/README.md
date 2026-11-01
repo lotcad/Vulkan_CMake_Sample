@@ -64,6 +64,8 @@ lotcad.CAD_DestroyEngine()
 | `main.py` | 시작 — 바인딩 경로·Qt 플랫폼(리눅스 X11)·테마 |
 | `cad_view.py` | 3D 뷰 — 엔진이 그리는 네이티브 창(`QWindow`)을 붙이고 마우스를 넘긴다 |
 | `main_window.py` | 리본 버튼에 엔진 명령 달기 · 파일·해석 메뉴 · 키 처리 · 차집합 |
+| `layers.py` | 도면층·선종류·블록 패널 — `CAD_GetLayersJson`·`CAD_CreateLayer`·`CAD_SetObjectLinetype`·`CAD_CreateBlock` … |
+| `node_graph.py` | 노드 그래프 패널 — `CAD_NodeGraph*`(노드 넣기·값·잇기·계산·굽기) |
 | `analysis.py` | 해석 패널 — `CAD_WindTunnel` · `CAD_Water` · `CAD_StructuralAnalysis` (2회 호출 규약을 직접 지킨다) |
 | `command_line.py` | 명령행 — 기록·안내문(`CAD_SetOnPrompt`)·↑↓ 기록·빈 Enter 반복·Esc 취소 |
 | `ribbon.py` | 리본 틀 (CAD 를 모른다 — 버튼마다 함수를 받는다) |
@@ -90,3 +92,25 @@ lotcad.CAD_DestroyEngine()
 해석 모듈(`libLotCADSim` · `libLotCADCfd`)이 엔진 라이브러리 옆(`sdk/`)에 있어야 한다.
 ⚠️ 결과 JSON 이 256바이트를 넘을 수 있어 자동 생성 바인딩(`lotcad.CAD_WindTunnel` 등)은 버퍼를 키워 **다시** 부른다 —
 start·run 이 두 번 들어가 "이미 도는 중" 이 되므로 `analysis.call()` 처럼 길이를 먼저 묻고(NULL) 같은 인자로 버퍼를 넘긴다.
+
+## 도면층 · 선종류 · 블록 — 리본 [도면]
+
+![도면층 — 벽·기둥 두 층, 색은 도면층 따라](screenshots/layers.png)
+
+- 도면층: 목록(보임·잠금·색·객체 수) — 보임·잠금 칸을 누르면 바뀌고 색 칸은 색 고르기. 새 도면층 · 이름 바꾸기 · 도면층 선종류 ·
+  **선택한 객체를 이 도면층으로**(`CAD_AssignSelectedToLayer` + `CAD_SetSelectedColorByLayer` — 색도 도면층 것). 도면층 지우기·현재 도면층 API 는 아직 없다.
+- 선종류: 선택한 객체에 적용(`CAD_SetObjectLinetype`) · ByLayer · 전체 축척(`CAD_SetLinetypeScale`) · .lin 불러오기(명령 `ltload`).
+- 블록: 선택으로 만들기(`CAD_CreateBlock`, 기준점 = 선택 상자 바닥 중앙) · 삽입 분해(`CAD_EntityExplode`) · 속성 값(`CAD_GetInsertAttributesJson`).
+
+## 노드 그래프 — 리본 [그래프]
+
+![노드 그래프 — 예제: 상자 → 선형 배열(5개) → 출력](screenshots/node_graph.png)
+
+엔진 그래프 편집기(ImGui)는 호스트 창에서 안 그려져 패널이 C API 로 같은 일을 한다 — 노드 넣기(`CAD_NodeGraphAddNode`) → 입력 값(`CAD_NodeGraphSet*`) →
+잇기(`CAD_NodeGraphConnect`) → 엔진이 다음 프레임에 계산해 output 노드가 장면 객체를 만든다. 굽기(`CAD_NodeGraphBake`) = 보통 객체로 떼어 내기.
+⚠️ 종류 목록(`CAD_NodeGraphGetKindsJson`)은 엔진이 한 프레임 돈 뒤에 묻는다(그 전엔 엔진이 죽는다). `CAD_ClearAll` 은 다음 프레임에 그래프까지 지운다.
+
+## 그 밖에
+
+- 3D 탭 [조립] — 분해도 `CAD_ExplodeView`(자동 분해·펼치기·접기·풍선·부품표·끄기). [메시] — 점검(`CAD_CheckMesh`) · 수리(`CAD_RepairMeshes`, 반환 = 고친 메시 수).
+- 파일 — 열기에 STEP(.step · .stp), 다른 이름으로 저장·내보내기에 STEP · DWG(`CAD_SaveAs` 가 확장자로 형식을 고른다).
